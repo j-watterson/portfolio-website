@@ -25,7 +25,7 @@ npm install
 npm run dev
 ```
 
-Production validation:
+Production validation creates the static hosting artifact in `dist/`:
 
 ```bash
 npm run build
@@ -40,4 +40,3 @@ will generate its listing and permanent page automatically.
 
 The site is connected to OpenAI Sites through `.openai/hosting.json`. Treat its
 `project_id` as opaque and never replace it with another site identifier.
-
