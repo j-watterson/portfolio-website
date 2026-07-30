@@ -47,6 +47,15 @@ will generate its listing and permanent page automatically.
 The site is connected to OpenAI Sites through `.openai/hosting.json`. Treat its
 `project_id` as opaque and never replace it with another site identifier.
 
+For Cloudflare Workers Builds, use:
+
+```text
+Build command: npm run build
+Deploy command: npx wrangler deploy --config dist/server/wrangler.json
+Non-production command: npx wrangler versions upload --config dist/server/wrangler.json
+Root directory: /
+```
+
 For a guided local-development and GitHub-to-Cloudflare workflow, open
 [`docs/local-and-cloudflare-deployment-tutorial.ipynb`](docs/local-and-cloudflare-deployment-tutorial.ipynb).
 
