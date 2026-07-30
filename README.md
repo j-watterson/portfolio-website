@@ -40,3 +40,6 @@ will generate its listing and permanent page automatically.
 
 The site is connected to OpenAI Sites through `.openai/hosting.json`. Treat its
 `project_id` as opaque and never replace it with another site identifier.
+
+For a guided local-development and GitHub-to-Cloudflare workflow, open
+[`docs/local-and-cloudflare-deployment-tutorial.ipynb`](docs/local-and-cloudflare-deployment-tutorial.ipynb).
