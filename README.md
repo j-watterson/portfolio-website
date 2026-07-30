@@ -10,7 +10,7 @@ as three connected engineering case studies:
 ## Features
 
 - Structured project metadata powering listings and case studies
-- Responsive, static-first Next.js pages
+- Responsive Next.js pages packaged with vinext for production hosting
 - Light, dark, and system theme modes
 - Keyboard-accessible navigation and command palette
 - Mobile-friendly platform and project architecture diagrams
@@ -25,7 +25,7 @@ npm install
 npm run dev
 ```
 
-Production validation creates the static hosting artifact in `dist/`:
+Production validation creates the Sites-compatible server artifact in `dist/`:
 
 ```bash
 npm run build
