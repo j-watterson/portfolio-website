@@ -90,7 +90,7 @@ export default function ResumeContent() {
       <div className="resume-toolbar">
         <div>
           <p className="eyebrow">Resume</p>
-          <h1>Jonathon Watterson</h1>
+          <h1>Jon Watterson</h1>
         </div>
         <button className="button primary" onClick={() => window.print()}>
           Print / Save PDF
@@ -100,13 +100,13 @@ export default function ResumeContent() {
       <article className="resume-sheet">
         <header>
           <div>
-            <h2>Jonathon Watterson</h2>
+            <h2>Jon Watterson</h2>
             <p>Data Engineer</p>
           </div>
           <div className="resume-contact">
             <a href="mailto:jwatterson99@proton.me">jwatterson99@proton.me</a>
             <a href="https://www.linkedin.com/in/jw-data/">linkedin.com/in/jw-data</a>
-            <a href="https://github.com/j-watterson">github.com/j-watterson</a>
+            <a href="https://github.com/j-watterson">Jon Watterson on GitHub</a>
           </div>
         </header>
 

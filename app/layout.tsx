@@ -5,12 +5,12 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://jonathon-watterson-portfolio.sites.openai.com"),
-  title: { default: "Jonathon Watterson — Data Engineer", template: "%s | Jonathon Watterson" },
+  title: { default: "Jon Watterson — Data Engineer", template: "%s | Jon Watterson" },
   description: "Data engineering portfolio featuring production-minded ETL, BigQuery warehouse, dbt, and Airflow systems.",
   keywords: ["data engineer", "Python", "SQL", "BigQuery", "dbt", "Airflow", "data platform"],
-  authors: [{ name: "Jonathon Watterson", url: "https://www.jwatterson.com/" }],
+  authors: [{ name: "Jon Watterson", url: "https://www.jwatterson.com/" }],
   openGraph: {
-    title: "Jonathon Watterson — Data Engineering Portfolio",
+    title: "Jon Watterson — Data Engineering Portfolio",
     description: "Reliable pipelines, cloud data systems, and analytics infrastructure.",
     type: "website",
   },
@@ -31,7 +31,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   const person = {
     "@context": "https://schema.org",
     "@type": "Person",
-    name: "Jonathon Watterson",
+    name: "Jon Watterson",
     url: "https://www.jwatterson.com/",
     jobTitle: "Data Engineer",
     sameAs: ["https://github.com/j-watterson", "https://www.linkedin.com/in/jw-data/"],
@@ -48,4 +48,3 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     </html>
   );
 }
-

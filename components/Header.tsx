@@ -51,9 +51,9 @@ export default function Header() {
       <header className="site-header">
         <a className="skip-link" href="#main">Skip to content</a>
         <div className="nav-shell">
-          <Link className="brand" href="/" aria-label="Jonathon Watterson home">
+          <Link className="brand" href="/" aria-label="Jon Watterson home">
             <span className="brand-mark" aria-hidden="true">JW</span>
-            <span>Jonathon Watterson</span>
+            <span>Jon Watterson</span>
           </Link>
           <button
             className="menu-button"
@@ -86,4 +86,3 @@ export default function Header() {
     </>
   );
 }
-
