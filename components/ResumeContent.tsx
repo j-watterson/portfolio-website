@@ -16,7 +16,7 @@ const skills = [
 
 const experience = [
   {
-    title: "Data Analytics Engineer / Clinical Data Analyst",
+    title: "Analytics Engineer / Clinical Data Analyst",
     company: "Ambry Genetics",
     dates: "Jan. 2025 – Present",
     bullets: [
@@ -56,23 +56,30 @@ const experience = [
 
 const projects = [
   {
-    title: "Content Opportunity Intelligence Pipeline",
-    stack: "Python · SQL · PostgreSQL · Airflow · dbt · Docker · GitHub Actions",
+    title: "Retail Analytics Platform",
+    stack: "Python · SQL · SQLite · Docker · GitHub Actions",
     bullets: [
-      "Built a containerized batch data platform that ingests discussion and content metadata, validates typed contracts, and publishes ranked opportunities through raw, staging, and analytics warehouse layers.",
-      "Orchestrated retryable ingestion, transformation, quality, ranking, and export stages with Airflow; implemented natural-key upserts and run-level audit metadata for safe reprocessing.",
-      "Developed dbt models and automated uniqueness, relationship, range, accepted-value, and freshness checks to prevent invalid records from reaching analytics consumers.",
-      "Designed deterministic lexical retrieval with an optional semantic-review path, preserving a credential-free mode while supporting checkpointed embeddings and structured model decisions.",
-      "Automated linting, regression tests, offline integration tests, dbt builds, and container builds with GitHub Actions.",
+      "Engineered a configuration-driven Python ETL pipeline that ingests retail order data, validates schema and business rules, quarantines invalid records, and loads a dimensional SQL warehouse.",
+      "Designed a star-schema data model with fact and dimension tables while implementing idempotent processing, transactional loading, audit logging, and natural-key upserts for reliable reprocessing.",
+      "Automated testing, containerization, and CI/CD with Docker and GitHub Actions, including unit tests, structured logging, and operational recovery procedures.",
     ],
   },
   {
-    title: "Investing.University Content Data Pipeline",
-    stack: "JavaScript · Node.js · Eleventy · Nunjucks · CSV · JSON/JSONL · JSON Schema · OpenAI Batch API · Jupyter · npm · Git",
+    title: "Customer Analytics Warehouse",
+    stack: "BigQuery · dbt · SQL · Docker",
     bullets: [
-      "Built a staged Node.js data pipeline that moves content records from CSV intake through normalized JSON checkpoints, schema-constrained generation, editorial review, validated publication datasets, and static serving.",
-      "Implemented deterministic record normalization, duplicate suppression, slug-based idempotency, taxonomy synchronization, and referential-integrity checks across article and graph datasets.",
-      "Added a fail-fast validation stage that blocks builds when identifiers, canonical URLs, required metadata, taxonomy references, or graph relationships violate publishing rules.",
+      "Architected a layered analytics warehouse in BigQuery using dbt, transforming raw operational data into staging, intermediate, dimensional, and reporting models following modern ELT practices.",
+      "Built incremental MERGE models, partitioned and clustered warehouse tables, and implemented reusable SQL transformations, source freshness checks, and automated data quality testing.",
+      "Modeled conformed dimensions, Customer 360 views, and business-ready data marts while documenting lineage, governance, and metric definitions for downstream analytics.",
+    ],
+  },
+  {
+    title: "Workflow Automation Platform",
+    stack: "Apache Airflow · Python · BigQuery · dbt · PostgreSQL",
+    bullets: [
+      "Developed Apache Airflow DAGs to orchestrate end-to-end warehouse workflows, including source validation, dbt transformations, quality testing, and automated reporting refreshes.",
+      "Implemented production reliability features including retries, exponential backoff, execution timeouts, concurrency controls, structured logging, and controlled historical backfills.",
+      "Containerized the orchestration environment with Docker and PostgreSQL metadata while integrating GitHub Actions for automated validation and deployment workflows.",
     ],
   },
 ];
@@ -148,7 +155,7 @@ export default function ResumeContent() {
         </section>
 
         <section>
-          <h3>Projects</h3>
+          <h3>Open Source Engineering Projects</h3>
           {projects.map((project) => (
             <div className="resume-entry resume-project" key={project.title}>
               <div>
