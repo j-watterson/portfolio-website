@@ -7,10 +7,17 @@
     "node": ">=22.12.0"
   },
   "scripts": {
+    "predev": "node scripts/require-node-version.mjs",
     "dev": "vinext dev",
+    "dev:node22": "npx --yes --package=node@22.14.0 --call 'npm run dev'",
+    "prebuild": "node scripts/require-node-version.mjs",
     "build": "vinext build && node scripts/copy-hosting-metadata.mjs",
+    "build:node22": "npx --yes --package=node@22.14.0 --call 'npm run build'",
+    "prestart": "node scripts/require-node-version.mjs",
     "start": "vinext start",
-    "check": "vinext check"
+    "precheck": "node scripts/require-node-version.mjs",
+    "check": "vinext check",
+    "check:node22": "npx --yes --package=node@22.14.0 --call 'npm run check'"
   },
   "dependencies": {
     "next": "15.5.22",

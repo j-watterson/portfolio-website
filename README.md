@@ -21,9 +21,15 @@ as three connected engineering case studies:
 ## Development
 
 ```bash
+nvm install
+nvm use
 npm install
 npm run dev
 ```
+
+If nvm is unavailable, `npm run dev:node22` downloads an isolated Node 22
+runtime through `npx`. Equivalent wrappers are available as
+`npm run check:node22` and `npm run build:node22`.
 
 Production validation creates the Sites-compatible server artifact in `dist/`:
 
