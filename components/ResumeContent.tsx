@@ -113,7 +113,7 @@ export default function ResumeContent() {
         <section>
           <h3>Summary</h3>
           <p>
-            Data engineer with 7+ years of experience designing and building automated ETL pipelines,
+            Data engineer with 3+ years of experience designing and building automated ETL pipelines,
             cloud-based data warehouses, and scalable data platforms using Python, SQL, BigQuery, AWS,
             and Google Cloud Platform (GCP). Experienced in transforming complex manual processes into
             reliable, reusable data workflows that improve data quality, reduce operational effort, and
