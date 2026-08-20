@@ -5,7 +5,7 @@ export default function Footer() {
     <footer className="site-footer">
       <div className="footer-grid">
         <div>
-          <p className="footer-title">Jonathon Watterson</p>
+          <p className="footer-title">Jon Watterson</p>
           <p>Building reliable data systems that make decisions easier.</p>
         </div>
         <div className="footer-links">
@@ -17,10 +17,9 @@ export default function Footer() {
         </div>
       </div>
       <div className="footer-bottom">
-        <span>© {new Date().getFullYear()} Jonathon Watterson</span>
+        <span>© {new Date().getFullYear()} Jon Watterson</span>
         <span className="mono">Designed for clarity · Built for speed</span>
       </div>
     </footer>
   );
 }
-

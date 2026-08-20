@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-export const metadata: Metadata = { title: "About", description: "Jonathon Watterson's data engineering approach, skills, and background." };
+export const metadata: Metadata = { title: "About", description: "Jon Watterson's data engineering approach, skills, and background." };
 
 const stack = [
   ["Languages", "Python · SQL"],
@@ -47,4 +47,3 @@ export default function AboutPage() {
     </>
   );
 }
-

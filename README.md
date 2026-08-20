@@ -1,4 +1,4 @@
-# Jonathon Watterson — Data Engineering Portfolio
+# Jon Watterson — Data Engineering Portfolio
 
 A recruiter-focused portfolio presenting the Northwind Outfitters data platform
 as three connected engineering case studies:
