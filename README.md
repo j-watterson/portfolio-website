@@ -43,3 +43,17 @@ The site is connected to OpenAI Sites through `.openai/hosting.json`. Treat its
 
 For a guided local-development and GitHub-to-Cloudflare workflow, open
 [`docs/local-and-cloudflare-deployment-tutorial.ipynb`](docs/local-and-cloudflare-deployment-tutorial.ipynb).
+
+Launch the notebook in the repository-local Python environment:
+
+```bash
+source .venv/bin/activate
+jupyter lab
+```
+
+To recreate the ignored `.venv` on another computer:
+
+```bash
+python3 -m venv .venv
+.venv/bin/python -m pip install -r requirements-notebooks.txt
+```
