@@ -1,8 +1,8 @@
 node_modules/
 .next/
 out/
+dist/
 .open-next/
 .env*
 !.env.example
 npm-debug.log*
-
