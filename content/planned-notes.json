@@ -1,0 +1,20 @@
+[
+  {
+    "slug": "idempotency-is-a-product-feature",
+    "title": "Idempotency is a product feature",
+    "description": "How checksums, natural keys, and transactional boundaries make batch systems safer to operate.",
+    "project": "Retail Analytics Platform"
+  },
+  {
+    "slug": "late-data-without-full-rebuilds",
+    "title": "Late data without full rebuilds",
+    "description": "A practical look at incremental merge windows and the reconciliation responsibility they create.",
+    "project": "Customer Analytics Warehouse"
+  },
+  {
+    "slug": "scheduling-is-not-orchestration",
+    "title": "Scheduling is not orchestration",
+    "description": "Why production workflows need contracts, timeouts, concurrency controls, and recovery—not only cron.",
+    "project": "Workflow Automation Platform"
+  }
+]

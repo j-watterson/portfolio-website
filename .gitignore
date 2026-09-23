@@ -9,3 +9,7 @@ dist/
 npm-debug.log*
 .vinext/
 .wrangler/
+
+generated/batches/
+__pycache__/
+*.tsbuildinfo

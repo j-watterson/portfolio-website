@@ -1,0 +1,41 @@
+{
+  "upload": {
+    "id": "file-input-123",
+    "purpose": "batch"
+  },
+  "created": {
+    "id": "batch-123",
+    "status": "validating",
+    "input_file_id": "file-input-123"
+  },
+  "inProgress": {
+    "id": "batch-123",
+    "status": "in_progress",
+    "output_file_id": null,
+    "error_file_id": null
+  },
+  "completed": {
+    "id": "batch-123",
+    "status": "completed",
+    "output_file_id": "file-output-123",
+    "error_file_id": null
+  },
+  "partial": {
+    "id": "batch-123",
+    "status": "completed",
+    "output_file_id": "file-output-123",
+    "error_file_id": "file-errors-123"
+  },
+  "expired": {
+    "id": "batch-123",
+    "status": "expired",
+    "output_file_id": "file-output-123",
+    "error_file_id": "file-errors-123"
+  },
+  "totalFailure": {
+    "id": "batch-123",
+    "status": "failed",
+    "output_file_id": null,
+    "error_file_id": null
+  }
+}

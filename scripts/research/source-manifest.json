@@ -1,0 +1,1394 @@
+{
+  "airflow": {
+    "requested_url": "https://airflow.apache.org/docs/apache-airflow/stable/best-practices.html",
+    "url": "https://airflow.apache.org/docs/apache-airflow/stable/best-practices.html",
+    "accessed_at": "2026-09-22T16:34:33.628842+00:00",
+    "title": "Best Practices \u2014 Airflow 3.3.2 Documentation",
+    "word_count": 8352,
+    "sha256": "e3ae7dbbd17d169602c614c0f98a7a37caf027a3fa04b3b2e97ff57a45c72abf"
+  },
+  "airflow-backfill": {
+    "requested_url": "https://airflow.apache.org/docs/apache-airflow/stable/core-concepts/backfill.html",
+    "url": "https://airflow.apache.org/docs/apache-airflow/stable/core-concepts/backfill.html",
+    "accessed_at": "2026-09-22T16:34:34.140073+00:00",
+    "title": "Backfill \u2014 Airflow 3.3.2 Documentation",
+    "word_count": 847,
+    "sha256": "82f3f33f4ef8ccf2b28dc46171c90d50c11aeaf3574d7e0ea81ae9bbe7c806ee"
+  },
+  "airflow-dags": {
+    "requested_url": "https://airflow.apache.org/docs/apache-airflow/stable/core-concepts/dags.html",
+    "url": "https://airflow.apache.org/docs/apache-airflow/stable/core-concepts/dags.html",
+    "accessed_at": "2026-09-22T16:34:33.848616+00:00",
+    "title": "Dags \u2014 Airflow 3.3.2 Documentation",
+    "word_count": 6224,
+    "sha256": "684e2f0a30411d4b9c39b574e368ce636e701852f2950bb2f9148ecb1436510b"
+  },
+  "airflow-tasks": {
+    "requested_url": "https://airflow.apache.org/docs/apache-airflow/stable/core-concepts/tasks.html",
+    "url": "https://airflow.apache.org/docs/apache-airflow/stable/core-concepts/tasks.html",
+    "accessed_at": "2026-09-22T16:34:33.941959+00:00",
+    "title": "Tasks \u2014 Airflow 3.3.2 Documentation",
+    "word_count": 2695,
+    "sha256": "e6f890fa8b8cb4644e10c304a70bb7cc7589d0f82e1cd95d3023bcfcda9fe929"
+  },
+  "arrow": {
+    "requested_url": "https://arrow.apache.org/docs/format/Columnar.html",
+    "url": "https://arrow.apache.org/docs/format/Columnar.html",
+    "accessed_at": "2026-09-22T16:34:41.492276+00:00",
+    "title": "Arrow Columnar Format \u2014 Apache Arrow v25.0.1",
+    "word_count": 9455,
+    "sha256": "9cb3e67c91e25ad56abece16cc194e081e071fbbcf024cfda66333bfbdfaaee5"
+  },
+  "csv-format": {
+    "requested_url": "https://www.rfc-editor.org/rfc/rfc4180.html",
+    "url": "https://www.rfc-editor.org/rfc/rfc4180.html",
+    "accessed_at": "2026-09-22T16:39:19.247108+00:00",
+    "title": "RFC 4180: Common Format and MIME Type for Comma-Separated Values (CSV) Files",
+    "word_count": 1690,
+    "sha256": "9e63d7de89304d5e5298fd0fa97b233d40d6ae492f39e37fa6e508045a81183c"
+  },
+  "database-dependencies": {
+    "requested_url": "https://www.cs.uct.ac.za/mit_notes/database/htmls/chp08.html",
+    "url": "https://www.cs.uct.ac.za/mit_notes/database/htmls/chp08.html",
+    "accessed_at": "2026-09-22T20:47:50.052497+00:00",
+    "title": "Chapter 8. Data Normalisation",
+    "word_count": 10518,
+    "sha256": "45e97a7220f40f9a74a5dcb4b205403156468b839130d4b235cbfec13aacb2c6"
+  },
+  "databricks": {
+    "requested_url": "https://docs.databricks.com/aws/en/resources/glossary",
+    "url": "https://docs.databricks.com/aws/en/resources/glossary",
+    "accessed_at": "2026-09-22T16:34:39.097258+00:00",
+    "title": "Databricks technical terminology glossary | Databricks on AWS",
+    "word_count": 5103,
+    "sha256": "30c7cc0dd2519a5379489e3a97776ca1f810a9c43dc1688b1c8525a53036966c"
+  },
+  "databricks-medallion": {
+    "requested_url": "https://docs.databricks.com/aws/en/lakehouse/medallion",
+    "url": "https://docs.databricks.com/aws/en/lakehouse/medallion",
+    "accessed_at": "2026-09-22T16:34:39.224921+00:00",
+    "title": "What is the medallion lakehouse architecture? | Databricks on AWS",
+    "word_count": 1821,
+    "sha256": "eb728379a74866e95548bde3ee78625da0603031a13bff9ffa72154c11d8f98b"
+  },
+  "dbt-contracts": {
+    "requested_url": "https://docs.getdbt.com/docs/mesh/govern/model-contracts",
+    "url": "https://docs.getdbt.com/docs/mesh/govern/model-contracts",
+    "accessed_at": "2026-09-22T16:34:27.509593+00:00",
+    "title": "Model contracts | dbt Developer Hub",
+    "word_count": 1713,
+    "sha256": "d0a423be60a153a024641ef3bacfa7d4636bbee679115cc1b8d4355055392aff"
+  },
+  "dbt-incremental": {
+    "requested_url": "https://docs.getdbt.com/docs/build/incremental-models",
+    "url": "https://docs.getdbt.com/docs/build/incremental-models",
+    "accessed_at": "2026-09-22T16:34:27.096896+00:00",
+    "title": "Configure incremental models | dbt Developer Hub",
+    "word_count": 2741,
+    "sha256": "05d746a461cbde0839d0bb66ba8602cc333c3d9ef87dd9133091d8666b0f7e8c"
+  },
+  "dbt-intermediate": {
+    "requested_url": "https://docs.getdbt.com/best-practices/how-we-structure/3-intermediate",
+    "url": "https://docs.getdbt.com/best-practices/how-we-structure/3-intermediate",
+    "accessed_at": "2026-09-22T16:34:26.468215+00:00",
+    "title": "Intermediate: Purpose-built transformation steps | dbt Developer Hub",
+    "word_count": 1689,
+    "sha256": "1f1f2bb593a5fb88287029589d23a3258184ddfb69e52b6d78cd7858d074d5a0"
+  },
+  "dbt-marts": {
+    "requested_url": "https://docs.getdbt.com/best-practices/how-we-structure/4-marts",
+    "url": "https://docs.getdbt.com/best-practices/how-we-structure/4-marts",
+    "accessed_at": "2026-09-22T16:34:26.922113+00:00",
+    "title": "Marts: Business-defined entities | dbt Developer Hub",
+    "word_count": 2022,
+    "sha256": "26f432cbacd96d1d73d6690076d0a6bf99ba02c16d23c0cbf3259e7243c9d790"
+  },
+  "dbt-metrics": {
+    "requested_url": "https://docs.getdbt.com/docs/build/semantic-models",
+    "url": "https://docs.getdbt.com/docs/build/semantic-models",
+    "accessed_at": "2026-09-22T16:34:27.755104+00:00",
+    "title": "Semantic models | dbt Developer Hub",
+    "word_count": 2365,
+    "sha256": "079e69be5997eb8b5abf14ee3b805cfa259c1a93d2cc357308d99afc563620df"
+  },
+  "dbt-snapshots": {
+    "requested_url": "https://docs.getdbt.com/docs/build/snapshots",
+    "url": "https://docs.getdbt.com/docs/build/snapshots",
+    "accessed_at": "2026-09-22T16:34:27.185253+00:00",
+    "title": "Add snapshots to your DAG | dbt Developer Hub",
+    "word_count": 4118,
+    "sha256": "c04c2af69c9a98fed1a449633cdcfc16dd31b93d2cc52a26e420545080bafab1"
+  },
+  "dbt-staging": {
+    "requested_url": "https://docs.getdbt.com/best-practices/how-we-structure/2-staging",
+    "url": "https://docs.getdbt.com/best-practices/how-we-structure/2-staging",
+    "accessed_at": "2026-09-22T16:34:26.543285+00:00",
+    "title": "Staging: Preparing our atomic building blocks | dbt Developer Hub",
+    "word_count": 2436,
+    "sha256": "04ccac1b5a2511ca786ca0280811fb8fc49b7bab027522b327ba40688ff61734"
+  },
+  "dbt-structure": {
+    "requested_url": "https://docs.getdbt.com/best-practices/how-we-structure/1-guide-overview",
+    "url": "https://docs.getdbt.com/best-practices/how-we-structure/1-guide-overview",
+    "accessed_at": "2026-09-22T16:34:26.490429+00:00",
+    "title": "How we structure our dbt projects | dbt Developer Hub",
+    "word_count": 1578,
+    "sha256": "7ada98ff4032379643951f90b9e15ec9076bd25cdca0cffeb246a8e8a7d0a08a"
+  },
+  "dbt-tests": {
+    "requested_url": "https://docs.getdbt.com/docs/build/data-tests",
+    "url": "https://docs.getdbt.com/docs/build/data-tests",
+    "accessed_at": "2026-09-22T16:34:27.105679+00:00",
+    "title": "Add data tests to your DAG | dbt Developer Hub",
+    "word_count": 3587,
+    "sha256": "07462ad638c5c47d24ef0a77f4035d26d962e9629ea1b6656adab70ec4d103ce"
+  },
+  "dbt-unit-tests": {
+    "requested_url": "https://docs.getdbt.com/docs/build/unit-tests",
+    "url": "https://docs.getdbt.com/docs/build/unit-tests",
+    "accessed_at": "2026-09-22T16:34:27.866172+00:00",
+    "title": "Unit tests | dbt Developer Hub",
+    "word_count": 3059,
+    "sha256": "467f56025fd33f8f111165c09c745b5a2cafd11d610574c4eb752e43826654fb"
+  },
+  "debezium": {
+    "requested_url": "https://debezium.io/documentation/reference/stable/connectors/postgresql.html",
+    "url": "https://debezium.io/documentation/reference/stable/connectors/postgresql.html",
+    "accessed_at": "2026-09-22T16:34:41.115881+00:00",
+    "title": "Debezium connector for PostgreSQL :: Debezium Documentation",
+    "word_count": 37267,
+    "sha256": "575e588322df4b108eb94b3e1a13d6d135e9ad3fe67043e626231e4eb97338f8"
+  },
+  "gcp-assessment": {
+    "requested_url": "https://docs.cloud.google.com/bigquery/docs/migration-assessment",
+    "url": "https://docs.cloud.google.com/bigquery/docs/migration-assessment",
+    "accessed_at": "2026-09-22T16:34:38.859608+00:00",
+    "title": "Migration assessment | BigQuery | Google Cloud Documentation",
+    "word_count": 17917,
+    "sha256": "be83893bc607ac33f2fc4ebd04cea1bed6e92f5c8a0b42085a00e3b63a13910c"
+  },
+  "gcp-cost": {
+    "requested_url": "https://docs.cloud.google.com/bigquery/docs/best-practices-costs",
+    "url": "https://docs.cloud.google.com/bigquery/docs/best-practices-costs",
+    "accessed_at": "2026-09-22T16:34:38.697981+00:00",
+    "title": "Estimate and control costs | BigQuery | Google Cloud Documentation",
+    "word_count": 8564,
+    "sha256": "d3641256f4a6f0d0d4a0978d8bfb1d5d18b7d5626469c982733023e0692070de"
+  },
+  "gcp-migration": {
+    "requested_url": "https://docs.cloud.google.com/bigquery/docs/migration/schema-data-overview",
+    "url": "https://docs.cloud.google.com/bigquery/docs/migration/schema-data-overview",
+    "accessed_at": "2026-09-22T16:34:38.003015+00:00",
+    "title": "Schema and data transfer overview | BigQuery | Google Cloud Documentation",
+    "word_count": 6348,
+    "sha256": "04159352df58dcaa1ef8a79a648a6eae783a0d8d3592ece6e63f6b9fd8eedc6c"
+  },
+  "gcp-performance": {
+    "requested_url": "https://docs.cloud.google.com/bigquery/docs/best-practices-performance-compute",
+    "url": "https://docs.cloud.google.com/bigquery/docs/best-practices-performance-compute",
+    "accessed_at": "2026-09-22T16:34:39.200722+00:00",
+    "title": "Optimize query computation | BigQuery | Google Cloud Documentation",
+    "word_count": 6357,
+    "sha256": "f49b51c1f08fff964d888a8bef4faccd0685c2efcf751939c2f42348f6b4833c"
+  },
+  "gcp-pipelines": {
+    "requested_url": "https://docs.cloud.google.com/bigquery/docs/migration/pipelines",
+    "url": "https://docs.cloud.google.com/bigquery/docs/migration/pipelines",
+    "accessed_at": "2026-09-22T16:34:38.306881+00:00",
+    "title": "Migrate data pipelines | BigQuery | Google Cloud Documentation",
+    "word_count": 8292,
+    "sha256": "1afc901fbb0e5f23976eb1bbf25073e63a3c734e1199d3a07139288cebaf3774"
+  },
+  "gcp-reliability": {
+    "requested_url": "https://docs.cloud.google.com/bigquery/docs/reliability-intro",
+    "url": "https://docs.cloud.google.com/bigquery/docs/reliability-intro",
+    "accessed_at": "2026-09-22T16:34:39.714002+00:00",
+    "title": "Understand reliability | BigQuery | Google Cloud Documentation",
+    "word_count": 6040,
+    "sha256": "c7901ffa2b8bb19880106fddffcdb0b0a82fec36c062f1bb5a96ac8d31c10b0b"
+  },
+  "http": {
+    "requested_url": "https://www.rfc-editor.org/rfc/rfc9110.html",
+    "url": "https://www.rfc-editor.org/rfc/rfc9110.html",
+    "accessed_at": "2026-09-22T16:39:19.750685+00:00",
+    "title": "RFC 9110: HTTP Semantics",
+    "word_count": 67737,
+    "sha256": "eba5e3e6b3492fcdf41c9ecf1a6253c2f9e0b55ef2c2f4131aeb3da0396d8ea2"
+  },
+  "iceberg": {
+    "requested_url": "https://iceberg.apache.org/docs/latest/evolution/",
+    "url": "https://iceberg.apache.org/docs/latest/evolution/",
+    "accessed_at": "2026-09-22T16:34:40.373100+00:00",
+    "title": "Evolution - Apache Iceberg\u2122",
+    "word_count": 3046,
+    "sha256": "be97e07932fa4bed7929086b83c7a94abea2bce95807a9c0336ab82cd7247639"
+  },
+  "iceberg-reliability": {
+    "requested_url": "https://iceberg.apache.org/docs/latest/reliability/",
+    "url": "https://iceberg.apache.org/docs/latest/reliability/",
+    "accessed_at": "2026-09-22T16:34:40.129915+00:00",
+    "title": "Reliability - Apache Iceberg\u2122",
+    "word_count": 2865,
+    "sha256": "60213487530657692eabf03307e95ef1812b0f477ef9be70978579ccafdf37ab"
+  },
+  "kafka": {
+    "requested_url": "https://kafka.apache.org/41/design/design/",
+    "url": "https://kafka.apache.org/41/design/design/",
+    "accessed_at": "2026-09-22T16:34:39.591909+00:00",
+    "title": "Design | Apache Kafka",
+    "word_count": 12205,
+    "sha256": "e865459dc9fb37de55bc1a972fb47e48c21f962b50cf281f8848c0242f33d293"
+  },
+  "kimball": {
+    "requested_url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/",
+    "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/",
+    "accessed_at": "2026-09-22T16:34:26.363014+00:00",
+    "title": "Dimensional Modeling Techniques - Kimball Group",
+    "word_count": 473,
+    "sha256": "10471dcd77a75f92ee8382b2e133b88ac2b78c2fde62c2e693f21239117babdd"
+  },
+  "kimball-11": {
+    "requested_url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/additive-semi-additive-non-additive-fact",
+    "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/additive-semi-additive-non-additive-fact/",
+    "accessed_at": "2026-09-22T16:39:17.268339+00:00",
+    "title": "Additive, Semi-Additive, and Non-Additive Facts | Kimball Group",
+    "word_count": 200,
+    "sha256": "4625e7ae06dbb0fc4f66175177826771a5e31178d6a34560c3b3b79f13b93a7e"
+  },
+  "kimball-14": {
+    "requested_url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/transaction-fact-table",
+    "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/transaction-fact-table/",
+    "accessed_at": "2026-09-22T16:39:17.708929+00:00",
+    "title": "Transaction Fact Tables | Kimball Dimensional Modeling Techniques",
+    "word_count": 172,
+    "sha256": "54df5bbd2b678ae296738d176728f7af4d2bf6f513f6415e783e6e5fc5e6a54d"
+  },
+  "kimball-15": {
+    "requested_url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/periodic-snapshot-fact-table",
+    "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/periodic-snapshot-fact-table/",
+    "accessed_at": "2026-09-22T16:39:17.722366+00:00",
+    "title": "Periodic Snapshot Fact Tables | Kimball Group",
+    "word_count": 172,
+    "sha256": "b6d0c81830ca5bec6ca84bab339a30afdb77d18dcf179fa49d4a7ca3837e380f"
+  },
+  "kimball-16": {
+    "requested_url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/accumulating-snapshot-fact-table",
+    "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/accumulating-snapshot-fact-table/",
+    "accessed_at": "2026-09-22T16:39:17.755666+00:00",
+    "title": "Accumulating Snapshot Fact Tables | Kimball Group",
+    "word_count": 255,
+    "sha256": "245e45a56b9b75f884f507c915cdfec12c18d92872fd0ac7f39fc5e83ace5151"
+  },
+  "kimball-17": {
+    "requested_url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/factless-fact-table",
+    "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/factless-fact-table/",
+    "accessed_at": "2026-09-22T16:39:18.017397+00:00",
+    "title": "Factless Fact Tables | Kimball Dimensional Modeling Techniques",
+    "word_count": 218,
+    "sha256": "dd2c1ec766466dcc81361eb00e74e4e736f3ece65910a7d2856ea5f5334d467a"
+  },
+  "kimball-18": {
+    "requested_url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/aggregate-fact-table-cube",
+    "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/aggregate-fact-table-cube/",
+    "accessed_at": "2026-09-22T16:39:18.216022+00:00",
+    "title": "Aggregate Fact Tables or Cubes | Kimball Group",
+    "word_count": 240,
+    "sha256": "841b92c4de8a49c984a580745e8d36b08215460d09111c7404295dcb8931d9e5"
+  },
+  "kimball-21": {
+    "requested_url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/dimension-surrogate-key",
+    "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/dimension-surrogate-key/",
+    "accessed_at": "2026-09-22T16:39:18.473737+00:00",
+    "title": "Dimension Surrogate Keys | Kimball Dimensional Modeling Techniques",
+    "word_count": 227,
+    "sha256": "7fd8a80630c42642cec35b20f6134420b70221bfcb359b0814a817dbd69b9603"
+  },
+  "kimball-22": {
+    "requested_url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/natural-durable-supernatural-key",
+    "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/natural-durable-supernatural-key/",
+    "accessed_at": "2026-09-22T16:39:18.671946+00:00",
+    "title": "Natural, Durable, and Supernatural Keys | KImball Group",
+    "word_count": 209,
+    "sha256": "af1fcff692a6da8501f404bc6047bdeca0caa25d87f845fb166ed6c5800d1740"
+  },
+  "kimball-24": {
+    "requested_url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/degenerate-dimension",
+    "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/degenerate-dimension/",
+    "accessed_at": "2026-09-22T16:39:18.685636+00:00",
+    "title": "Degenerate Dimensions | Kimball Dimensional Modeling Techniques",
+    "word_count": 172,
+    "sha256": "12e7d07a5392226bb00fad2e95d4633c395e88c3fd937f7da6a9b24f32240850"
+  },
+  "kimball-5": {
+    "requested_url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/grain/",
+    "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/grain/",
+    "accessed_at": "2026-09-22T16:39:16.678265+00:00",
+    "title": "Grain | Kimball Dimensional Modeling Techniques",
+    "word_count": 221,
+    "sha256": "0c14eca2663f129460d5b6cbf59073624ac5bfbc6be0001347f15944e0804ea2"
+  },
+  "kimball-6": {
+    "requested_url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/dimensions-for-context",
+    "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/dimensions-for-context/",
+    "accessed_at": "2026-09-22T16:39:16.806036+00:00",
+    "title": "Dimensions for Descriptive Context",
+    "word_count": 198,
+    "sha256": "be9490cfd13abc1b59d127a6af0853bcf665756e4319bef218e1156263230bf8"
+  },
+  "kimball-8": {
+    "requested_url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/star-schema-olap-cube/",
+    "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/star-schema-olap-cube/",
+    "accessed_at": "2026-09-22T16:39:16.873130+00:00",
+    "title": "Star Schema OLAP Cube | Kimball Dimensional Modeling Techniques",
+    "word_count": 448,
+    "sha256": "005026180c927efb08a26b2d94128f9c7f780f6b1d704dc02fed843e27e878c1"
+  },
+  "kimball-abstract-generic-dimension": {
+    "requested_url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/abstract-generic-dimension",
+    "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/abstract-generic-dimension/",
+    "accessed_at": "2026-09-22T20:36:58.993972+00:00",
+    "title": "Abstract Generic Dimensions | Kimball Dimensional Modeling Techniques",
+    "word_count": 224,
+    "sha256": "55f07b24d615432581ee0246a8f6a83e50b1c10aefaba8af5dbbd2ba1367fd7f"
+  },
+  "kimball-audit-dimension": {
+    "requested_url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/audit-dimension",
+    "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/audit-dimension/",
+    "accessed_at": "2026-09-22T20:36:59.285117+00:00",
+    "title": "Audit Dimension | Kimball Dimensional Modeling Techniques",
+    "word_count": 198,
+    "sha256": "58508afe249537f2512fc80fb2fa76056c4ae574c337fc5bbdef37b637e3808a"
+  },
+  "kimball-behavior-study-group": {
+    "requested_url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/behavior-study-group",
+    "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/behavior-study-group/",
+    "accessed_at": "2026-09-22T20:36:57.122507+00:00",
+    "title": "Behavior Study Groups | Kimball Dimensional Modeling Techniques",
+    "word_count": 207,
+    "sha256": "c19c42bef1fe70e005036362080ea716b2344fabf0d4c029bf3c9314cc2de06a"
+  },
+  "kimball-calendar-date-dimension": {
+    "requested_url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/calendar-date-dimension",
+    "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/calendar-date-dimension/",
+    "accessed_at": "2026-09-22T20:31:44.654206+00:00",
+    "title": "Calendar Date Dimensions | Kimball Dimensional Modeling Techniques",
+    "word_count": 279,
+    "sha256": "761bbaafee435647d1474ec40bd98190edc0d2244649ed1a90b93461a87c7bb8"
+  },
+  "kimball-conformed-dimension": {
+    "requested_url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/conformed-dimension",
+    "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/conformed-dimension/",
+    "accessed_at": "2026-09-22T20:31:45.517037+00:00",
+    "title": "Conformed Dimensions | Kimball Dimensional Modeling Techniques",
+    "word_count": 200,
+    "sha256": "66e30685ecfd6df75674eab731d82d3f6abf27f977244836fd905267475bd33a"
+  },
+  "kimball-enterprise-data-warehouse-bus-matrix": {
+    "requested_url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/enterprise-data-warehouse-bus-matrix",
+    "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/enterprise-data-warehouse-bus-matrix/",
+    "accessed_at": "2026-09-22T20:31:46.173437+00:00",
+    "title": "Enterprise Data Warehouse Bus Matrix | Kimball Dimensional Modeling Techniques",
+    "word_count": 244,
+    "sha256": "44ea7281ff5d2b26be8bf55075112fe23cce9f658a1d0b886c529e658289b15f"
+  },
+  "kimball-error-event-schema": {
+    "requested_url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/error-event-schema",
+    "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/error-event-schema/",
+    "accessed_at": "2026-09-22T20:37:00.602527+00:00",
+    "title": "Error Event Schemas | Kimball Dimensional Modeling Techniques",
+    "word_count": 175,
+    "sha256": "de0dbde7c1cb1928754b414582b98ca227feea077294367798a58925b8a5f6ef"
+  },
+  "kimball-flag-indicator-attribute": {
+    "requested_url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/flag-indicator-attribute",
+    "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/flag-indicator-attribute/",
+    "accessed_at": "2026-09-22T20:31:44.104936+00:00",
+    "title": "Flags and Indicators as Textual Dimension Attributes | KImball Group",
+    "word_count": 139,
+    "sha256": "faeb08693aee0ff3f825bfb62b539e140171322b5bd2588aa2532f00d1c0ddb2"
+  },
+  "kimball-header-line-fact-table": {
+    "requested_url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/header-line-fact-table",
+    "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/header-line-fact-table/",
+    "accessed_at": "2026-09-22T20:31:48.799473+00:00",
+    "title": "Header/Line Fact Tables | Kimball Dimensional Modeling Techniques",
+    "word_count": 120,
+    "sha256": "6144885690ffe5586d4cddcf5b59f964d950d570e40ef828159b902e46ba3d04"
+  },
+  "kimball-junk-dimension": {
+    "requested_url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/junk-dimension",
+    "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/junk-dimension/",
+    "accessed_at": "2026-09-22T20:31:44.502001+00:00",
+    "title": "Junk Dimension | Kimball Dimensional Modeling Techniques",
+    "word_count": 150,
+    "sha256": "e37b780c2f7bd44128db226ec438a10ec9b8857a05bdb339000b3be5d6a2e24e"
+  },
+  "kimball-lag-duration-fact": {
+    "requested_url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/lag-duration-fact",
+    "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/lag-duration-fact/",
+    "accessed_at": "2026-09-22T20:31:48.608304+00:00",
+    "title": "Lag/Duration Facts - Kimball Group",
+    "word_count": 202,
+    "sha256": "65e37992d757d11959d30b18350472876379648e7a2fdf362cc74adf866ea712"
+  },
+  "kimball-late-arriving-dimension": {
+    "requested_url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/late-arriving-dimension",
+    "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/late-arriving-dimension/",
+    "accessed_at": "2026-09-22T20:36:59.361657+00:00",
+    "title": "Late Arriving Dimension | Kimball Dimensional Modeling Techniques",
+    "word_count": 253,
+    "sha256": "fb1ff3e55f48245a374b026b6c41cb84d47bc8496669b31a5395d42d39bfe35b"
+  },
+  "kimball-late-arriving-fact": {
+    "requested_url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/late-arriving-fact",
+    "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/late-arriving-fact/",
+    "accessed_at": "2026-09-22T20:36:55.801192+00:00",
+    "title": "Late Arriving Fact | Kimball Dimensional Modeling Techniques",
+    "word_count": 133,
+    "sha256": "d9e4c39324b31a22ff10480369f4950d06832805a1a119f4e4c4939303120774"
+  },
+  "kimball-multipass-sql": {
+    "requested_url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/multipass-sql",
+    "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/multipass-sql/",
+    "accessed_at": "2026-09-22T20:36:54.970139+00:00",
+    "title": "Multipass SQL to Avoid Fact-to-Fact Table Joins | Kimball Dimensional Modeling Techniques",
+    "word_count": 206,
+    "sha256": "04a69d82bead893535e6b4d5d3aea6aacce46b47628627dad5c4e123b0227037"
+  },
+  "kimball-multiple-currencies": {
+    "requested_url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/multiple-currencies",
+    "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/multiple-currencies/",
+    "accessed_at": "2026-09-22T20:36:54.289754+00:00",
+    "title": "Multiple Currency Facts | Kimball Dimensional Modeling Techniques",
+    "word_count": 168,
+    "sha256": "abbd732c087a72b8044936ea6e545493e30f03a71fb2ebe7013f78377c42da2c"
+  },
+  "kimball-multiple-time-zones": {
+    "requested_url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/multiple-time-zones",
+    "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/multiple-time-zones/",
+    "accessed_at": "2026-09-22T20:36:58.154668+00:00",
+    "title": "Multiple Time Zones | Kimball Dimensional Modeling Techniques",
+    "word_count": 116,
+    "sha256": "1433f9d202418f98d71e9f66f34514d47fc4b50f78da97a6045b9fc286eef946"
+  },
+  "kimball-multiple-units-of-measure": {
+    "requested_url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/multiple-units-of-measure",
+    "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/multiple-units-of-measure/",
+    "accessed_at": "2026-09-22T20:36:55.009729+00:00",
+    "title": "Multiple Units of Measure Facts | Kimball Dimensional Modeling Techniques",
+    "word_count": 225,
+    "sha256": "09018a9e7344dc8071f34b26e9bffb4db5923a0e1e1d71d69e84cc3ad9e8901f"
+  },
+  "kimball-multivalued-dimension-bridge-table": {
+    "requested_url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/multivalued-dimension-bridge-table",
+    "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/multivalued-dimension-bridge-table/",
+    "accessed_at": "2026-09-22T20:36:55.939144+00:00",
+    "title": "Multivalued Dimensions and Bridge Tables | Kimball Dimensional Modeling Techniques",
+    "word_count": 250,
+    "sha256": "5ea3566e4ff1a549e27d3cbbe3497ea8f589d4450be582e9aaed199d511eedad"
+  },
+  "kimball-null-dimension-attribute": {
+    "requested_url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/null-dimension-attribute",
+    "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/null-dimension-attribute/",
+    "accessed_at": "2026-09-22T20:31:43.814358+00:00",
+    "title": "Null Attributes in Dimensions | Kimball Group",
+    "word_count": 146,
+    "sha256": "a1415164dca2daf6edfb466f325ff7dcc349d40eacba925b35637dda8b901ebc"
+  },
+  "kimball-profit-loss-fact-table": {
+    "requested_url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/profit-loss-fact-table",
+    "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/profit-loss-fact-table/",
+    "accessed_at": "2026-09-22T20:31:48.992983+00:00",
+    "title": "Profit and Loss Fact Tables Using Allocations",
+    "word_count": 226,
+    "sha256": "96fd90994f70db89230cca2b5508507e4d2c200eeb5ab139b9eea8c0c252f8a6"
+  },
+  "kimball-ragged-variable-depth-hierarchy": {
+    "requested_url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/ragged-variable-depth-hierarchy",
+    "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/ragged-variable-depth-hierarchy/",
+    "accessed_at": "2026-09-22T20:31:47.524330+00:00",
+    "title": "Ragged/Variable Depth Hierarchies | Kimball Dimensional Modeling Techniques",
+    "word_count": 309,
+    "sha256": "794aac3a2105cc4dd951a042b05db88d85c4eff4ebfe983c754a1027f4324219"
+  },
+  "kimball-realtime-fact-table": {
+    "requested_url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/realtime-fact-table",
+    "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/realtime-fact-table/",
+    "accessed_at": "2026-09-22T20:37:00.590510+00:00",
+    "title": "Real-Time Fact Tables | Kimball Dimensional Modeling Techniques",
+    "word_count": 172,
+    "sha256": "5b89f96a7c2f642093835b41923cd068978f24955652c1c794cf6cd92d481031"
+  },
+  "kimball-role-playing-dimension": {
+    "requested_url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/role-playing-dimension",
+    "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/role-playing-dimension/",
+    "accessed_at": "2026-09-22T20:31:44.872142+00:00",
+    "title": "Role-Playing Dimensions | Kimball Dimensional Modeling Techniques",
+    "word_count": 157,
+    "sha256": "a91aeeeb129567951a1b2641ca8e8f1fbc5faf6819f1ff1ef55dd50f3c5763e6"
+  },
+  "kimball-slightly-ragged-variable-depth-hierarchy": {
+    "requested_url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/slightly-ragged-variable-depth-hierarchy",
+    "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/slightly-ragged-variable-depth-hierarchy/",
+    "accessed_at": "2026-09-22T20:31:47.258936+00:00",
+    "title": "Slightly Ragged/Variable Depth Hierarchies | Kimball Dimensional Modeling Techniques",
+    "word_count": 156,
+    "sha256": "467ae7a4ae5bd01c16e23c68e47006f0008889e4a4e4de45ea7d06ba150dc804"
+  },
+  "kimball-supertype-subtype-heterogeneous": {
+    "requested_url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/supertype-subtype-heterogeneous",
+    "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/supertype-subtype-heterogeneous/",
+    "accessed_at": "2026-09-22T20:37:00.442473+00:00",
+    "title": "Supertype and Subtype Schemas for Heterogeneous Products | Kimball Dimensional Modeling Techniques",
+    "word_count": 236,
+    "sha256": "cc15adf9c10ee3e940a70ff5852dd51f1db5156dc9f17acaae9d7896a8f2c56f"
+  },
+  "kimball-type-0": {
+    "requested_url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/type-0",
+    "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/type-0/",
+    "accessed_at": "2026-09-22T20:31:46.358074+00:00",
+    "title": "Type 0: Retain Original | Kimball Dimensional Modeling Techniques",
+    "word_count": 133,
+    "sha256": "57fa6861ba6c7d07b08dc5e4e0538166a5a430ae6cbef7f98da1dfc10f8437fa"
+  },
+  "kimball-type-2": {
+    "requested_url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/type-2",
+    "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/type-2/",
+    "accessed_at": "2026-09-22T20:31:46.635496+00:00",
+    "title": "Type 2: Add New Row | Kimball Dimensional Modeling Techniques",
+    "word_count": 210,
+    "sha256": "698e1bd517954b4f3bc73cbf37ca160958362b51b6c3a761eca8204ccf1e1166"
+  },
+  "kimball-type-3": {
+    "requested_url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/type-3",
+    "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/type-3/",
+    "accessed_at": "2026-09-22T20:31:46.628040+00:00",
+    "title": "Type 3: Add New Attribute | Kimball Dimensional Modeling Techniques",
+    "word_count": 155,
+    "sha256": "e82285ff3d549ba16221659230fcd46f640fbaed4948d23f34f03b0361ddc1ab"
+  },
+  "kimball-type-4-mini-dimension": {
+    "requested_url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/type-4-mini-dimension",
+    "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/type-4-mini-dimension/",
+    "accessed_at": "2026-09-22T20:31:46.791528+00:00",
+    "title": "Type 4: Add Mini-Dimension | Kimball Dimensional Modeling Techniques",
+    "word_count": 160,
+    "sha256": "daf83437bb5441e368d109ff47a325286443355c675db137346240c47f358799"
+  },
+  "kimball-type-5": {
+    "requested_url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/type-5",
+    "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/type-5/",
+    "accessed_at": "2026-09-22T20:31:46.800318+00:00",
+    "title": "Type 5: Add Mini-Dimension and Type 1 Outrigger | Kimball Dimensional Modeling Techniques",
+    "word_count": 196,
+    "sha256": "6dc2128fe6a4144695e68d3ac5bdedaa2896b243d1d3d22cbf32794e3a1b1b69"
+  },
+  "kimball-type-6": {
+    "requested_url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/type-6",
+    "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/type-6/",
+    "accessed_at": "2026-09-22T20:31:47.056331+00:00",
+    "title": "Type 6: Add Type 1 Attributes to Type 2 Dimension | Kimball Dimensional Modeling Techniques",
+    "word_count": 191,
+    "sha256": "e48173e2e2ae600fc4b0aec32ef4957eeda49251893670a5082beafca82da316"
+  },
+  "kimball-type-7": {
+    "requested_url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/type-7",
+    "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/type-7/",
+    "accessed_at": "2026-09-22T20:31:47.062224+00:00",
+    "title": "Type 7: Dual Type 1 and Type 2 Dimensions | Kimball Dimensional Modeling Techniques",
+    "word_count": 234,
+    "sha256": "b5692415fd5059ca6c35ce8f0156ead96375e261670bc00d7a1542b251ba7563"
+  },
+  "ms-governance": {
+    "requested_url": "https://learn.microsoft.com/en-us/power-bi/guidance/fabric-adoption-roadmap-governance",
+    "url": "https://learn.microsoft.com/en-us/power-bi/guidance/fabric-adoption-roadmap-governance",
+    "accessed_at": "2026-09-22T16:34:36.347906+00:00",
+    "title": "Microsoft Fabric adoption roadmap: Governance - Power BI | Microsoft Learn",
+    "word_count": 5828,
+    "sha256": "ff4b81b0bd0391e999b88c725affea71c116a70d9870a70bfb592e3ae8f0708f"
+  },
+  "ms-manymany": {
+    "requested_url": "https://learn.microsoft.com/en-us/power-bi/guidance/relationships-many-to-many",
+    "url": "https://learn.microsoft.com/en-us/power-bi/guidance/relationships-many-to-many",
+    "accessed_at": "2026-09-22T16:34:35.861922+00:00",
+    "title": "Many-to-many relationship guidance - Power BI | Microsoft Learn",
+    "word_count": 3053,
+    "sha256": "6d2100e1b6e4453cdd31fc60e34339082c830238cba31876b6b694b482d3ec0b"
+  },
+  "ms-relationships": {
+    "requested_url": "https://learn.microsoft.com/en-us/power-bi/guidance/relationships-active-inactive",
+    "url": "https://learn.microsoft.com/en-us/power-bi/guidance/relationships-active-inactive",
+    "accessed_at": "2026-09-22T16:34:35.729339+00:00",
+    "title": "Active vs inactive relationship guidance - Power BI | Microsoft Learn",
+    "word_count": 1616,
+    "sha256": "a297a974517b484ed232e92d75d6e911a89493e9da693cb294bf03d3b6e9133d"
+  },
+  "ms-security": {
+    "requested_url": "https://learn.microsoft.com/en-us/power-bi/guidance/powerbi-implementation-planning-security-overview",
+    "url": "https://learn.microsoft.com/en-us/power-bi/guidance/powerbi-implementation-planning-security-overview",
+    "accessed_at": "2026-09-22T16:34:36.991473+00:00",
+    "title": "Power BI implementation planning: Security - Power BI | Microsoft Learn",
+    "word_count": 660,
+    "sha256": "ef73883060b68f97e69be1cb3fbd448ef7544fc66914653702504954769c966b"
+  },
+  "ms-star": {
+    "requested_url": "https://learn.microsoft.com/en-us/power-bi/guidance/star-schema",
+    "url": "https://learn.microsoft.com/en-us/power-bi/guidance/star-schema",
+    "accessed_at": "2026-09-22T16:34:35.794607+00:00",
+    "title": "Understand star schema and the importance for Power BI - Power BI | Microsoft Learn",
+    "word_count": 4032,
+    "sha256": "5fd0f7c4fd9ad31ffdaeb556b882fd0023cda0f84155fa196cc224849c3a66f5"
+  },
+  "nist-confidence": {
+    "requested_url": "https://www.itl.nist.gov/div898/handbook/eda/section3/eda352.htm",
+    "url": "https://www.itl.nist.gov/div898/handbook/eda/section3/eda352.htm",
+    "accessed_at": "2026-09-22T20:47:49.129275+00:00",
+    "title": "1.3.5.2. Confidence Limits for the Mean",
+    "word_count": 931,
+    "sha256": "2d3a73df00cd1387313d1141dc6b18ed093b6ae1b4ff1d76a7c8b17f2f7d1a78"
+  },
+  "nist-geometric": {
+    "requested_url": "https://www.itl.nist.gov/div898/software/dataplot/refman2/auxillar/geommean.htm",
+    "url": "https://www.itl.nist.gov/div898/software/dataplot/refman2/auxillar/geommean.htm",
+    "accessed_at": "2026-09-22T20:49:12.905960+00:00",
+    "title": "Geometric Mean",
+    "word_count": 208,
+    "sha256": "fb632b8d8ac3dc22b39e32c7eb14a02b30412ee363c28132ab5e298425ae8fe4"
+  },
+  "nist-location": {
+    "requested_url": "https://www.itl.nist.gov/div898/handbook/eda/section3/eda351.htm",
+    "url": "https://www.itl.nist.gov/div898/handbook/eda/section3/eda351.htm",
+    "accessed_at": "2026-09-22T20:47:48.458206+00:00",
+    "title": "1.3.5.1. Measures of Location",
+    "word_count": 1530,
+    "sha256": "b59fbded4eb727f55187de8872b2c27799caadc2c73f0f7d5f859384b07ca4f2"
+  },
+  "nist-scale": {
+    "requested_url": "https://www.itl.nist.gov/div898/handbook/eda/section3/eda356.htm",
+    "url": "https://www.itl.nist.gov/div898/handbook/eda/section3/eda356.htm",
+    "accessed_at": "2026-09-22T20:47:48.322923+00:00",
+    "title": "1.3.5.6. Measures of Scale",
+    "word_count": 1597,
+    "sha256": "8ede551e02df7e85eb13ffef50cf9d7adfa1646fabb783d111442bdcd7fd4281"
+  },
+  "otel": {
+    "requested_url": "https://opentelemetry.io/docs/concepts/signals/",
+    "url": "https://opentelemetry.io/docs/concepts/signals/",
+    "accessed_at": "2026-09-22T16:34:41.785571+00:00",
+    "title": "Signals | OpenTelemetryThe OpenTelemetry Logo",
+    "word_count": 1529,
+    "sha256": "b557b6457e65c926099d985704556e4a2094966778c78e673828b5f32ade1de5"
+  },
+  "pagination": {
+    "requested_url": "https://google.aip.dev/158",
+    "url": "https://google.aip.dev/158",
+    "accessed_at": "2026-09-22T16:39:19.468748+00:00",
+    "title": "AIP-158: Pagination",
+    "word_count": 1725,
+    "sha256": "771dd347f73a4a928a9ac1d27b1ba29978862084d02dc9b1ec44c721127a023a"
+  },
+  "parquet-10": {
+    "requested_url": "https://parquet.apache.org/docs/file-format/nestedencoding/",
+    "url": "https://parquet.apache.org/docs/file-format/nestedencoding/",
+    "accessed_at": "2026-09-22T16:36:06.752225+00:00",
+    "title": "Nested Encoding | Parquet",
+    "word_count": 279,
+    "sha256": "dde071d2b69bfd7cbdb4cf176e0fb36b62e087ab5479b98d610e2d2516fcbe19"
+  },
+  "parquet-11": {
+    "requested_url": "https://parquet.apache.org/docs/file-format/bloomfilter/",
+    "url": "https://parquet.apache.org/docs/file-format/bloomfilter/",
+    "accessed_at": "2026-09-22T16:36:06.865062+00:00",
+    "title": "Bloom Filter | Parquet",
+    "word_count": 2264,
+    "sha256": "e8803d8a0579b556c97f02e4bdd71028835157429985166e985dca3ce9317c06"
+  },
+  "parquet-13": {
+    "requested_url": "https://parquet.apache.org/docs/file-format/data-pages/compression/",
+    "url": "https://parquet.apache.org/docs/file-format/data-pages/compression/",
+    "accessed_at": "2026-09-22T16:36:07.064165+00:00",
+    "title": "Compression | Parquet",
+    "word_count": 563,
+    "sha256": "20bbe641a03e235768a38596435ddf2343f91573cde7251cd09cb84998b740f1"
+  },
+  "parquet-14": {
+    "requested_url": "https://parquet.apache.org/docs/file-format/data-pages/encodings/",
+    "url": "https://parquet.apache.org/docs/file-format/data-pages/encodings/",
+    "accessed_at": "2026-09-22T16:36:07.433212+00:00",
+    "title": "Encodings | Parquet",
+    "word_count": 2877,
+    "sha256": "374e917d252f1549a411d1241a7db830ec710ba4031561d2789d7788288f5cdb"
+  },
+  "parquet-15": {
+    "requested_url": "https://parquet.apache.org/docs/file-format/data-pages/encryption/",
+    "url": "https://parquet.apache.org/docs/file-format/data-pages/encryption/",
+    "accessed_at": "2026-09-22T16:36:07.412023+00:00",
+    "title": "Encryption | Parquet",
+    "word_count": 4357,
+    "sha256": "205866f9f0e3b4b6414e3a0c32e2ef09f486a1a8c94896ed54921189f76e6296"
+  },
+  "parquet-16": {
+    "requested_url": "https://parquet.apache.org/docs/file-format/data-pages/alpencoding/",
+    "url": "https://parquet.apache.org/docs/file-format/data-pages/alpencoding/",
+    "accessed_at": "2026-09-22T16:36:07.491730+00:00",
+    "title": "ALP Encoding | Parquet",
+    "word_count": 2261,
+    "sha256": "48ebb600a6258f558cef125b652454e0fc120788eceeed36d1376eceaa93bed2"
+  },
+  "parquet-2": {
+    "requested_url": "https://parquet.apache.org/docs/file-format/configurations/",
+    "url": "https://parquet.apache.org/docs/file-format/configurations/",
+    "accessed_at": "2026-09-22T16:36:05.448115+00:00",
+    "title": "Configurations | Parquet",
+    "word_count": 337,
+    "sha256": "79f013fb2eca515f7fc9dcee4689d7a84f69f8bb00f5d29b982af416f7fac3fd"
+  },
+  "parquet-21": {
+    "requested_url": "https://parquet.apache.org/docs/file-format/pageindex/",
+    "url": "https://parquet.apache.org/docs/file-format/pageindex/",
+    "accessed_at": "2026-09-22T16:36:08.079870+00:00",
+    "title": "Page Index | Parquet",
+    "word_count": 856,
+    "sha256": "0abeff78a985afd075b3c0b052e471f30f182e3b457a692282e72faacc58617f"
+  },
+  "parquet-22": {
+    "requested_url": "https://parquet.apache.org/docs/file-format/implementationstatus/",
+    "url": "https://parquet.apache.org/docs/file-format/implementationstatus/",
+    "accessed_at": "2026-09-22T16:36:08.612371+00:00",
+    "title": "Implementation status | Parquet",
+    "word_count": 725,
+    "sha256": "80065effb6b9e669d60aa2dbd793b8029bcdb78046389598e1d600fe0f1fcee3"
+  },
+  "parquet-24": {
+    "requested_url": "https://parquet.apache.org/_print/docs/file-format/",
+    "url": "https://parquet.apache.org/_print/docs/file-format/",
+    "accessed_at": "2026-09-22T16:36:09.255014+00:00",
+    "title": "File Format | Parquet",
+    "word_count": 27898,
+    "sha256": "7c7b542b9b670b9292b29644087ae8497fd9c682c72bee79d735d9fbff4bbb94"
+  },
+  "parquet-6": {
+    "requested_url": "https://parquet.apache.org/docs/file-format/types/geospatial/",
+    "url": "https://parquet.apache.org/docs/file-format/types/geospatial/",
+    "accessed_at": "2026-09-22T16:36:05.963646+00:00",
+    "title": "Geospatial Type | Parquet",
+    "word_count": 1103,
+    "sha256": "094258088fd18e11f4a277b1c5b6c29c32db46e090e95c706d5c3fce412e2227"
+  },
+  "parquet-7": {
+    "requested_url": "https://parquet.apache.org/docs/file-format/types/logicaltypes/",
+    "url": "https://parquet.apache.org/docs/file-format/types/logicaltypes/",
+    "accessed_at": "2026-09-22T16:36:06.574390+00:00",
+    "title": "Logical Types | Parquet",
+    "word_count": 6186,
+    "sha256": "a05d582c1cbeeab659b27b6930a2c4610d63c7b852e4a7fe240286f25f542df3"
+  },
+  "parquet-8": {
+    "requested_url": "https://parquet.apache.org/docs/file-format/types/variantshredding/",
+    "url": "https://parquet.apache.org/docs/file-format/types/variantshredding/",
+    "accessed_at": "2026-09-22T16:36:06.366747+00:00",
+    "title": "Variant Shredding | Parquet",
+    "word_count": 2148,
+    "sha256": "f870275f498f3a2faf41e8225fb8ca2e3a1cd1086b529c78d5bd009dc5051b38"
+  },
+  "parquet-9": {
+    "requested_url": "https://parquet.apache.org/docs/file-format/types/variantencoding/",
+    "url": "https://parquet.apache.org/docs/file-format/types/variantencoding/",
+    "accessed_at": "2026-09-22T16:36:06.459413+00:00",
+    "title": "Variant Type | Parquet",
+    "word_count": 3146,
+    "sha256": "b8b719f2f2d097093fede968a7c3211c04041a0a296ebaca15349698d279bbd2"
+  },
+  "pg-aggregate": {
+    "requested_url": "https://www.postgresql.org/docs/current/functions-aggregate.html",
+    "url": "https://www.postgresql.org/docs/current/functions-aggregate.html",
+    "accessed_at": "2026-09-22T16:34:30.057160+00:00",
+    "title": "PostgreSQL: Documentation: 18: 9.21. Aggregate Functions",
+    "word_count": 3183,
+    "sha256": "eb9d670f6669e047ad4ad096052ee4cb5a4250ce41a93a85d00aed1c8f67eda2"
+  },
+  "pg-backup": {
+    "requested_url": "https://www.postgresql.org/docs/current/backup.html",
+    "url": "https://www.postgresql.org/docs/current/backup.html",
+    "accessed_at": "2026-09-22T16:34:31.559764+00:00",
+    "title": "PostgreSQL: Documentation: 18: Chapter 25. Backup and Restore",
+    "word_count": 314,
+    "sha256": "cc0ac5b0794411733a285d846376d11f7aa8a2c70bdee56f7521532384583247"
+  },
+  "pg-backup-1": {
+    "requested_url": "https://www.postgresql.org/docs/current/backup-dump.html",
+    "url": "https://www.postgresql.org/docs/current/backup-dump.html",
+    "accessed_at": "2026-09-22T16:36:04.556492+00:00",
+    "title": "PostgreSQL: Documentation: 18: 25.1. SQL Dump",
+    "word_count": 1678,
+    "sha256": "c66038aabcfada8436a722427340b61de117d4bdb28a1c17816420143023ba99"
+  },
+  "pg-backup-2": {
+    "requested_url": "https://www.postgresql.org/docs/current/backup-file.html",
+    "url": "https://www.postgresql.org/docs/current/backup-file.html",
+    "accessed_at": "2026-09-22T16:36:04.761106+00:00",
+    "title": "PostgreSQL: Documentation: 18: 25.2. File System Level Backup",
+    "word_count": 882,
+    "sha256": "433cd48231d2f514dad9470de6a4f4ca382affa1d3ded33586e7314e7e0bab8f"
+  },
+  "pg-cte": {
+    "requested_url": "https://www.postgresql.org/docs/current/queries-with.html",
+    "url": "https://www.postgresql.org/docs/current/queries-with.html",
+    "accessed_at": "2026-09-22T16:34:32.722587+00:00",
+    "title": "PostgreSQL: Documentation: 18: 7.8. WITH Queries (Common Table Expressions)",
+    "word_count": 3418,
+    "sha256": "21fbc9f5365f569daa15c68d74cfb7d2061cb4fadbd5b5d1b959378f7b1c2380"
+  },
+  "pg-datetime": {
+    "requested_url": "https://www.postgresql.org/docs/current/datatype-datetime.html",
+    "url": "https://www.postgresql.org/docs/current/datatype-datetime.html",
+    "accessed_at": "2026-09-22T16:34:32.696844+00:00",
+    "title": "PostgreSQL: Documentation: 18: 8.5. Date/Time Types",
+    "word_count": 4410,
+    "sha256": "72a4d5de8939d2c8c76ed601b1d4a361b61aad61f5d6eaa62585dfd311d061e2"
+  },
+  "pg-ddl-10": {
+    "requested_url": "https://www.postgresql.org/docs/current/ddl-schemas.html",
+    "url": "https://www.postgresql.org/docs/current/ddl-schemas.html",
+    "accessed_at": "2026-09-22T16:35:56.916623+00:00",
+    "title": "PostgreSQL: Documentation: 18: 5.10. Schemas",
+    "word_count": 2447,
+    "sha256": "32909279c35dab7d2f9cce1f044fb5e9652d8722120bde7308678a16b88cb1a7"
+  },
+  "pg-ddl-11": {
+    "requested_url": "https://www.postgresql.org/docs/current/ddl-inherit.html",
+    "url": "https://www.postgresql.org/docs/current/ddl-inherit.html",
+    "accessed_at": "2026-09-22T16:35:57.807399+00:00",
+    "title": "PostgreSQL: Documentation: 18: 5.11. Inheritance",
+    "word_count": 1884,
+    "sha256": "28d289c7b154d3f4d1a3882ef20b9f094631eebaf2b2b070e6fc369a14c7e192"
+  },
+  "pg-ddl-12": {
+    "requested_url": "https://www.postgresql.org/docs/current/ddl-partitioning.html",
+    "url": "https://www.postgresql.org/docs/current/ddl-partitioning.html",
+    "accessed_at": "2026-09-22T16:34:31.149664+00:00",
+    "title": "PostgreSQL: Documentation: 18: 5.12. Table Partitioning",
+    "word_count": 6461,
+    "sha256": "0cad8231bf724be1f5bc6a64ee167ae7b997cd5d4c82ace29470c7687fc3f238"
+  },
+  "pg-ddl-14": {
+    "requested_url": "https://www.postgresql.org/docs/current/ddl-others.html",
+    "url": "https://www.postgresql.org/docs/current/ddl-others.html",
+    "accessed_at": "2026-09-22T16:35:58.034830+00:00",
+    "title": "PostgreSQL: Documentation: 18: 5.14. Other Database Objects",
+    "word_count": 262,
+    "sha256": "eb1bb103e222584622ebb1671ba36705a16172bffc45dd423597d15fd233f10c"
+  },
+  "pg-ddl-4": {
+    "requested_url": "https://www.postgresql.org/docs/current/ddl-generated-columns.html",
+    "url": "https://www.postgresql.org/docs/current/ddl-generated-columns.html",
+    "accessed_at": "2026-09-22T16:35:56.225799+00:00",
+    "title": "PostgreSQL: Documentation: 18: 5.4. Generated Columns",
+    "word_count": 1086,
+    "sha256": "257cf4e350f474393eb08db7da700c5129816d118301dc14f43b2fe5544689d1"
+  },
+  "pg-ddl-5": {
+    "requested_url": "https://www.postgresql.org/docs/current/ddl-constraints.html",
+    "url": "https://www.postgresql.org/docs/current/ddl-constraints.html",
+    "accessed_at": "2026-09-22T16:34:32.958740+00:00",
+    "title": "PostgreSQL: Documentation: 18: 5.5. Constraints",
+    "word_count": 3863,
+    "sha256": "2864c74efec818c466cab3eb51ae944866f78a94bf9c0c37eda8a4c226558b84"
+  },
+  "pg-ddl-7": {
+    "requested_url": "https://www.postgresql.org/docs/current/ddl-alter.html",
+    "url": "https://www.postgresql.org/docs/current/ddl-alter.html",
+    "accessed_at": "2026-09-22T16:35:57.144610+00:00",
+    "title": "PostgreSQL: Documentation: 18: 5.7. Modifying Tables",
+    "word_count": 1217,
+    "sha256": "151c708848f34989a8391de087203ee93b6d7dbebd18b93ce2abe7f04e3f8de4"
+  },
+  "pg-ddl-8": {
+    "requested_url": "https://www.postgresql.org/docs/current/ddl-priv.html",
+    "url": "https://www.postgresql.org/docs/current/ddl-priv.html",
+    "accessed_at": "2026-09-22T16:35:56.894258+00:00",
+    "title": "PostgreSQL: Documentation: 18: 5.8. Privileges",
+    "word_count": 2313,
+    "sha256": "aae80bf499bb574d8bc859d76fea2097569087b96b5ec27fa64337f7b76c27c7"
+  },
+  "pg-ddl-9": {
+    "requested_url": "https://www.postgresql.org/docs/current/ddl-rowsecurity.html",
+    "url": "https://www.postgresql.org/docs/current/ddl-rowsecurity.html",
+    "accessed_at": "2026-09-22T16:35:57.155504+00:00",
+    "title": "PostgreSQL: Documentation: 18: 5.9. Row Security Policies",
+    "word_count": 2569,
+    "sha256": "07ab8e27c01129ea0921649f290bbf4f3f6ae8eac4aace0a2debe5702657b208"
+  },
+  "pg-encoding": {
+    "requested_url": "https://www.postgresql.org/docs/current/multibyte.html",
+    "url": "https://www.postgresql.org/docs/current/multibyte.html",
+    "accessed_at": "2026-09-22T16:34:32.023368+00:00",
+    "title": "PostgreSQL: Documentation: 18: 23.3. Character Set Support",
+    "word_count": 2466,
+    "sha256": "028f0d8572bde6fabc4b4becc90d8bdc3efb495c650b91aaa928fed19cec60ad"
+  },
+  "pg-explain": {
+    "requested_url": "https://www.postgresql.org/docs/current/using-explain.html",
+    "url": "https://www.postgresql.org/docs/current/using-explain.html",
+    "accessed_at": "2026-09-22T16:34:30.903976+00:00",
+    "title": "PostgreSQL: Documentation: 18: 14.1. Using EXPLAIN",
+    "word_count": 6727,
+    "sha256": "787acaa9af3bd4ce63eaf328922a650964f8afeb77f4a89f54629df2ae03b682"
+  },
+  "pg-index-12": {
+    "requested_url": "https://www.postgresql.org/docs/current/indexes-examine.html",
+    "url": "https://www.postgresql.org/docs/current/indexes-examine.html",
+    "accessed_at": "2026-09-22T16:36:00.410656+00:00",
+    "title": "PostgreSQL: Documentation: 18: 11.12. Examining Index Usage",
+    "word_count": 786,
+    "sha256": "412fdb5d658a59ca3f102fc4d501223865bfc7e3ed3f0b43b2bbdc55926ea79e"
+  },
+  "pg-index-2": {
+    "requested_url": "https://www.postgresql.org/docs/current/indexes-types.html",
+    "url": "https://www.postgresql.org/docs/current/indexes-types.html",
+    "accessed_at": "2026-09-22T16:35:58.357854+00:00",
+    "title": "PostgreSQL: Documentation: 18: 11.2. Index Types",
+    "word_count": 1136,
+    "sha256": "bdffc9c5f70f180f081e972bab27cf297538144dd1f87c68b359258658e17915"
+  },
+  "pg-index-3": {
+    "requested_url": "https://www.postgresql.org/docs/current/indexes-multicolumn.html",
+    "url": "https://www.postgresql.org/docs/current/indexes-multicolumn.html",
+    "accessed_at": "2026-09-22T16:35:58.595945+00:00",
+    "title": "PostgreSQL: Documentation: 18: 11.3. Multicolumn Indexes",
+    "word_count": 1134,
+    "sha256": "815ad6a23e40661d3af137692180b8d049592049ea021fbd76995e32392501cf"
+  },
+  "pg-index-4": {
+    "requested_url": "https://www.postgresql.org/docs/current/indexes-ordering.html",
+    "url": "https://www.postgresql.org/docs/current/indexes-ordering.html",
+    "accessed_at": "2026-09-22T16:35:58.613068+00:00",
+    "title": "PostgreSQL: Documentation: 18: 11.4. Indexes and ORDER BY",
+    "word_count": 685,
+    "sha256": "5e8f315042409e7a197c481254ed65a5c0f7ed98e28e0924975c8124e3c5e962"
+  },
+  "pg-index-7": {
+    "requested_url": "https://www.postgresql.org/docs/current/indexes-expressional.html",
+    "url": "https://www.postgresql.org/docs/current/indexes-expressional.html",
+    "accessed_at": "2026-09-22T16:35:59.507020+00:00",
+    "title": "PostgreSQL: Documentation: 18: 11.7. Indexes on Expressions",
+    "word_count": 477,
+    "sha256": "10676e28c725a925b3b2ff991cd7afa794e55ab1f2afcdd00e9368cf45401e95"
+  },
+  "pg-index-8": {
+    "requested_url": "https://www.postgresql.org/docs/current/indexes-partial.html",
+    "url": "https://www.postgresql.org/docs/current/indexes-partial.html",
+    "accessed_at": "2026-09-22T16:35:59.551105+00:00",
+    "title": "PostgreSQL: Documentation: 18: 11.8. Partial Indexes",
+    "word_count": 1645,
+    "sha256": "ca018cc07848c08a39bbade799f013dbcd4fc361444a0d1bff3e742845cd40aa"
+  },
+  "pg-index-9": {
+    "requested_url": "https://www.postgresql.org/docs/current/indexes-index-only-scans.html",
+    "url": "https://www.postgresql.org/docs/current/indexes-index-only-scans.html",
+    "accessed_at": "2026-09-22T16:35:59.496270+00:00",
+    "title": "PostgreSQL: Documentation: 18: 11.9. Index-Only Scans and Covering Indexes",
+    "word_count": 1735,
+    "sha256": "9796a6d035b40734d15691d60034082a9e577c257886fe359ae4126c8cbe36dd"
+  },
+  "pg-isolation": {
+    "requested_url": "https://www.postgresql.org/docs/current/transaction-iso.html",
+    "url": "https://www.postgresql.org/docs/current/transaction-iso.html",
+    "accessed_at": "2026-09-22T16:34:33.318476+00:00",
+    "title": "PostgreSQL: Documentation: 18: 13.2. Transaction Isolation",
+    "word_count": 3850,
+    "sha256": "347a52bc9bc309b202685db3da60fa881f7b0bd001246fef38d303ec9986195e"
+  },
+  "pg-joins": {
+    "requested_url": "https://www.postgresql.org/docs/current/queries-table-expressions.html",
+    "url": "https://www.postgresql.org/docs/current/queries-table-expressions.html",
+    "accessed_at": "2026-09-22T16:34:29.167087+00:00",
+    "title": "PostgreSQL: Documentation: 18: 7.2. Table Expressions",
+    "word_count": 5986,
+    "sha256": "fc79c01f5eaa7531b50c042583575c9f4addf996625a89bacc8f4fe25b8aee76"
+  },
+  "pg-json": {
+    "requested_url": "https://www.postgresql.org/docs/current/datatype-json.html",
+    "url": "https://www.postgresql.org/docs/current/datatype-json.html",
+    "accessed_at": "2026-09-22T16:34:29.990930+00:00",
+    "title": "PostgreSQL: Documentation: 18: 8.14. JSON Types",
+    "word_count": 4648,
+    "sha256": "001e731545641e4ba39b4baebde36a70b5ab1284e08c193ad306413f3ea45de9"
+  },
+  "pg-locks": {
+    "requested_url": "https://www.postgresql.org/docs/current/explicit-locking.html",
+    "url": "https://www.postgresql.org/docs/current/explicit-locking.html",
+    "accessed_at": "2026-09-22T16:34:33.821947+00:00",
+    "title": "PostgreSQL: Documentation: 18: 13.3. Explicit Locking",
+    "word_count": 2861,
+    "sha256": "fd26c94b36dee798b6b87e20d2aee3d7c93acc2ed42a1e2230caad4e8a55ac16"
+  },
+  "pg-materialized": {
+    "requested_url": "https://www.postgresql.org/docs/current/rules-materializedviews.html",
+    "url": "https://www.postgresql.org/docs/current/rules-materializedviews.html",
+    "accessed_at": "2026-09-22T20:31:44.075703+00:00",
+    "title": "PostgreSQL: Documentation: 18: 39.3. Materialized Views",
+    "word_count": 915,
+    "sha256": "419c8a4e8803902363dd087883bce297b5b067f62304d06c1ea14abd07933c3b"
+  },
+  "pg-mvcc": {
+    "requested_url": "https://www.postgresql.org/docs/current/mvcc.html",
+    "url": "https://www.postgresql.org/docs/current/mvcc.html",
+    "accessed_at": "2026-09-22T16:34:30.911934+00:00",
+    "title": "PostgreSQL: Documentation: 18: Chapter 13. Concurrency Control",
+    "word_count": 299,
+    "sha256": "761f870e2c43bfc017a9a15a1102faffb4e83aa7fa65cd159948289574abd55c"
+  },
+  "pg-numeric": {
+    "requested_url": "https://www.postgresql.org/docs/current/datatype-numeric.html",
+    "url": "https://www.postgresql.org/docs/current/datatype-numeric.html",
+    "accessed_at": "2026-09-22T16:34:32.222891+00:00",
+    "title": "PostgreSQL: Documentation: 18: 8.1. Numeric Types",
+    "word_count": 2553,
+    "sha256": "558d09c818db00259c006bce6883aed7160ca21c1eb81e877304dbde595186e6"
+  },
+  "pg-queries-1": {
+    "requested_url": "https://www.postgresql.org/docs/current/queries-overview.html",
+    "url": "https://www.postgresql.org/docs/current/queries-overview.html",
+    "accessed_at": "2026-09-22T16:36:00.459467+00:00",
+    "title": "PostgreSQL: Documentation: 18: 7.1. Overview",
+    "word_count": 443,
+    "sha256": "8cb0f8f4b7073e9779828f94909f1ebbff156d621969a8e1cc013788ce78ac80"
+  },
+  "pg-queries-3": {
+    "requested_url": "https://www.postgresql.org/docs/current/queries-select-lists.html",
+    "url": "https://www.postgresql.org/docs/current/queries-select-lists.html",
+    "accessed_at": "2026-09-22T16:36:00.971279+00:00",
+    "title": "PostgreSQL: Documentation: 18: 7.3. Select Lists",
+    "word_count": 974,
+    "sha256": "b428c3a6f47a54713491909c2c8a9e3d0a34e9dacee6c3a0e9148725fea91da2"
+  },
+  "pg-queries-4": {
+    "requested_url": "https://www.postgresql.org/docs/current/queries-union.html",
+    "url": "https://www.postgresql.org/docs/current/queries-union.html",
+    "accessed_at": "2026-09-22T16:36:00.798968+00:00",
+    "title": "PostgreSQL: Documentation: 18: 7.4. Combining Queries (UNION, INTERSECT, EXCEPT)",
+    "word_count": 543,
+    "sha256": "3da1203c553c77af62691a872bcab6eea41cb5ed674c2cc8a92158855668ab44"
+  },
+  "pg-queries-5": {
+    "requested_url": "https://www.postgresql.org/docs/current/queries-order.html",
+    "url": "https://www.postgresql.org/docs/current/queries-order.html",
+    "accessed_at": "2026-09-22T16:36:00.990261+00:00",
+    "title": "PostgreSQL: Documentation: 18: 7.5. Sorting Rows (ORDER BY)",
+    "word_count": 726,
+    "sha256": "3b89aa06b3d79c40ecd05b5d59c9957d6af33b6f97c743d4aa892f0e8f192da8"
+  },
+  "pg-queries-6": {
+    "requested_url": "https://www.postgresql.org/docs/current/queries-limit.html",
+    "url": "https://www.postgresql.org/docs/current/queries-limit.html",
+    "accessed_at": "2026-09-22T16:36:01.347970+00:00",
+    "title": "PostgreSQL: Documentation: 18: 7.6. LIMIT and OFFSET",
+    "word_count": 487,
+    "sha256": "5ffe25879bc0fa8589de5d2438ef4431ab30a29c2333cd7946af719e643aa81f"
+  },
+  "pg-replication": {
+    "requested_url": "https://www.postgresql.org/docs/current/logical-replication.html",
+    "url": "https://www.postgresql.org/docs/current/logical-replication.html",
+    "accessed_at": "2026-09-22T16:34:30.653220+00:00",
+    "title": "PostgreSQL: Documentation: 18: Chapter 29. Logical Replication",
+    "word_count": 586,
+    "sha256": "a5775e938a505545f1207c9a7df0ce13a927503f48fc65ff94289529c8000957"
+  },
+  "pg-replication-1": {
+    "requested_url": "https://www.postgresql.org/docs/current/logical-replication-publication.html",
+    "url": "https://www.postgresql.org/docs/current/logical-replication-publication.html",
+    "accessed_at": "2026-09-22T16:36:01.931115+00:00",
+    "title": "PostgreSQL: Documentation: 18: 29.1. Publication",
+    "word_count": 656,
+    "sha256": "2076bbf2814550c2043ff7ae23f7458a458269ff75f6d97a7515e97e42589193"
+  },
+  "pg-replication-11": {
+    "requested_url": "https://www.postgresql.org/docs/current/logical-replication-security.html",
+    "url": "https://www.postgresql.org/docs/current/logical-replication-security.html",
+    "accessed_at": "2026-09-22T16:36:03.815884+00:00",
+    "title": "PostgreSQL: Documentation: 18: 29.11. Security",
+    "word_count": 734,
+    "sha256": "afc6508faa5f58b48e59d1736befaba75e62cb449c411620b46071a97317e8be"
+  },
+  "pg-replication-12": {
+    "requested_url": "https://www.postgresql.org/docs/current/logical-replication-config.html",
+    "url": "https://www.postgresql.org/docs/current/logical-replication-config.html",
+    "accessed_at": "2026-09-22T16:36:03.642920+00:00",
+    "title": "PostgreSQL: Documentation: 18: 29.12. Configuration Settings",
+    "word_count": 360,
+    "sha256": "b833a4570c78cc2712ccae2517aebe9e1e4cf48fcc8142ff072f0879f2536628"
+  },
+  "pg-replication-13": {
+    "requested_url": "https://www.postgresql.org/docs/current/logical-replication-upgrade.html",
+    "url": "https://www.postgresql.org/docs/current/logical-replication-upgrade.html",
+    "accessed_at": "2026-09-22T16:36:04.360900+00:00",
+    "title": "PostgreSQL: Documentation: 18: 29.13. Upgrade",
+    "word_count": 1844,
+    "sha256": "a9055a14e7922b7b4bffc6298a4e8c789ec6cb5ac5fbe1ca3613d047b758aeaa"
+  },
+  "pg-replication-14": {
+    "requested_url": "https://www.postgresql.org/docs/current/logical-replication-quick-setup.html",
+    "url": "https://www.postgresql.org/docs/current/logical-replication-quick-setup.html",
+    "accessed_at": "2026-09-22T16:36:04.036321+00:00",
+    "title": "PostgreSQL: Documentation: 18: 29.14. Quick Setup",
+    "word_count": 247,
+    "sha256": "ec3f222814e1c55458fb2c2442d3a8f1bd685510f45be5b9984079d2e4b9af08"
+  },
+  "pg-replication-2": {
+    "requested_url": "https://www.postgresql.org/docs/current/logical-replication-subscription.html",
+    "url": "https://www.postgresql.org/docs/current/logical-replication-subscription.html",
+    "accessed_at": "2026-09-22T16:36:01.568887+00:00",
+    "title": "PostgreSQL: Documentation: 18: 29.2. Subscription",
+    "word_count": 2149,
+    "sha256": "3e57b28beba16f9c75ad68590b17f75496f385d16c840b774cbb7338957734ae"
+  },
+  "pg-replication-3": {
+    "requested_url": "https://www.postgresql.org/docs/current/logical-replication-failover.html",
+    "url": "https://www.postgresql.org/docs/current/logical-replication-failover.html",
+    "accessed_at": "2026-09-22T16:36:01.915105+00:00",
+    "title": "PostgreSQL: Documentation: 18: 29.3. Logical Replication Failover",
+    "word_count": 766,
+    "sha256": "a9916a9fec3051568cdc12f3816f0409b8435f5163618de093ac103ec916c08f"
+  },
+  "pg-replication-4": {
+    "requested_url": "https://www.postgresql.org/docs/current/logical-replication-row-filter.html",
+    "url": "https://www.postgresql.org/docs/current/logical-replication-row-filter.html",
+    "accessed_at": "2026-09-22T16:36:02.296194+00:00",
+    "title": "PostgreSQL: Documentation: 18: 29.4. Row Filters",
+    "word_count": 2499,
+    "sha256": "d8950392b06c378b610d025e575a472a2bdd012982a54f03f3353bc837527f04"
+  },
+  "pg-replication-5": {
+    "requested_url": "https://www.postgresql.org/docs/current/logical-replication-col-lists.html",
+    "url": "https://www.postgresql.org/docs/current/logical-replication-col-lists.html",
+    "accessed_at": "2026-09-22T16:36:02.111437+00:00",
+    "title": "PostgreSQL: Documentation: 18: 29.5. Column Lists",
+    "word_count": 1078,
+    "sha256": "e6ab3b05c984051f7adba3fe9f31c15bd7ac9ea5c934a62d6e01eb18e87d73ce"
+  },
+  "pg-replication-6": {
+    "requested_url": "https://www.postgresql.org/docs/current/logical-replication-gencols.html",
+    "url": "https://www.postgresql.org/docs/current/logical-replication-gencols.html",
+    "accessed_at": "2026-09-22T16:36:02.919810+00:00",
+    "title": "PostgreSQL: Documentation: 18: 29.6. Generated Column Replication",
+    "word_count": 645,
+    "sha256": "d498406056dbc2996ed577c9a3aeb7d907793682c32d42edd561b1db7a65f908"
+  },
+  "pg-replication-7": {
+    "requested_url": "https://www.postgresql.org/docs/current/logical-replication-conflicts.html",
+    "url": "https://www.postgresql.org/docs/current/logical-replication-conflicts.html",
+    "accessed_at": "2026-09-22T16:36:02.489409+00:00",
+    "title": "PostgreSQL: Documentation: 18: 29.7. Conflicts",
+    "word_count": 1434,
+    "sha256": "76258c70397abf6cd605bbb18c62d0c7fb9e100ffa04cc1c4300a7697ba54b45"
+  },
+  "pg-replication-8": {
+    "requested_url": "https://www.postgresql.org/docs/current/logical-replication-restrictions.html",
+    "url": "https://www.postgresql.org/docs/current/logical-replication-restrictions.html",
+    "accessed_at": "2026-09-22T16:36:03.080427+00:00",
+    "title": "PostgreSQL: Documentation: 18: 29.8. Restrictions",
+    "word_count": 685,
+    "sha256": "01cb4ae8dd0018f19d5c78e34c202e2762c43f44dbb46daf96d032a57f76f51d"
+  },
+  "pg-replication-9": {
+    "requested_url": "https://www.postgresql.org/docs/current/logical-replication-architecture.html",
+    "url": "https://www.postgresql.org/docs/current/logical-replication-architecture.html",
+    "accessed_at": "2026-09-22T16:36:03.294989+00:00",
+    "title": "PostgreSQL: Documentation: 18: 29.9. Architecture",
+    "word_count": 558,
+    "sha256": "e55816cfac32c10219e49eee73ee5611d1672d7d201dcf47b7fabf923cfad4e2"
+  },
+  "pg-security": {
+    "requested_url": "https://www.postgresql.org/docs/current/user-manag.html",
+    "url": "https://www.postgresql.org/docs/current/user-manag.html",
+    "accessed_at": "2026-09-22T16:34:31.810458+00:00",
+    "title": "PostgreSQL: Documentation: 18: Chapter 21. Database Roles",
+    "word_count": 349,
+    "sha256": "072467239c72bdbbb1dd443f5f6d1b85126c8e64027cd51fd39b30bc958357a4"
+  },
+  "pg-security-1": {
+    "requested_url": "https://www.postgresql.org/docs/current/role-attributes.html",
+    "url": "https://www.postgresql.org/docs/current/role-attributes.html",
+    "accessed_at": "2026-09-22T16:36:04.957133+00:00",
+    "title": "PostgreSQL: Documentation: 18: 21.2. Role Attributes",
+    "word_count": 1191,
+    "sha256": "147c17d2bab7458c9bef71bd90b3c811bc920f310072590b9b62972261d2aea6"
+  },
+  "pg-security-2": {
+    "requested_url": "https://www.postgresql.org/docs/current/role-membership.html",
+    "url": "https://www.postgresql.org/docs/current/role-membership.html",
+    "accessed_at": "2026-09-22T16:36:05.298305+00:00",
+    "title": "PostgreSQL: Documentation: 18: 21.3. Role Membership",
+    "word_count": 877,
+    "sha256": "018846de4fe759bc23ca30e4c155aa491c7500503d43a81bcdb69aac2a9e156a"
+  },
+  "pg-security-3": {
+    "requested_url": "https://www.postgresql.org/docs/current/role-removal.html",
+    "url": "https://www.postgresql.org/docs/current/role-removal.html",
+    "accessed_at": "2026-09-22T16:36:05.479692+00:00",
+    "title": "PostgreSQL: Documentation: 18: 21.4. Dropping Roles",
+    "word_count": 534,
+    "sha256": "71541da5edd4aaae8ab3461c9d80623517ad8f1c19031203c16cf66ba598f391"
+  },
+  "pg-vacuum": {
+    "requested_url": "https://www.postgresql.org/docs/current/routine-vacuuming.html",
+    "url": "https://www.postgresql.org/docs/current/routine-vacuuming.html",
+    "accessed_at": "2026-09-22T16:34:33.413336+00:00",
+    "title": "PostgreSQL: Documentation: 18: 24.1. Routine Vacuuming",
+    "word_count": 5848,
+    "sha256": "eeab8aad73a4ef97a5ed1127b4e62b7748e21d7bbd68ddb2d6dca003b7efa019"
+  },
+  "pg-window": {
+    "requested_url": "https://www.postgresql.org/docs/current/tutorial-window.html",
+    "url": "https://www.postgresql.org/docs/current/tutorial-window.html",
+    "accessed_at": "2026-09-22T16:34:29.736052+00:00",
+    "title": "PostgreSQL: Documentation: 18: 3.5. Window Functions",
+    "word_count": 1379,
+    "sha256": "f7d8de9a1e5730f5a8516951f1e23dd2daad3e4e6882a04f7937f1099e90dc76"
+  },
+  "rag-access": {
+    "requested_url": "https://learn.microsoft.com/en-us/azure/search/search-security-trimming-for-azure-search",
+    "url": "https://learn.microsoft.com/en-us/azure/search/search-security-trimming-for-azure-search",
+    "accessed_at": "2026-09-22T16:39:20.096463+00:00",
+    "title": "Security Filter Pattern - Azure AI Search | Microsoft Learn",
+    "word_count": 1380,
+    "sha256": "3866b631c92fe0406fe37bf785e5cee3411ad4855e4fb141cced681d38f916d8"
+  },
+  "rag-chunking": {
+    "requested_url": "https://learn.microsoft.com/en-us/azure/search/vector-search-how-to-chunk-documents",
+    "url": "https://learn.microsoft.com/en-us/azure/search/vector-search-how-to-chunk-documents",
+    "accessed_at": "2026-09-22T16:39:20.437203+00:00",
+    "title": "Chunk Documents - Azure AI Search | Microsoft Learn",
+    "word_count": 2140,
+    "sha256": "2fe6e53cdc6249a95fbd84d2e5354dde675e8bd0de7bda2bf6fec0b941a3fecf"
+  },
+  "rag-design": {
+    "requested_url": "https://learn.microsoft.com/en-us/azure/architecture/ai-ml/guide/rag/rag-solution-design-and-evaluation-guide",
+    "url": "https://learn.microsoft.com/en-us/azure/architecture/ai-ml/guide/rag/rag-solution-design-and-evaluation-guide",
+    "accessed_at": "2026-09-22T16:39:19.484185+00:00",
+    "title": "Design and Develop a RAG Solution on Azure - Azure Architecture Center | Microsoft Learn",
+    "word_count": 1441,
+    "sha256": "97c1ba8e18018285887f27333e8e8fc94e6a07427d42a2457e14af17bdd270f9"
+  },
+  "rag-evaluation": {
+    "requested_url": "https://learn.microsoft.com/en-us/azure/architecture/ai-ml/guide/rag/rag-information-retrieval",
+    "url": "https://learn.microsoft.com/en-us/azure/architecture/ai-ml/guide/rag/rag-information-retrieval",
+    "accessed_at": "2026-09-22T20:31:42.765052+00:00",
+    "title": "Develop a RAG Solution on Azure - Information-Retrieval Phase - Azure Architecture Center | Microsoft Learn",
+    "word_count": 6454,
+    "sha256": "0074275697474b7f6ea60d34701ab348a8acd4e25914979d6e08b60eb4b75dd2"
+  },
+  "rag-preparation": {
+    "requested_url": "https://learn.microsoft.com/en-us/azure/architecture/ai-ml/guide/rag/rag-preparation-phase",
+    "url": "https://learn.microsoft.com/en-us/azure/architecture/ai-ml/guide/rag/rag-preparation-phase",
+    "accessed_at": "2026-09-22T20:31:42.211578+00:00",
+    "title": "Develop a RAG Solution on Azure - Preparation Phase - Azure Architecture Center | Microsoft Learn",
+    "word_count": 3212,
+    "sha256": "02542f72ef7e3dc205c4fc371dc9060c47b5a2a99c311a2a209b18aa54bb8535"
+  },
+  "rag-search": {
+    "requested_url": "https://learn.microsoft.com/en-us/azure/search/retrieval-augmented-generation-overview",
+    "url": "https://learn.microsoft.com/en-us/azure/search/retrieval-augmented-generation-overview",
+    "accessed_at": "2026-09-22T16:39:19.862061+00:00",
+    "title": "RAG and Generative AI - Azure AI Search | Microsoft Learn",
+    "word_count": 1920,
+    "sha256": "f4d4fa6d3dc9b8fdd8f5964b7061ace0dc6c65418001eaf81f8523e1aff05233"
+  },
+  "snowflake": {
+    "requested_url": "https://docs.snowflake.com/en/user-guide/performance-query-storage",
+    "url": "https://docs.snowflake.com/en/user-guide/performance-query-storage",
+    "accessed_at": "2026-09-22T16:34:42.351261+00:00",
+    "title": "Optimizing storage for performance | Snowflake Documentation",
+    "word_count": 2158,
+    "sha256": "d675467500d0680d0db62b1f6af8717339a2a313f9a027ed87788c0125d43b32"
+  },
+  "snowflake-acceleration": {
+    "requested_url": "https://docs.snowflake.com/en/user-guide/query-acceleration-service",
+    "url": "https://docs.snowflake.com/en/user-guide/query-acceleration-service",
+    "accessed_at": "2026-09-22T20:31:42.936033+00:00",
+    "title": "Using the Query Acceleration Service (QAS) | Snowflake Documentation",
+    "word_count": 3562,
+    "sha256": "44cedd5967f2e0cfe788be2ba75353d332c184dd978ec888293eeb15f9a87d6b"
+  },
+  "snowflake-profile": {
+    "requested_url": "https://docs.snowflake.com/en/user-guide/ui-query-profile",
+    "url": "https://docs.snowflake.com/en/user-guide/ui-snowsight-activity",
+    "accessed_at": "2026-09-22T20:31:43.960939+00:00",
+    "title": "Monitor query activity with Query History | Snowflake Documentation",
+    "word_count": 5910,
+    "sha256": "0aad83ee3d37c975901f3b87eecfbb02a92bfb5fa55f2c79951ec7fb9caa69e1"
+  },
+  "snowflake-warehouse": {
+    "requested_url": "https://docs.snowflake.com/en/user-guide/performance-query-warehouse",
+    "url": "https://docs.snowflake.com/en/user-guide/performance-query-warehouse",
+    "accessed_at": "2026-09-22T20:31:42.535737+00:00",
+    "title": "Optimizing warehouses for performance | Snowflake Documentation",
+    "word_count": 582,
+    "sha256": "81b090a5ad3a83fc8504f8682a6c1aa55890fd7fad38577fc77794e76e882c7f"
+  },
+  "spark-streaming": {
+    "requested_url": "https://spark.apache.org/docs/latest/streaming/apis-on-dataframes-and-datasets.html",
+    "url": "https://spark.apache.org/docs/latest/streaming/apis-on-dataframes-and-datasets.html",
+    "accessed_at": "2026-09-22T16:34:41.031424+00:00",
+    "title": "Structured Streaming Programming Guide - Spark 4.2.0 Documentation",
+    "word_count": 16180,
+    "sha256": "91e452ba11e146a3d92e163907c854f5cb8ae2ebcfa7ed9e0a8485cbecd702a5"
+  },
+  "sre-alerting": {
+    "requested_url": "https://sre.google/workbook/alerting-on-slos/",
+    "url": "https://sre.google/workbook/alerting-on-slos/",
+    "accessed_at": "2026-09-22T16:34:34.456352+00:00",
+    "title": "Google SRE - Prometheus Alerting: Turn SLOs into Alerts",
+    "word_count": 4732,
+    "sha256": "9cc6ba44d45283f78b0467dfc4eccc807806dba33e57a1d7a593bddb716707df"
+  },
+  "sre-incidents": {
+    "requested_url": "https://sre.google/workbook/incident-response/",
+    "url": "https://sre.google/workbook/incident-response/",
+    "accessed_at": "2026-09-22T16:34:34.804341+00:00",
+    "title": "Google SRE - Root Cause Analysis for Probing Incident",
+    "word_count": 7687,
+    "sha256": "98860faf0a4728d2f0f0a61c6f87fdb435ee9c1e37f58e5429b453af263f5c48"
+  },
+  "sre-monitoring": {
+    "requested_url": "https://sre.google/workbook/monitoring/",
+    "url": "https://sre.google/workbook/monitoring/",
+    "accessed_at": "2026-09-22T16:34:34.435893+00:00",
+    "title": "Google SRE - Monitoring Systems with Advanced Analytics",
+    "word_count": 4776,
+    "sha256": "3ea7b3b16d46abeb49b7fe6e1125960bca5046aa6cd6da6f6516c5b8d7d44b09"
+  },
+  "sre-oncall": {
+    "requested_url": "https://sre.google/workbook/on-call/",
+    "url": "https://sre.google/workbook/on-call/",
+    "accessed_at": "2026-09-22T16:34:34.850892+00:00",
+    "title": "Google SRE: What it Means Being On-Call? | Devops On-Call",
+    "word_count": 10619,
+    "sha256": "0e97ebf02167d9b8e8ea8d673fddf0e1c0377890fced37a4ed3aac3cb03c45eb"
+  },
+  "sre-pipelines": {
+    "requested_url": "https://sre.google/workbook/data-processing/",
+    "url": "https://sre.google/workbook/data-processing/",
+    "accessed_at": "2026-09-22T16:34:35.200034+00:00",
+    "title": "Google SRE - Improve and Optimize Data Processing Pipelines",
+    "word_count": 13001,
+    "sha256": "c2d46d033911b3f4719ee7769e088c96798cdf1155144697be8ffa9ea513ff74"
+  },
+  "sre-postmortem": {
+    "requested_url": "https://sre.google/workbook/postmortem-culture/",
+    "url": "https://sre.google/workbook/postmortem-culture/",
+    "accessed_at": "2026-09-22T16:34:34.829385+00:00",
+    "title": "Google SRE - Postmortem Practices for Incident Management",
+    "word_count": 7423,
+    "sha256": "cf26bcdfe26ff22dfd0e55e68b1b47f20b351d204e9b3e1a23c30d334e7a7d92"
+  },
+  "sre-slo": {
+    "requested_url": "https://sre.google/workbook/implementing-slos/",
+    "url": "https://sre.google/workbook/implementing-slos/",
+    "accessed_at": "2026-09-22T16:34:34.479573+00:00",
+    "title": "Google SRE - Continuous Improvement To Get Reliability",
+    "word_count": 8877,
+    "sha256": "e5552242208ab0fa31a8e714d46b7f7216c7fc7df1b801cb58cf22b71da7995e"
+  }
+}

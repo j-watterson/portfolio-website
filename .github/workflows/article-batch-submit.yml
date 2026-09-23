@@ -1,0 +1,51 @@
+name: Submit weekly writing batch
+on:
+  schedule:
+    - cron: "17 16 * * 1"
+  workflow_dispatch:
+    inputs:
+      count:
+        description: Articles to submit (1–10; shared weekly allowance is 10)
+        required: true
+        default: "10"
+        type: string
+permissions:
+  contents: write
+concurrency:
+  group: portfolio-article-pipeline
+  cancel-in-progress: false
+jobs:
+  submit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+      - run: npm run validate:topics
+      - name: Submit eligible topics
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_MODEL: ${{ vars.OPENAI_MODEL || 'gpt-5.5' }}
+          ARTICLE_COUNT: ${{ github.event_name == 'workflow_dispatch' && inputs.count || '10' }}
+        run: npm run article-batch:submit -- --count="$ARTICLE_COUNT"
+      - name: Commit submission state
+        run: |
+          git add generated/weekly/
+          if test -f generated/article-batch-state.json; then git add generated/article-batch-state.json; fi
+          if git diff --cached --quiet; then exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "chore: submit portfolio weekly writing batch"
+          git push origin HEAD:main
+      - name: Preserve submission recovery files
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: writing-submission-recovery
+          path: |
+            generated/article-batch-state.json
+            generated/weekly/
+          if-no-files-found: ignore

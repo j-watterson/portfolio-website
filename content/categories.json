@@ -1,0 +1,38 @@
+[
+  {
+    "slug": "modern-data-stack",
+    "title": "Modern Data Stack",
+    "track": "Data Foundations",
+    "description": "Practical guidance for choosing and arranging ingestion, warehouse, modeling, orchestration, and BI tools."
+  },
+  {
+    "slug": "data-modeling",
+    "title": "Data Modeling",
+    "track": "Data Foundations",
+    "description": "How to shape raw data into documented tables, shared definitions, and durable business concepts."
+  },
+  {
+    "slug": "dashboard-trust",
+    "title": "Dashboard Trust",
+    "track": "Analytics & Metrics",
+    "description": "Methods for making dashboards credible, explainable, and consistent with the way the business operates."
+  },
+  {
+    "slug": "migration",
+    "title": "Migration",
+    "track": "Data Foundations",
+    "description": "Move from spreadsheets, legacy databases, or tangled scripts into a cleaner stack without breaking reporting."
+  },
+  {
+    "slug": "automation",
+    "title": "Automation",
+    "track": "Pipeline Reliability",
+    "description": "Use scheduling, retries, alerts, and runbooks to make routine data work quiet and dependable."
+  },
+  {
+    "slug": "ai-ready-data",
+    "title": "AI-Ready Data",
+    "track": "AI-Ready Data",
+    "description": "Prepare clean, governed, contextual data so AI systems have something trustworthy to use."
+  }
+]

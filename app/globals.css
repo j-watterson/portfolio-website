@@ -380,3 +380,25 @@ kbd { padding: 3px 6px; border: 1px solid var(--line); border-radius: 5px; color
   .resume-entry ul { font-size: 8pt; line-height: 1.35; }
   .resume-entry li + li { margin-top: 3px; }
 }
+
+/* Writing follows the portfolio's existing palette and readable content widths. */
+.writing-grid h2 a:hover, .writing-body a, .writing-related a, .writing-pagination a { color: var(--accent); }
+.writing-read { margin-top: auto; padding-top: 24px; }
+.writing-planned h3 { margin-top: 36px; font-size: 1.55rem; line-height: 1.2; }
+.writing-pagination { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 20px; padding-bottom: 40px; }
+.writing-hero h1 { max-width: 1000px; font-size: clamp(2.6rem, 5vw, 5rem); overflow-wrap: anywhere; }
+.writing-meta { color: var(--muted); }
+.writing-layout { display: grid; grid-template-columns: 220px minmax(0, 760px); gap: 64px; justify-content: center; align-items: start; }
+.writing-toc { position: sticky; top: 110px; font-size: .9rem; }
+.writing-toc ul { padding-left: 18px; }
+.writing-toc li { margin: 12px 0; }
+.writing-body { min-width: 0; font-size: 1.08rem; overflow-wrap: anywhere; }
+.writing-body section { margin-top: 52px; scroll-margin-top: 110px; }
+.writing-body h2 { font-size: clamp(1.7rem, 3vw, 2.3rem); }
+.writing-body p, .writing-body li { line-height: 1.8; }
+.writing-lead { font-size: 1.2rem; }
+.writing-code { margin: 28px 0; overflow: hidden; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+.writing-code figcaption { padding: 8px 18px; border-bottom: 1px solid var(--line); color: var(--muted); font: .8rem ui-monospace, monospace; }
+.writing-code pre { margin: 0; padding: 20px; overflow-x: auto; font-size: .87rem; line-height: 1.6; }
+.writing-related { max-width: 1044px; }
+@media (max-width: 800px) { .writing-layout { grid-template-columns: minmax(0, 1fr); gap: 24px; } .writing-toc { position: static; padding: 24px; border: 1px solid var(--line); border-radius: 12px; } }

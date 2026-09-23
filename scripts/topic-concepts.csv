@@ -1,0 +1,765 @@
+topic,url,status,audience,update_frequency
+Candidate keys and alternate keys,,not written,practitioners,never
+Functional dependencies in analytical tables,,not written,practitioners,never
+Composite keys in business event data,,not written,practitioners,never
+Natural keys versus surrogate keys,,not written,practitioners,never
+Referential integrity across analytical tables,,not written,practitioners,never
+SQL null and three-valued logic,,not written,practitioners,never
+Set semantics versus bag semantics in SQL,,not written,practitioners,never
+First normal form and repeating groups,,not written,practitioners,never
+Second and third normal forms,,not written,practitioners,never
+Lossless decomposition of relational tables,,not written,practitioners,never
+Entity identity versus record identity,,not written,practitioners,never
+Optional relationships in data models,,not written,practitioners,never
+Cardinality and participation constraints,,not written,practitioners,never
+Weak entities and identifying relationships,,not written,practitioners,never
+Associative entities for many-to-many relationships,,not written,practitioners,never
+Database constraints versus validation queries,,not written,practitioners,never
+Uniqueness with nullable business identifiers,,not written,practitioners,never
+Domain constraints for categorical data,,not written,practitioners,never
+Relational division for analytical questions,,not written,practitioners,never
+Temporal uniqueness constraints,,not written,practitioners,never
+Floating-point error in financial analytics,,not written,practitioners,never
+Fixed-point decimal precision and scale,,not written,practitioners,never
+Rounding at ingestion versus presentation,,not written,practitioners,never
+Rounding residuals in proportional allocations,,not written,practitioners,never
+Integer overflow in aggregate calculations,,not written,practitioners,never
+Division by zero in business ratios,,not written,practitioners,never
+Negative values in rate calculations,,not written,practitioners,never
+Unit conversions in analytical models,,not written,practitioners,never
+Currency conversion dates in reporting,,not written,practitioners,never
+Exchange-rate direction and inversion,,not written,practitioners,never
+Percentage points versus percentage changes,,not written,practitioners,never
+Approximate distinct counts and error bounds,,not written,practitioners,never
+Variance aggregation across partitions,,not written,practitioners,never
+Numerical stability in variance calculations,,not written,practitioners,never
+Geometric means for compounded growth,,not written,practitioners,never
+Logarithmic scales in operational metrics,,not written,practitioners,never
+Sign conventions for debits and credits in data,,not written,practitioners,never
+Precision loss in identifier conversions,,not written,practitioners,never
+Missing measurements versus measured zero,,not written,practitioners,never
+Event time versus processing time,,not written,practitioners,never
+UTC storage and local reporting boundaries,,not written,practitioners,never
+Daylight-saving gaps and repeated hours,,not written,practitioners,never
+Half-open time intervals,,not written,practitioners,never
+Business calendars in analytical models,,not written,practitioners,never
+Fiscal calendars and reporting periods,,not written,practitioners,never
+ISO week years versus calendar years,,not written,practitioners,never
+Timestamp precision across system boundaries,,not written,practitioners,never
+Clock skew in distributed event logs,,not written,practitioners,never
+Late-arriving data in closed reporting periods,,not written,practitioners,never
+Effective time versus recorded time,,not written,practitioners,never
+Bitemporal data modeling,,not written,practitioners,never
+Time-zone identifiers versus fixed offsets,,not written,practitioners,never
+Elapsed duration versus calendar duration,,not written,practitioners,never
+Date-only fields versus midnight timestamps,,not written,practitioners,never
+Epoch units and timestamp conversion,,not written,practitioners,never
+Ordering events with identical timestamps,,not written,practitioners,never
+Temporal gap detection in status histories,,not written,practitioners,never
+Overlapping validity intervals,,not written,practitioners,never
+Unicode normalization in matching keys,,not written,practitioners,annual
+Case folding versus lowercasing identifiers,,not written,practitioners,annual
+Collation effects on sorting and equality,,not written,practitioners,annual
+Character encoding detection in source files,,not written,practitioners,annual
+Escaped delimiters in CSV ingestion,,not written,practitioners,annual
+Empty strings versus null in text data,,not written,practitioners,annual
+Schema inference hazards in CSV files,,not written,practitioners,annual
+Nested arrays and row explosion,,not written,practitioners,annual
+Missing JSON fields versus explicit null,,not written,practitioners,annual
+JSON numbers and type coercion,,not written,practitioners,annual
+Schema evolution in nested event payloads,,not written,practitioners,annual
+Flattening nested objects for analytics,,not written,practitioners,annual
+Sparse attributes and entity-attribute-value models,,not written,practitioners,annual
+Binary payloads in analytical pipelines,,not written,practitioners,annual
+Delimited-list columns in operational exports,,not written,practitioners,annual
+Text normalization without destroying evidence,,not written,practitioners,annual
+Enumerated values that drift over time,,not written,practitioners,annual
+Stable hashing of structured records,,not written,practitioners,annual
+Schema-on-read versus schema-on-write,,not written,practitioners,annual
+Declaring the grain of a fact table,,not written,practitioners,never
+Transaction fact tables,,not written,practitioners,never
+Periodic snapshot fact tables,,not written,practitioners,never
+Accumulating snapshot fact tables,,not written,practitioners,never
+Factless fact tables for coverage,,not written,practitioners,never
+Additive semi-additive and nonadditive measures,,not written,practitioners,never
+Degenerate dimensions in transaction facts,,not written,practitioners,never
+Allocated measures across multiple dimensions,,not written,practitioners,never
+Multiple currencies in a fact table,,not written,practitioners,never
+Multiple units of measure in facts,,not written,practitioners,never
+Header and line-item fact tables,,not written,practitioners,never
+Order lifecycle modeling with reversals,,not written,practitioners,never
+Inventory balance facts,,not written,practitioners,never
+Inventory stockout coverage models,,not written,practitioners,never
+Fact table audit columns,,not written,practitioners,never
+Late-arriving facts,,not written,practitioners,never
+Unknown dimension members in fact loading,,not written,practitioners,never
+Aggregate fact table consistency,,not written,practitioners,never
+Fact table extensibility without grain changes,,not written,practitioners,never
+Conformed dimensions across data marts,,not written,practitioners,never
+Role-playing date dimensions,,not written,practitioners,never
+Junk dimensions for low-cardinality flags,,not written,practitioners,never
+Mini-dimensions for rapidly changing attributes,,not written,practitioners,never
+Outrigger dimensions and analytical usability,,not written,practitioners,never
+Hierarchies with ragged levels,,not written,practitioners,never
+Parent-child hierarchies with changing membership,,not written,practitioners,never
+Bridge tables for multivalued dimensions,,not written,practitioners,never
+Weighted bridge tables,,not written,practitioners,never
+Calendar dimension attributes,,not written,practitioners,never
+Durable entity keys across source systems,,not written,practitioners,never
+Household and account group dimensions,,not written,practitioners,never
+Dimension attribute default categories,,not written,practitioners,never
+Dimension member deduplication,,not written,practitioners,never
+Dimension surrogate-key lookup,,not written,practitioners,never
+Behavioral segmentation dimensions,,not written,practitioners,never
+Range-band dimensions,,not written,practitioners,never
+Crosswalk tables for source code mappings,,not written,practitioners,never
+Dimension retirement and reactivation,,not written,practitioners,never
+Subtype dimensions for heterogeneous entities,,not written,practitioners,never
+Type 1 slowly changing dimensions,,not written,practitioners,never
+Type 2 slowly changing dimensions,,not written,practitioners,never
+Type 3 slowly changing dimensions,,not written,practitioners,never
+Type 6 hybrid dimension history,,not written,practitioners,never
+Inferred dimension members,,not written,practitioners,never
+Retroactive corrections to dimension history,,not written,practitioners,never
+Current-row flags versus validity-end dates,,not written,practitioners,never
+Detecting attribute changes with hashes,,not written,practitioners,never
+Event sourcing versus state snapshots,,not written,practitioners,never
+History from append-only audit logs,,not written,practitioners,never
+Deleted entities in historical reporting,,not written,practitioners,never
+Soft deletes versus hard deletes in analytics,,not written,practitioners,never
+Out-of-order entity updates,,not written,practitioners,never
+Reconstructing state from partial update events,,not written,practitioners,never
+Business-key reuse in historical dimensions,,not written,practitioners,never
+Historical identity merges and splits,,not written,practitioners,never
+Point-in-time joins for historical features,,not written,practitioners,never
+Snapshot frequency and unobserved transitions,,not written,practitioners,never
+Temporal reconciliation between source and warehouse,,not written,practitioners,never
+Archiving history without breaking as-of queries,,not written,practitioners,never
+Join fanout and inflated aggregates,,not written,practitioners,never
+Outer join filters in ON versus WHERE,,not written,practitioners,never
+Semi joins for existence tests,,not written,practitioners,never
+Anti joins and missing-match analysis,,not written,practitioners,never
+Self joins for hierarchical relationships,,not written,practitioners,never
+Range joins for effective-dated attributes,,not written,practitioners,never
+Joining facts at different grains,,not written,practitioners,never
+Cross joins for coverage matrices,,not written,practitioners,never
+Non-equi joins for threshold classification,,not written,practitioners,never
+Lateral joins for correlated row expansion,,not written,practitioners,never
+Deterministic deduplication before a join,,not written,practitioners,never
+Null-safe equality in reconciliation joins,,not written,practitioners,never
+Joining on normalized business keys,,not written,practitioners,never
+Symmetric difference between datasets,,not written,practitioners,never
+Duplicate-sensitive dataset comparisons,,not written,practitioners,never
+Row count invariants for join tests,,not written,practitioners,never
+Join keys with incompatible types,,not written,practitioners,never
+Circular joins in semantic models,,not written,practitioners,never
+Window partitioning versus grouping,,not written,practitioners,never
+ROWS versus RANGE window frames,,not written,practitioners,never
+Running totals with deterministic ordering,,not written,practitioners,never
+Rolling averages with missing dates,,not written,practitioners,never
+Ranking with ties in analytical reports,,not written,practitioners,never
+First and last values in window functions,,not written,practitioners,never
+Gaps and islands in event sequences,,not written,practitioners,never
+Sessionization from timestamped events,,not written,practitioners,never
+Cohort retention denominators,,not written,practitioners,never
+Survivorship bias in retention queries,,not written,practitioners,never
+Weighted averages versus averages of averages,,not written,practitioners,never
+Percentiles and quantiles in skewed data,,not written,practitioners,never
+Ratios of sums versus sums of ratios,,not written,practitioners,never
+Conditional aggregation for categorical pivots,,not written,practitioners,never
+Cumulative distinct counts,,not written,practitioners,never
+Top-N within each group,,not written,practitioners,never
+Recursive queries for organizational hierarchies,,not written,practitioners,never
+As-of reporting from event histories,,not written,practitioners,never
+Time-to-event analysis with unfinished cases,,not written,practitioners,never
+Reconciling subtotals and grand totals,,not written,practitioners,never
+Metric grain versus reporting grain,,not written,practitioners,annual
+Gross retention versus net retention calculations,,not written,practitioners,annual
+Revenue recognition dates versus payment dates in datasets,,not written,practitioners,annual
+Booked billed and collected amounts,,not written,practitioners,annual
+Trial conversion attribution windows,,not written,practitioners,annual
+Funnel step ordering and repeated events,,not written,practitioners,annual
+Conversion attribution across devices,,not written,practitioners,annual
+Churn event detection from subscription histories,,not written,practitioners,annual
+Reactivation versus new-customer acquisition,,not written,practitioners,annual
+Seat-based versus account-based adoption,,not written,practitioners,annual
+Usage-based billing event aggregation,,not written,practitioners,annual
+Order cancellation and refund metrics,,not written,practitioners,annual
+Gross merchandise value versus recognized revenue datasets,,not written,practitioners,annual
+Marketing attribution models in warehouse tables,,not written,practitioners,annual
+Service-level attainment denominators,,not written,practitioners,annual
+Customer lifetime value cohort inputs,,not written,practitioners,annual
+Operational queue age distributions,,not written,practitioners,annual
+Inventory turnover data prerequisites,,not written,practitioners,annual
+Weighted utilization metrics,,not written,practitioners,annual
+File arrival completeness detection,,not written,practitioners,annual
+Manifest-driven batch ingestion,,not written,practitioners,annual
+Checksums for data transfer integrity,,not written,practitioners,annual
+Duplicate file delivery handling,,not written,practitioners,annual
+File naming conventions as metadata,,not written,practitioners,annual
+Compressed file ingestion limits,,not written,practitioners,annual
+Record framing in newline-delimited JSON,,not written,practitioners,annual
+CSV dialect contracts,,not written,practitioners,annual
+Header drift in recurring exports,,not written,practitioners,annual
+Multiline records in distributed ingestion,,not written,practitioners,annual
+Empty files versus missing deliveries,,not written,practitioners,annual
+Incremental ingestion by object modification time,,not written,practitioners,annual
+Immutable landing zones,,not written,practitioners,annual
+Quarantine zones for malformed files,,not written,practitioners,annual
+File-level versus row-level rejection,,not written,practitioners,annual
+Small-file accumulation in data lakes,,not written,practitioners,annual
+Compaction without data duplication,,not written,practitioners,annual
+Schema sidecars for external data files,,not written,practitioners,annual
+Ingestion receipts and source acknowledgments,,not written,practitioners,annual
+Cursor pagination under changing source data,,not written,practitioners,annual
+Offset pagination and unstable result sets,,not written,practitioners,annual
+Incremental extraction watermarks,,not written,practitioners,annual
+Overlapping extraction windows,,not written,practitioners,annual
+API rate limits and client backpressure,,not written,practitioners,annual
+Retry-After handling in ingestion clients,,not written,practitioners,annual
+Exponential backoff with jitter,,not written,practitioners,annual
+Idempotency keys for ingestion requests,,not written,practitioners,annual
+Conditional requests with ETags,,not written,practitioners,annual
+Partial API responses and field selection,,not written,practitioners,annual
+API response schema validation,,not written,practitioners,annual
+Pagination checkpoint persistence,,not written,practitioners,annual
+Cursor expiration recovery,,not written,practitioners,annual
+API authentication token rotation,,not written,practitioners,annual
+Source API deletion detection,,not written,practitioners,annual
+Request timeouts versus end-to-end deadlines,,not written,practitioners,annual
+HTTP success with application-level errors,,not written,practitioners,annual
+API bulk export polling,,not written,practitioners,annual
+Ingestion request tracing,,not written,practitioners,annual
+Log-based versus query-based change capture,,not written,practitioners,annual
+Initial snapshots and change-stream handoff,,not written,practitioners,annual
+CDC transaction boundaries,,not written,practitioners,annual
+CDC ordering within and across tables,,not written,practitioners,annual
+CDC delete events and tombstones,,not written,practitioners,annual
+Primary-key changes in change streams,,not written,practitioners,annual
+Schema changes during CDC,,not written,practitioners,annual
+CDC before and after images,,not written,practitioners,annual
+Deduplicating replayed change events,,not written,practitioners,annual
+CDC source-position checkpoints,,not written,practitioners,annual
+Replication lag versus extraction lag,,not written,practitioners,annual
+Source log retention for CDC,,not written,practitioners,annual
+Incremental snapshots alongside streaming changes,,not written,practitioners,annual
+CDC handling of large unchanged values,,not written,practitioners,annual
+Truncate events in replication pipelines,,not written,practitioners,annual
+CDC transaction metadata for auditing,,not written,practitioners,annual
+Source failover and change-stream continuity,,not written,practitioners,annual
+CDC event rekeying,,not written,practitioners,annual
+Reconciling CDC targets against source snapshots,,not written,practitioners,annual
+At-most-once at-least-once and exactly-once processing,,not written,practitioners,annual
+Event-time watermarks,,not written,practitioners,annual
+Tumbling hopping and session windows,,not written,practitioners,annual
+Stateful versus stateless stream transformations,,not written,practitioners,annual
+Stream-stream joins and bounded state,,not written,practitioners,annual
+Stream-table joins with changing reference data,,not written,practitioners,annual
+Repartitioning streams by business key,,not written,practitioners,annual
+Hot keys in distributed streams,,not written,practitioners,annual
+Consumer lag interpretation,,not written,practitioners,annual
+Poison-pill messages in streams,,not written,practitioners,annual
+Dead-letter queue replay,,not written,practitioners,annual
+Stream processing checkpoints,,not written,practitioners,annual
+External side effects in exactly-once pipelines,,not written,practitioners,annual
+Backpressure propagation through stream stages,,not written,practitioners,annual
+Out-of-order events in state machines,,not written,practitioners,annual
+Stream state expiration,,not written,practitioners,annual
+Reprocessing streams after logic changes,,not written,practitioners,annual
+Event schema compatibility,,not written,practitioners,annual
+Event payload versus event notification,,not written,practitioners,annual
+Deterministic stream processing,,not written,practitioners,annual
+Row-oriented versus column-oriented storage,,not written,practitioners,annual
+Column projection and scan reduction,,not written,practitioners,annual
+Predicate pushdown,,not written,practitioners,annual
+Partition pruning,,not written,practitioners,annual
+Dictionary encoding,,not written,practitioners,annual
+Run-length encoding in analytical data,,not written,practitioners,annual
+Column statistics for data skipping,,not written,practitioners,annual
+Bloom filters in analytical storage,,not written,practitioners,annual
+Row groups and compression boundaries,,not written,practitioners,annual
+Nested columnar encoding,,not written,practitioners,annual
+Schema evolution with field identifiers,,not written,practitioners,annual
+Partition evolution in table formats,,not written,practitioners,annual
+Snapshot isolation for lake tables,,not written,practitioners,annual
+Optimistic concurrency in analytical tables,,not written,practitioners,annual
+Metadata manifests in table formats,,not written,practitioners,annual
+Data-file compaction versus metadata cleanup,,not written,practitioners,annual
+Time travel retention boundaries,,not written,practitioners,annual
+Object storage consistency and table commits,,not written,practitioners,annual
+Compression codecs and analytical workloads,,not written,practitioners,annual
+Column ordering and clustering,,not written,practitioners,annual
+Query execution plans as dataflow graphs,,not written,practitioners,annual
+Estimated versus actual row counts,,not written,practitioners,annual
+Filter selectivity and access paths,,not written,practitioners,annual
+Nested-loop hash and merge joins,,not written,practitioners,annual
+Sort spills and memory pressure,,not written,practitioners,annual
+Partition keys versus clustering keys,,not written,practitioners,annual
+Statistics staleness and query planning,,not written,practitioners,annual
+Correlated columns and selectivity estimates,,not written,practitioners,annual
+Sargable predicates,,not written,practitioners,annual
+Covering indexes and index-only access,,not written,practitioners,annual
+Composite index column order,,not written,practitioners,annual
+Partial indexes for skewed workloads,,not written,practitioners,annual
+Expression indexes,,not written,practitioners,annual
+Preaggregation and materialized summaries,,not written,practitioners,annual
+Common table expression materialization,,not written,practitioners,annual
+Data skew in distributed joins,,not written,practitioners,annual
+Broadcast joins and network cost,,not written,practitioners,annual
+Query concurrency versus single-query speed,,not written,practitioners,annual
+Result caching and benchmark validity,,not written,practitioners,annual
+Query performance regression isolation,,not written,practitioners,annual
+Dirty reads nonrepeatable reads and phantom reads,,not written,practitioners,annual
+Snapshot isolation versus serializable isolation,,not written,practitioners,annual
+Write skew in concurrent data updates,,not written,practitioners,annual
+Lost updates in read-modify-write operations,,not written,practitioners,annual
+Optimistic versus pessimistic concurrency control,,not written,practitioners,annual
+Deadlock detection and recovery,,not written,practitioners,annual
+Lock ordering to prevent deadlocks,,not written,practitioners,annual
+Long-running transactions and cleanup,,not written,practitioners,annual
+Atomic batch writes,,not written,practitioners,annual
+Upserts and concurrent writers,,not written,practitioners,annual
+Compare-and-swap for pipeline state,,not written,practitioners,annual
+Transactional outbox pattern,,not written,practitioners,annual
+Inbox deduplication for event consumers,,not written,practitioners,annual
+Two-phase commit boundaries,,not written,practitioners,annual
+Sagas for multi-system data changes,,not written,practitioners,annual
+Fencing tokens for distributed workers,,not written,practitioners,annual
+Leases versus durable locks,,not written,practitioners,annual
+Read-your-writes consistency,,not written,practitioners,annual
+Atomic publication of analytical datasets,,not written,practitioners,annual
+Source-aligned staging models,,not written,practitioners,annual
+Intermediate transformation models,,not written,practitioners,annual
+Entity-centered analytical marts,,not written,practitioners,annual
+Deterministic surrogate-key generation,,not written,practitioners,annual
+Incremental model correctness conditions,,not written,practitioners,annual
+Change propagation through incremental dependencies,,not written,practitioners,annual
+Full refresh versus incremental recomputation,,not written,practitioners,annual
+Transformation contracts for output columns,,not written,practitioners,annual
+Schema migration for derived datasets,,not written,practitioners,annual
+Reusable SQL logic versus hidden coupling,,not written,practitioners,annual
+Business-rule versioning in transformations,,not written,practitioners,annual
+Lookup enrichment with incomplete reference data,,not written,practitioners,annual
+Deduplication survivor rules,,not written,practitioners,annual
+Correction events versus destructive restatements,,not written,practitioners,annual
+Transformation dependency cycles,,not written,practitioners,annual
+Reproducible analytical builds,,not written,practitioners,annual
+Incremental processing of mutable dimensions,,not written,practitioners,annual
+Uniqueness tests at composite grain,,not written,practitioners,annual
+Accepted-value tests with controlled expansion,,not written,practitioners,annual
+Relationship tests for late-arriving references,,not written,practitioners,annual
+Freshness tests versus completeness tests,,not written,practitioners,annual
+Volume anomaly tests with seasonality,,not written,practitioners,annual
+Distribution drift tests,,not written,practitioners,annual
+Cross-field invariant tests,,not written,practitioners,annual
+Reconciliation tests across processing stages,,not written,practitioners,annual
+Unit tests for SQL transformations,,not written,practitioners,annual
+Property-based testing for data transformations,,not written,practitioners,annual
+Metamorphic tests for analytical calculations,,not written,practitioners,annual
+Mutation testing for data validation,,not written,practitioners,annual
+Sampling limitations in data quality checks,,not written,practitioners,annual
+Testing null edge cases,,not written,practitioners,annual
+Boundary testing for time intervals,,not written,practitioners,annual
+Testing slowly changing dimension histories,,not written,practitioners,annual
+Testing deduplication stability,,not written,practitioners,annual
+Contract tests between data producers and consumers,,not written,practitioners,annual
+Flaky data tests caused by moving time,,not written,practitioners,annual
+Regression datasets for analytical pipelines,,not written,practitioners,annual
+Logical dates versus execution dates,,not written,practitioners,annual
+Time-based versus event-based scheduling,,not written,practitioners,annual
+Idempotent task boundaries,,not written,practitioners,annual
+Workflow retry budgets,,not written,practitioners,annual
+Workflow timeouts and cancellation,,not written,practitioners,annual
+Fan-out and fan-in workflow patterns,,not written,practitioners,annual
+Dynamic task generation limits,,not written,practitioners,annual
+Concurrency limits for shared data resources,,not written,practitioners,annual
+Dependency-aware scheduling priorities,,not written,practitioners,annual
+Conditional branches in data workflows,,not written,practitioners,annual
+Workflow state machines,,not written,practitioners,annual
+Scheduling across time-zone changes,,not written,practitioners,annual
+Cross-workflow dependency contracts,,not written,practitioners,annual
+Manual overrides in automated workflows,,not written,practitioners,annual
+Workflow configuration versus business logic,,not written,practitioners,annual
+Task output publication contracts,,not written,practitioners,annual
+Preventing overlapping scheduled runs,,not written,practitioners,annual
+Resuming partially completed workflows,,not written,practitioners,annual
+Backfill interval selection,,not written,practitioners,annual
+Backfill isolation from live workloads,,not written,practitioners,annual
+Backfill checkpoints and resumability,,not written,practitioners,annual
+Backfill ordering for dependent datasets,,not written,practitioners,annual
+Backfill validation against control totals,,not written,practitioners,annual
+Backfill dry runs,,not written,practitioners,annual
+Backfill cancellation semantics,,not written,practitioners,annual
+Replaying immutable inputs,,not written,practitioners,annual
+Reprocessing mutable external lookups,,not written,practitioners,annual
+Partition replacement versus row-level merge,,not written,practitioners,annual
+Reprocessing windows after source outages,,not written,practitioners,annual
+Handling irreversible effects during replay,,not written,practitioners,annual
+Backfill progress and completion reporting,,not written,practitioners,annual
+Backfill audit trails,,not written,practitioners,annual
+Reconciliation after partial backfill failure,,not written,practitioners,annual
+Reprocessing cost estimation,,not written,practitioners,annual
+Backfill throttling,,not written,practitioners,annual
+Blue-green replacement of analytical datasets,,not written,practitioners,annual
+Rollback datasets for historical corrections,,not written,practitioners,annual
+Detecting unprocessed gaps after replay,,not written,practitioners,annual
+End-to-end data latency decomposition,,not written,practitioners,annual
+Freshness service indicators,,not written,practitioners,annual
+Completeness service indicators,,not written,practitioners,annual
+Correctness service indicators,,not written,practitioners,annual
+Pipeline throughput versus useful output,,not written,practitioners,annual
+Error-budget burn rates for data services,,not written,practitioners,annual
+Multiwindow alerting for data pipelines,,not written,practitioners,annual
+High-cardinality metric labels,,not written,practitioners,annual
+Structured logs for batch processing,,not written,practitioners,annual
+Correlation identifiers across pipeline boundaries,,not written,practitioners,annual
+Tracing asynchronous data workflows,,not written,practitioners,annual
+Source-to-target lag dashboards,,not written,practitioners,annual
+Monitoring silent data loss,,not written,practitioners,annual
+Monitoring duplicate delivery rates,,not written,practitioners,annual
+Monitoring schema-change events,,not written,practitioners,annual
+Alert deduplication and grouping,,not written,practitioners,annual
+Monitoring the monitoring pipeline,,not written,practitioners,annual
+Synthetic probes for data availability,,not written,practitioners,annual
+Data incident timeline reconstruction,,not written,practitioners,annual
+Triage of stale analytical data,,not written,practitioners,annual
+Triage of unexpectedly empty datasets,,not written,practitioners,annual
+Triage of suddenly inflated metrics,,not written,practitioners,annual
+Containment of corrupted analytical outputs,,not written,practitioners,annual
+Restoring from a verified data backup,,not written,practitioners,annual
+Recovery point versus recovery time objectives,,not written,practitioners,annual
+Point-in-time recovery boundaries,,not written,practitioners,annual
+Restore drills for analytical datasets,,not written,practitioners,annual
+Incident runbook decision trees,,not written,practitioners,annual
+Escalation handoffs during data incidents,,not written,practitioners,annual
+Maintaining an incident action log,,not written,practitioners,annual
+Communicating uncertain data during incidents,,not written,practitioners,annual
+Quarantining a bad upstream release,,not written,practitioners,annual
+Recovery verification before reopening consumers,,not written,practitioners,annual
+Blameless analysis of pipeline failures,,not written,practitioners,annual
+Corrective actions after data incidents,,not written,practitioners,annual
+Recurring incident detection,,not written,practitioners,annual
+Failure injection in data pipelines,,not written,practitioners,annual
+Dependency outage simulations,,not written,practitioners,annual
+Post-recovery reconciliation,,not written,practitioners,annual
+Least-privilege access for pipeline identities,,not written,practitioners,annual
+Read-only analytical service accounts,,not written,practitioners,annual
+Row-level access control,,not written,practitioners,annual
+Column-level restrictions for sensitive attributes,,not written,practitioners,annual
+Role inheritance in data platforms,,not written,practitioners,annual
+Separation of duties in data publishing,,not written,practitioners,annual
+Credential rotation without pipeline outages,,not written,practitioners,annual
+Short-lived credentials for scheduled jobs,,not written,practitioners,annual
+Secrets in pipeline logs and error messages,,not written,practitioners,annual
+Data masking versus access restriction,,not written,practitioners,annual
+Pseudonymization for analytical joins,,not written,practitioners,annual
+Tokenization and reversible identifier mapping,,not written,practitioners,annual
+Sensitive data classification at ingestion,,not written,practitioners,annual
+Permission propagation to derived datasets,,not written,practitioners,annual
+Preventing cross-tenant analytical leakage,,not written,practitioners,annual
+Service identity versus human identity,,not written,practitioners,annual
+Access revocation in cached datasets,,not written,practitioners,annual
+Auditing data exports,,not written,practitioners,annual
+Encryption in transit versus at rest,,not written,practitioners,annual
+Testing negative authorization cases,,not written,practitioners,annual
+Dataset identifiers versus physical table names,,not written,practitioners,annual
+Column-level provenance,,not written,practitioners,annual
+Lineage through dynamic SQL,,not written,practitioners,annual
+Runtime lineage versus design-time lineage,,not written,practitioners,annual
+Dataset version manifests,,not written,practitioners,annual
+Business glossary terms versus physical columns,,not written,practitioners,annual
+Ownership metadata for data assets,,not written,practitioners,annual
+Deprecation metadata for datasets,,not written,practitioners,annual
+Machine-readable data contracts,,not written,practitioners,annual
+Schema registries versus data catalogs,,not written,practitioners,annual
+Data classification inheritance,,not written,practitioners,annual
+Recording transformation purpose,,not written,practitioners,annual
+Source license and usage metadata,,not written,practitioners,annual
+Dataset freshness metadata,,not written,practitioners,annual
+Dataset quality badges and their limits,,not written,practitioners,annual
+Provenance for manually corrected data,,not written,practitioners,annual
+Documenting analytical assumptions,,not written,practitioners,annual
+Metadata drift detection,,not written,practitioners,annual
+Reproducibility manifests for shared analyses,,not written,practitioners,annual
+Data asset retirement records,,not written,practitioners,annual
+Source-to-target schema mapping,,not written,practitioners,annual
+Data type narrowing during migration,,not written,practitioners,annual
+Migration nullability differences,,not written,practitioners,annual
+Character collation changes during migration,,not written,practitioners,annual
+Time-zone conversion during migration,,not written,practitioners,annual
+Migrating generated identifiers,,not written,practitioners,annual
+Bulk copy followed by incremental catch-up,,not written,practitioners,annual
+Dual-write divergence detection,,not written,practitioners,annual
+Shadow queries during migration,,not written,practitioners,annual
+Migration reconciliation by partition,,not written,practitioners,annual
+Checksum limitations in migration validation,,not written,practitioners,annual
+Migrating stored transformation logic,,not written,practitioners,annual
+Migrating scheduled jobs and dependencies,,not written,practitioners,annual
+Cutover freeze windows,,not written,practitioners,annual
+Consumer connection switchover,,not written,practitioners,annual
+Rollback after partial migration cutover,,not written,practitioners,annual
+Migration acceptance datasets,,not written,practitioners,annual
+Parallel-run comparison windows,,not written,practitioners,annual
+Decommissioning legacy data paths,,not written,practitioners,annual
+Post-migration reconciliation of late updates,,not written,practitioners,annual
+Document identity in retrieval corpora,,not written,practitioners,annual
+Document versioning for retrieval systems,,not written,practitioners,annual
+Content extraction from structured documents,,not written,practitioners,annual
+Chunk boundaries and document structure,,not written,practitioners,annual
+Chunk overlap and retrieval redundancy,,not written,practitioners,annual
+Metadata filters for retrieval corpora,,not written,practitioners,annual
+Permission-aware document ingestion,,not written,practitioners,annual
+Deletion propagation to retrieval indexes,,not written,practitioners,annual
+Incremental reindexing after document changes,,not written,practitioners,annual
+Duplicate documents in retrieval corpora,,not written,practitioners,annual
+Near-duplicate passages in knowledge bases,,not written,practitioners,annual
+Document timestamps and evidence freshness,,not written,practitioners,annual
+OCR uncertainty in retrieval datasets,,not written,practitioners,annual
+Table extraction for question answering,,not written,practitioners,annual
+Source attribution metadata for retrieved passages,,not written,practitioners,annual
+Corpus inclusion criteria,,not written,practitioners,annual
+Handling contradictory source documents,,not written,practitioners,annual
+Sensitive-content filtering before indexing,,not written,practitioners,annual
+Embedding version metadata,,not written,practitioners,annual
+Reindexing after embedding-model changes,,not written,practitioners,annual
+Golden query sets for retrieval evaluation,,not written,practitioners,annual
+Relevance judgments for retrieved passages,,not written,practitioners,annual
+Retrieval precision versus recall,,not written,practitioners,annual
+Ranking metrics for evidence retrieval,,not written,practitioners,annual
+Retrieval evaluation with multiple valid sources,,not written,practitioners,annual
+Unanswerable questions in evaluation sets,,not written,practitioners,annual
+Temporal holdouts for retrieval testing,,not written,practitioners,annual
+Permission-boundary tests for retrieval,,not written,practitioners,annual
+Citation correctness evaluation,,not written,practitioners,annual
+Source coverage gaps in knowledge bases,,not written,practitioners,annual
+Stale-evidence detection in retrieval outputs,,not written,practitioners,annual
+Evaluation dataset contamination,,not written,practitioners,annual
+Query stratification for retrieval testing,,not written,practitioners,annual
+Human disagreement in relevance labels,,not written,practitioners,annual
+Regression tests for retrieval configuration changes,,not written,practitioners,annual
+Evaluating retrieval across document formats,,not written,practitioners,annual
+Document-level versus passage-level evaluation,,not written,practitioners,annual
+Measuring unsupported-answer risk,,not written,practitioners,annual
+Access changes in retrieval evaluation,,not written,practitioners,annual
+Ground-truth maintenance for retrieval benchmarks,,not written,practitioners,annual
+PostgreSQL EXPLAIN ANALYZE with buffers,,not written,practitioners,quarterly
+PostgreSQL index-only scans and visibility maps,,not written,practitioners,quarterly
+PostgreSQL partial-index predicate matching,,not written,practitioners,quarterly
+PostgreSQL expression indexes for normalized keys,,not written,practitioners,quarterly
+PostgreSQL multicolumn index access,,not written,practitioners,quarterly
+PostgreSQL partition pruning diagnostics,,not written,practitioners,quarterly
+PostgreSQL autovacuum for frequently updated tables,,not written,practitioners,quarterly
+PostgreSQL stale-statistics troubleshooting,,not written,practitioners,quarterly
+PostgreSQL lock-wait investigation,,not written,practitioners,quarterly
+PostgreSQL serializable transaction retries,,not written,practitioners,quarterly
+PostgreSQL row-level security policies,,not written,practitioners,quarterly
+PostgreSQL schema privileges for analytics users,,not written,practitioners,quarterly
+PostgreSQL logical replication row filters,,not written,practitioners,quarterly
+PostgreSQL replication-slot retention monitoring,,not written,practitioners,quarterly
+PostgreSQL logical replication conflict recovery,,not written,practitioners,quarterly
+PostgreSQL JSONB indexing choices,,not written,practitioners,quarterly
+PostgreSQL generated columns in analytical staging,,not written,practitioners,quarterly
+PostgreSQL pg_dump restore verification,,not written,practitioners,quarterly
+PostgreSQL materialized-view refresh behavior,,not written,practitioners,quarterly
+PostgreSQL recursive CTE cycle handling,,not written,practitioners,quarterly
+dbt source declarations and source references,,not written,practitioners,quarterly
+dbt staging model naming and layout,,not written,practitioners,quarterly
+dbt intermediate models for repeated transformations,,not written,practitioners,quarterly
+dbt marts and business entities,,not written,practitioners,quarterly
+dbt ref dependencies and build order,,not written,practitioners,quarterly
+dbt ephemeral versus view materialization,,not written,practitioners,quarterly
+dbt table versus incremental materialization,,not written,practitioners,quarterly
+dbt incremental unique keys,,not written,practitioners,quarterly
+dbt incremental lookback filters,,not written,practitioners,quarterly
+dbt incremental schema changes,,not written,practitioners,quarterly
+dbt full-refresh impact analysis,,not written,practitioners,quarterly
+dbt timestamp snapshots,,not written,practitioners,quarterly
+dbt check-strategy snapshots,,not written,practitioners,quarterly
+dbt snapshot hard-delete behavior,,not written,practitioners,quarterly
+dbt model configuration precedence,,not written,practitioners,quarterly
+dbt variables for reproducible runs,,not written,practitioners,quarterly
+dbt environment-aware source routing,,not written,practitioners,quarterly
+dbt model versioning for breaking changes,,not written,practitioners,quarterly
+dbt generated SQL inspection,,not written,practitioners,quarterly
+dbt documentation of model assumptions,,not written,practitioners,quarterly
+dbt generic data tests,,not written,practitioners,quarterly
+dbt singular SQL tests,,not written,practitioners,quarterly
+dbt relationship tests with late dimensions,,not written,practitioners,quarterly
+dbt accepted-values tests for evolving enums,,not written,practitioners,quarterly
+dbt test severity and failure thresholds,,not written,practitioners,quarterly
+dbt storing test failures,,not written,practitioners,quarterly
+dbt unit-test fixtures for conditional logic,,not written,practitioners,quarterly
+dbt unit testing incremental models,,not written,practitioners,quarterly
+dbt unit tests for time-dependent logic,,not written,practitioners,quarterly
+dbt model contracts and type enforcement,,not written,practitioners,quarterly
+dbt contracts versus database constraints,,not written,practitioners,quarterly
+dbt contract changes and downstream compatibility,,not written,practitioners,quarterly
+dbt freshness checks on declared sources,,not written,practitioners,quarterly
+dbt testing composite uniqueness,,not written,practitioners,quarterly
+dbt test selection for modified models,,not written,practitioners,quarterly
+dbt semantic model entity definitions,,not written,practitioners,quarterly
+dbt semantic model time dimensions,,not written,practitioners,quarterly
+dbt semantic model measure aggregation,,not written,practitioners,quarterly
+dbt semantic model dimension eligibility,,not written,practitioners,quarterly
+dbt test artifact interpretation,,not written,practitioners,quarterly
+Airflow data intervals and logical dates,,not written,practitioners,quarterly
+Airflow catchup configuration,,not written,practitioners,quarterly
+Airflow backfill reprocessing behavior,,not written,practitioners,quarterly
+Airflow task retries and retry delays,,not written,practitioners,quarterly
+Airflow task execution timeouts,,not written,practitioners,quarterly
+Airflow DAG run timeouts,,not written,practitioners,quarterly
+Airflow pools for shared resources,,not written,practitioners,quarterly
+Airflow maximum active runs,,not written,practitioners,quarterly
+Airflow trigger rules after branching,,not written,practitioners,quarterly
+Airflow task state transitions,,not written,practitioners,quarterly
+Airflow dynamic task mapping limits,,not written,practitioners,quarterly
+Airflow XCom payload boundaries,,not written,practitioners,quarterly
+Airflow sensors and resource usage,,not written,practitioners,quarterly
+Airflow DAG parsing performance,,not written,practitioners,quarterly
+Airflow deterministic DAG generation,,not written,practitioners,quarterly
+Airflow local task testing,,not written,practitioners,quarterly
+Airflow task clearing for recovery,,not written,practitioners,quarterly
+Airflow secrets and connection configuration,,not written,practitioners,quarterly
+Airflow DAG deployment compatibility,,not written,practitioners,quarterly
+Kafka producer acknowledgment settings,,not written,practitioners,quarterly
+Kafka producer idempotence,,not written,practitioners,quarterly
+Kafka transactions for consume-transform-produce,,not written,practitioners,quarterly
+Kafka consumer offset commits,,not written,practitioners,quarterly
+Kafka consumer isolation levels,,not written,practitioners,quarterly
+Kafka partition keys and ordering,,not written,practitioners,quarterly
+Kafka consumer group rebalancing,,not written,practitioners,quarterly
+Kafka static group membership,,not written,practitioners,quarterly
+Kafka log compaction for entity state,,not written,practitioners,quarterly
+Kafka tombstone retention,,not written,practitioners,quarterly
+Kafka retention versus consumer recovery,,not written,practitioners,quarterly
+Kafka in-sync replicas and durability,,not written,practitioners,quarterly
+Kafka unclean leader election tradeoffs,,not written,practitioners,quarterly
+Kafka producer batching and compression,,not written,practitioners,quarterly
+Kafka consumer lag diagnostics,,not written,practitioners,quarterly
+Kafka quotas for shared clusters,,not written,practitioners,quarterly
+Kafka partition-count changes,,not written,practitioners,quarterly
+Kafka replay into a new consumer group,,not written,practitioners,quarterly
+Kafka message-size limits across components,,not written,practitioners,quarterly
+Kafka client failure recovery tests,,not written,practitioners,quarterly
+Debezium PostgreSQL snapshot modes,,not written,practitioners,quarterly
+Debezium replication-slot configuration,,not written,practitioners,quarterly
+Debezium PostgreSQL publication privileges,,not written,practitioners,quarterly
+Debezium incremental snapshot signaling,,not written,practitioners,quarterly
+Debezium change-event envelopes,,not written,practitioners,quarterly
+Debezium delete events and tombstones,,not written,practitioners,quarterly
+Debezium primary-key updates,,not written,practitioners,quarterly
+Debezium transaction metadata,,not written,practitioners,quarterly
+Debezium decimal handling,,not written,practitioners,quarterly
+Debezium timestamp type mappings,,not written,practitioners,quarterly
+Debezium unchanged TOAST values,,not written,practitioners,quarterly
+Debezium schema-change handling,,not written,practitioners,quarterly
+Debezium heartbeat configuration,,not written,practitioners,quarterly
+Debezium WAL growth during outages,,not written,practitioners,quarterly
+Debezium PostgreSQL failover recovery,,not written,practitioners,quarterly
+Debezium table inclusion filters,,not written,practitioners,quarterly
+Debezium source truncate events,,not written,practitioners,quarterly
+Debezium snapshot consistency checks,,not written,practitioners,quarterly
+Debezium connector restart recovery,,not written,practitioners,quarterly
+Debezium connector metrics for capture lag,,not written,practitioners,quarterly
+Spark Structured Streaming watermarks,,not written,practitioners,quarterly
+Spark streaming output modes,,not written,practitioners,quarterly
+Spark streaming window aggregations,,not written,practitioners,quarterly
+Spark stream-stream joins,,not written,practitioners,quarterly
+Spark stream-static joins,,not written,practitioners,quarterly
+Spark streaming deduplication,,not written,practitioners,quarterly
+Spark multiple-watermark policies,,not written,practitioners,quarterly
+Spark streaming checkpoints,,not written,practitioners,quarterly
+Spark streaming query changes after restart,,not written,practitioners,quarterly
+Spark foreachBatch idempotency,,not written,practitioners,quarterly
+Spark streaming state-store monitoring,,not written,practitioners,quarterly
+Spark streaming trigger intervals,,not written,practitioners,quarterly
+Spark available-now processing,,not written,practitioners,quarterly
+Spark streaming file-source ingestion,,not written,practitioners,quarterly
+Spark streaming query progress metrics,,not written,practitioners,quarterly
+Spark streaming asynchronous monitoring,,not written,practitioners,quarterly
+Spark streaming recovery after sink failure,,not written,practitioners,quarterly
+Spark streaming session windows,,not written,practitioners,quarterly
+Spark streaming unsupported-operation diagnostics,,not written,practitioners,quarterly
+Spark streaming state cleanup verification,,not written,practitioners,quarterly
+Iceberg field IDs during column renames,,not written,practitioners,quarterly
+Iceberg safe column type promotion,,not written,practitioners,quarterly
+Iceberg nested schema evolution,,not written,practitioners,quarterly
+Iceberg partition-spec evolution,,not written,practitioners,quarterly
+Iceberg hidden partitioning,,not written,practitioners,quarterly
+Iceberg sort-order evolution,,not written,practitioners,quarterly
+Iceberg optimistic commit retries,,not written,practitioners,quarterly
+Iceberg conflict validation for overlapping writes,,not written,practitioners,quarterly
+Iceberg snapshot-based reads,,not written,practitioners,quarterly
+Iceberg snapshot expiration planning,,not written,practitioners,quarterly
+Iceberg orphan-file cleanup boundaries,,not written,practitioners,quarterly
+Iceberg manifest inspection,,not written,practitioners,quarterly
+Iceberg partition evolution versus rewriting files,,not written,practitioners,quarterly
+Iceberg schema rollback implications,,not written,practitioners,quarterly
+Iceberg concurrent append behavior,,not written,practitioners,quarterly
+Iceberg commit failure recovery,,not written,practitioners,quarterly
+Iceberg catalog atomicity requirements,,not written,practitioners,quarterly
+Iceberg reader-writer version compatibility,,not written,practitioners,quarterly
+Iceberg data-file rewrite verification,,not written,practitioners,quarterly
+Iceberg metadata growth diagnostics,,not written,practitioners,quarterly
+BigQuery partition filter enforcement,,not written,practitioners,quarterly
+BigQuery clustering-column selection,,not written,practitioners,quarterly
+BigQuery dry-run byte estimates,,not written,practitioners,quarterly
+BigQuery maximum bytes billed,,not written,practitioners,monthly
+BigQuery query-cache effects on measurements,,not written,practitioners,quarterly
+BigQuery execution graph diagnostics,,not written,practitioners,quarterly
+BigQuery repeated-field modeling,,not written,practitioners,quarterly
+BigQuery partitioned-table migration,,not written,practitioners,quarterly
+BigQuery incremental MERGE pruning,,not written,practitioners,quarterly
+BigQuery materialized-view applicability,,not written,practitioners,quarterly
+BigQuery slot contention diagnosis,,not written,practitioners,quarterly
+BigQuery reservation workload isolation,,not written,practitioners,monthly
+BigQuery on-demand versus capacity billing inputs,,not written,practitioners,monthly
+BigQuery scheduled-query failure handling,,not written,practitioners,quarterly
+BigQuery source-to-target type mapping,,not written,practitioners,quarterly
+BigQuery migration SQL validation,,not written,practitioners,quarterly
+BigQuery time-travel recovery boundaries,,not written,practitioners,monthly
+BigQuery data-transfer reconciliation,,not written,practitioners,quarterly
+BigQuery job metadata for cost attribution,,not written,practitioners,quarterly
+BigQuery column projection in nested queries,,not written,practitioners,quarterly
+Snowflake micro-partition pruning,,not written,practitioners,quarterly
+Snowflake clustering depth interpretation,,not written,practitioners,quarterly
+Snowflake clustering-key selection,,not written,practitioners,quarterly
+Snowflake automatic clustering cost assessment,,not written,practitioners,monthly
+Snowflake search optimization applicability,,not written,practitioners,quarterly
+Snowflake search optimization cost boundaries,,not written,practitioners,monthly
+Snowflake materialized-view maintenance tradeoffs,,not written,practitioners,quarterly
+Snowflake materialized-view query compatibility,,not written,practitioners,quarterly
+Snowflake query acceleration eligibility,,not written,practitioners,monthly
+Snowflake query acceleration cost evaluation,,not written,practitioners,monthly
+Snowflake warehouse sizing for a fixed workload,,not written,practitioners,quarterly
+Snowflake concurrency versus warehouse scaling,,not written,practitioners,quarterly
+Snowflake spill diagnosis in query profiles,,not written,practitioners,quarterly
+Snowflake cache-aware benchmark design,,not written,practitioners,quarterly
+Snowflake pruning regressions after data growth,,not written,practitioners,quarterly
+Snowflake storage optimization selection,,not written,practitioners,quarterly
+Snowflake performance baselines by query family,,not written,practitioners,quarterly
+Snowflake performance experiment rollback,,not written,practitioners,quarterly
+Snowflake analytical workload cost attribution,,not written,practitioners,quarterly
+Snowflake optimization acceptance criteria,,not written,practitioners,quarterly
+Power BI active and inactive date relationships,,not written,practitioners,quarterly
+Power BI role-playing date tables,,not written,practitioners,quarterly
+Power BI many-to-many dimension relationships,,not written,practitioners,quarterly
+Power BI fact-to-fact relationship pitfalls,,not written,practitioners,quarterly
+Power BI filter-direction decisions,,not written,practitioners,quarterly
+Power BI relationship ambiguity diagnostics,,not written,practitioners,quarterly
+Power BI unmatched dimension members,,not written,practitioners,quarterly
+Power BI surrogate-key loading,,not written,practitioners,quarterly
+Power BI slowly changing dimensions,,not written,practitioners,quarterly
+Power BI degenerate dimensions,,not written,practitioners,quarterly
+Power BI explicit versus implicit measures,,not written,practitioners,quarterly
+Power BI factless fact models,,not written,practitioners,quarterly
+Power BI snowflake-dimension flattening,,not written,practitioners,quarterly
+Power BI disconnected parameter tables,,not written,practitioners,quarterly
+Power BI higher-grain fact relationships,,not written,practitioners,quarterly
+Power BI bridge allocation measures,,not written,practitioners,quarterly
+Power BI inactive relationships and security,,not written,practitioners,quarterly
+Power BI relationship cardinality validation,,not written,practitioners,quarterly
+Power BI date-table role naming,,not written,practitioners,quarterly
+Power BI semantic-model reconciliation,,not written,practitioners,quarterly
+Parquet row-group sizing experiments,,not written,practitioners,quarterly
+Parquet column-chunk metadata inspection,,not written,practitioners,quarterly

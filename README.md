@@ -17,6 +17,8 @@ as three connected engineering case studies:
 - Print-friendly HTML resume
 - Project metadata, Open Graph metadata, sitemap, and robots directives
 - Reduced-motion support and visible focus states
+- Paginated technical writing, article pages, structured data, and RSS
+- A 764-topic research library and ten-topic weekly OpenAI Batch workflow
 
 ## Development
 
@@ -41,6 +43,11 @@ npm run build
 
 Add a project to `lib/projects.ts`. The shared project grid and case-study route
 will generate its listing and permanent page automatically.
+
+For writing, see [the publishing guide](docs/article-publishing.md) for GitHub
+setup, adding topics, review holds, and recovery. The [topic library report](docs/topic-library.md)
+explains the tailored seed inventory. An exhausted queue stops making OpenAI
+requests automatically; it never invents replacement topics.
 
 ## Hosting
 

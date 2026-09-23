@@ -1,0 +1,33 @@
+{
+  "accepted": 764,
+  "source": "Coldstart research snapshot, accessed 2026-09-22; adapted 2026-09-23, not represented as newly inspected source pages.",
+  "snapshot_sha256": "07ea360d63d3b74952b290ee982fd3c3bec11622cdf1bdf932106a7823ea0020",
+  "excluded_existing_notes": {
+    "idempotent-data-transformations": "Reserved for existing note: Idempotency is a product feature.",
+    "lookback-windows-in-incremental-transformations": "Reserved for existing note: Late data without full rebuilds.",
+    "data-dependencies-versus-task-dependencies": "Reserved for existing note: Scheduling is not orchestration."
+  },
+  "excluded_other_audiences": 338,
+  "unique_source_pages": 174,
+  "counts": {
+    "category": {
+      "Data Modeling": 211,
+      "Dashboard Trust": 59,
+      "Modern Data Stack": 219,
+      "Automation": 215,
+      "Migration": 20,
+      "AI-Ready Data": 40
+    },
+    "content_type": {
+      "durable": 543,
+      "tool-specific": 221
+    },
+    "update_frequency": {
+      "never": 155,
+      "annual": 388,
+      "quarterly": 213,
+      "monthly": 8
+    }
+  },
+  "clusters": 40
+}

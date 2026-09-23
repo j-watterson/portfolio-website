@@ -10,7 +10,7 @@
     "predev": "node scripts/require-node-version.mjs",
     "dev": "vinext dev",
     "dev:node22": "npx --yes --package=node@22.14.0 --call 'npm run dev'",
-    "prebuild": "node scripts/require-node-version.mjs",
+    "prebuild": "node scripts/require-node-version.mjs && npm run validate:writing",
     "build": "vinext build && node scripts/copy-hosting-metadata.mjs",
     "build:node22": "npx --yes --package=node@22.14.0 --call 'npm run build'",
     "prestart": "node scripts/require-node-version.mjs",
@@ -21,7 +21,16 @@
     "dev:vinext": "vinext dev --port 3001",
     "build:vinext": "vinext build",
     "start:vinext": "wrangler dev --config dist/server/wrangler.json",
-    "deploy:vinext": "vinext-cloudflare deploy --config dist/server/wrangler.json"
+    "deploy:vinext": "vinext-cloudflare deploy --config dist/server/wrangler.json",
+    "validate:writing": "node scripts/validate-writing.mjs",
+    "validate:topics": "node scripts/validate-topics.mjs",
+    "generate:topics": "node scripts/generate-topics.mjs",
+    "prepare:batch": "node scripts/prepare-openai-batch.mjs",
+    "publish:reviewed": "node scripts/publish-reviewed-articles.mjs",
+    "article-batch:submit": "node scripts/article-batch-pipeline.mjs submit",
+    "article-batch:finalize": "node scripts/article-batch-pipeline.mjs finalize",
+    "test:articles": "node --test tests/*.test.mjs",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@vinext/cloudflare": "^1.0.0-beta.4",
