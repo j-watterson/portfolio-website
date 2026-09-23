@@ -1,14 +1,14 @@
 topic,url,status,audience,update_frequency
-Candidate keys and alternate keys,,not written,practitioners,never
-Functional dependencies in analytical tables,,not written,practitioners,never
-Composite keys in business event data,,not written,practitioners,never
-Natural keys versus surrogate keys,,not written,practitioners,never
-Referential integrity across analytical tables,,not written,practitioners,never
-SQL null and three-valued logic,,not written,practitioners,never
-Set semantics versus bag semantics in SQL,,not written,practitioners,never
-First normal form and repeating groups,,not written,practitioners,never
-Second and third normal forms,,not written,practitioners,never
-Lossless decomposition of relational tables,,not written,practitioners,never
+Candidate keys and alternate keys,,review,practitioners,never
+Functional dependencies in analytical tables,,review,practitioners,never
+Composite keys in business event data,,review,practitioners,never
+Natural keys versus surrogate keys,,review,practitioners,never
+Referential integrity across analytical tables,,review,practitioners,never
+SQL null and three-valued logic,https://jwatterson.com/writing/sql-null-and-three-valued-logic,published,practitioners,never
+Set semantics versus bag semantics in SQL,,review,practitioners,never
+First normal form and repeating groups,,review,practitioners,never
+Second and third normal forms,,review,practitioners,never
+Lossless decomposition of relational tables,https://jwatterson.com/writing/lossless-decomposition-of-relational-tables,published,practitioners,never
 Entity identity versus record identity,,not written,practitioners,never
 Optional relationships in data models,,not written,practitioners,never
 Cardinality and participation constraints,,not written,practitioners,never

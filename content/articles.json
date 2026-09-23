@@ -1,1 +1,321 @@
-[]
+[
+  {
+    "slug": "sql-null-and-three-valued-logic",
+    "title": "SQL null and three-valued logic",
+    "description": "A practical guide to showing why NULL comparisons evaluate to UNKNOWN in SQL, and how that changes filters, joins, constraints, and anti-joins.",
+    "primaryKeyword": "SQL null and three-valued logic",
+    "relatedKeywords": [
+      "SQL null and three-valued logic",
+      "SQL unknown",
+      "NULL comparison",
+      "three valued logic"
+    ],
+    "category": "Data Modeling",
+    "level": "Intermediate",
+    "readTime": "7 min",
+    "datePublished": "2026-09-23",
+    "dateModified": "2026-09-23",
+    "canonicalUrl": "https://jwatterson.com/writing/sql-null-and-three-valued-logic",
+    "status": "published",
+    "sourceHash": "92455ec31866e173",
+    "lead": "NULL is not a value you compare in the ordinary way. In SQL predicates, a comparison involving NULL usually evaluates to UNKNOWN, not TRUE or FALSE. That third result is the source of many quiet modeling and query mistakes: rows disappear from filters, joins stop matching, and anti-joins return surprising results. The useful skill is not memorizing every edge case. It is being able to show, with a small dataset, where UNKNOWN enters the predicate and how the surrounding SQL clause treats it.",
+    "sections": [
+      {
+        "id": "the-small-dataset",
+        "heading": "A small hypothetical dataset with missing facts",
+        "paragraphs": [
+          "Use a small fixture when explaining SQL null and three-valued logic. Large examples hide the point. The example below is a hypothetical retail dataset with customers and orders. It intentionally mixes known values, missing values, and a customer without orders.",
+          "The business question is simple: find customers and orders based on loyalty tier, country, order status, and refund amount. The modeling detail is that several attributes are nullable. A NULL country means the country is not known. A NULL refund amount means the order has no recorded refund amount, not necessarily that the refund amount is zero. A NULL status means the order status has not been populated."
+        ],
+        "bullets": [],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "-- Hypothetical example data for reasoning about predicates.\n\nCREATE TABLE customers (\n  customer_id integer PRIMARY KEY,\n  email text NOT NULL,\n  country text,\n  loyalty_tier text\n);\n\nCREATE TABLE orders (\n  order_id integer PRIMARY KEY,\n  customer_id integer,\n  status text,\n  gross_amount numeric(10,2) NOT NULL,\n  refund_amount numeric(10,2),\n  FOREIGN KEY (customer_id) REFERENCES customers (customer_id)\n);\n\nINSERT INTO customers (customer_id, email, country, loyalty_tier) VALUES\n  (1, 'ada@example.test', 'US', 'gold'),\n  (2, 'ben@example.test', NULL, 'silver'),\n  (3, 'cy@example.test', 'CA', NULL),\n  (4, 'dee@example.test', 'US', NULL);\n\nINSERT INTO orders (order_id, customer_id, status, gross_amount, refund_amount) VALUES\n  (101, 1, 'paid',      120.00, NULL),\n  (102, 1, 'refunded',   80.00,  80.00),\n  (103, 2, NULL,         50.00, NULL),\n  (104, 3, 'paid',       30.00,   0.00);"
+          }
+        ]
+      },
+      {
+        "id": "unknown-is-not-false",
+        "heading": "UNKNOWN is not FALSE",
+        "paragraphs": [
+          "SQL predicates use three-valued logic: TRUE, FALSE, and UNKNOWN. The UNKNOWN result appears when a predicate cannot be determined because an operand is NULL. For example, country = 'US' is TRUE for 'US', FALSE for 'CA', and UNKNOWN for NULL. The NULL row is not known to be in the United States, and it is not known to be outside the United States either.",
+          "That distinction matters because common SQL clauses do not all treat UNKNOWN the same way. A WHERE clause keeps rows for which the search condition is TRUE. Rows for which the condition is FALSE or UNKNOWN are filtered out. This is why a predicate can remove more rows than a plain English reading suggests.",
+          "Consider the four customer rows. The predicate country = 'US' keeps customers 1 and 4. Customer 3 has country 'CA', so the predicate is FALSE. Customer 2 has country NULL, so the predicate is UNKNOWN. Both customer 2 and customer 3 are absent from the result, but for different reasons."
+        ],
+        "bullets": [
+          "TRUE means the predicate is satisfied.",
+          "FALSE means the predicate is contradicted.",
+          "UNKNOWN means SQL cannot decide the predicate from the stored values.",
+          "WHERE returns only TRUE rows; it does not return FALSE or UNKNOWN rows."
+        ],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "SELECT customer_id, country\nFROM customers\nWHERE country = 'US';\n\n-- Reasoned result:\n-- customer_id | country\n-- 1           | US\n-- 4           | US"
+          }
+        ]
+      },
+      {
+        "id": "the-negation-counterexample",
+        "heading": "The negation counterexample: not US does not mean every non-US or missing country",
+        "paragraphs": [
+          "A reliable way to reveal three-valued logic is to ask someone to invert a filter. If country = 'US' returns US customers, it is tempting to assume country <> 'US' returns every other customer. It does not. The row where country is NULL still evaluates to UNKNOWN, because SQL still does not know whether the missing country is equal to 'US'.",
+          "The counterexample is customer 2. In ordinary conversation, a missing country might get grouped with “not US” for an operational task. In SQL, country <> 'US' is not TRUE for that row. It is UNKNOWN. Therefore the WHERE clause filters it out.",
+          "This is often the first place practitioners notice the problem in analytics code. A dashboard tile for US customers and a dashboard tile for non-US customers do not add up to total customers. That gap can be valid if the metric intentionally excludes unknown country. It is a bug if the intended definition was “not US, including unknown country.” The fix is not to hope that <> behaves differently. The fix is to write the intended predicate."
+        ],
+        "bullets": [],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "SELECT customer_id, country\nFROM customers\nWHERE country <> 'US';\n\n-- Reasoned result:\n-- customer_id | country\n-- 3           | CA\n\nSELECT customer_id, country\nFROM customers\nWHERE country <> 'US' OR country IS NULL;\n\n-- Reasoned result when unknown country should be included:\n-- customer_id | country\n-- 2           | NULL\n-- 3           | CA"
+          }
+        ]
+      },
+      {
+        "id": "compound-predicates",
+        "heading": "Compound predicates can preserve or eliminate UNKNOWN",
+        "paragraphs": [
+          "The practical issue is not only direct comparison. Real filters combine conditions with AND, OR, and NOT. UNKNOWN then propagates through the compound predicate. A useful mental model is to ask whether the known side is enough to decide the whole expression.",
+          "For AND, one FALSE operand is enough to make the whole expression FALSE. If no operand is FALSE but at least one operand is UNKNOWN, the result is UNKNOWN. For OR, one TRUE operand is enough to make the whole expression TRUE. If no operand is TRUE but at least one operand is UNKNOWN, the result is UNKNOWN.",
+          "Apply that to order 103: status is NULL and refund_amount is NULL. The predicate status = 'paid' is UNKNOWN. The predicate refund_amount = 0 is UNKNOWN. UNKNOWN OR UNKNOWN remains UNKNOWN, so a WHERE clause removes the row. For order 101, status = 'paid' is TRUE and refund_amount = 0 is UNKNOWN; TRUE OR UNKNOWN is TRUE, so the row is kept.",
+          "This is why adding an OR clause does not automatically rescue nullable rows. The OR clause only rescues a row when one side is TRUE. UNKNOWN is not a match."
+        ],
+        "bullets": [
+          "FALSE AND UNKNOWN is FALSE, because the FALSE side is decisive.",
+          "TRUE AND UNKNOWN is UNKNOWN, because the unknown side may still fail.",
+          "TRUE OR UNKNOWN is TRUE, because the TRUE side is decisive.",
+          "FALSE OR UNKNOWN is UNKNOWN, because the unknown side may still pass."
+        ],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "SELECT order_id, status, refund_amount\nFROM orders\nWHERE status = 'paid' OR refund_amount = 0;\n\n-- Reasoned result:\n-- order_id | status | refund_amount\n-- 101      | paid   | NULL\n-- 104      | paid   | 0.00\n\n-- Order 103 is not returned:\n-- status = 'paid' is UNKNOWN\n-- refund_amount = 0 is UNKNOWN\n-- UNKNOWN OR UNKNOWN is UNKNOWN"
+          }
+        ]
+      },
+      {
+        "id": "joins-and-on-predicates",
+        "heading": "Joins: UNKNOWN changes matching before outer rows are added back",
+        "paragraphs": [
+          "Join predicates are another place where UNKNOWN matters. In an inner join, a pair of rows matches only when the ON condition is TRUE. If the ON condition is FALSE or UNKNOWN, that pair is not a match. This is straightforward for ordinary key joins, but surprises appear when nullable attributes are part of the join predicate.",
+          "Suppose a model joins customers to orders and also requires the order status to match a desired value. If the status predicate is placed in the ON clause of a LEFT JOIN, the join first attempts to match rows where the whole ON predicate is TRUE. Orders with UNKNOWN status do not match that status condition. The left customer row can still appear because it is a left join, but the right-side columns for the nonmatching order are not returned as a matched order row.",
+          "This is not a performance concern; it is a semantics concern. The data engineer should decide whether the nullable predicate defines match eligibility, or whether it is a later filter on already joined rows. Moving a predicate between ON and WHERE can change results with outer joins because WHERE removes rows where the condition is not TRUE after the join result has been formed."
+        ],
+        "bullets": [],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "SELECT\n  c.customer_id,\n  o.order_id,\n  o.status\nFROM customers c\nLEFT JOIN orders o\n  ON c.customer_id = o.customer_id\n AND o.status = 'paid'\nORDER BY c.customer_id, o.order_id;\n\n-- Reasoned result:\n-- customer_id | order_id | status\n-- 1           | 101      | paid\n-- 2           | NULL     | NULL\n-- 3           | 104      | paid\n-- 4           | NULL     | NULL\n\n-- Customer 2 has an order, but its status is NULL.\n-- The predicate o.status = 'paid' is UNKNOWN, so that order is not a match."
+          }
+        ]
+      },
+      {
+        "id": "anti-joins-and-not-in",
+        "heading": "Anti-joins: NOT IN is the classic NULL trap",
+        "paragraphs": [
+          "The most compact counterexample is NOT IN. Many practitioners use NOT IN to ask for rows whose key is not present in another result. It behaves as expected only when the subquery output is known not to contain NULL. If the list contains NULL, comparisons against the list can become UNKNOWN rather than TRUE.",
+          "Consider the expression 4 NOT IN (1, 2, NULL). It is equivalent to 4 <> 1 AND 4 <> 2 AND 4 <> NULL. The first two comparisons are TRUE. The final comparison is UNKNOWN. TRUE AND TRUE AND UNKNOWN is UNKNOWN. In a WHERE clause, UNKNOWN is not returned. The row disappears.",
+          "For anti-join logic, prefer NOT EXISTS when the intent is “there is no matching row.” NOT EXISTS evaluates existence of rows satisfying the correlated predicate. It does not require proving inequality against every value in a list that may include NULL. The join predicate itself can still evaluate to UNKNOWN for a candidate pair, but a nonmatching UNKNOWN pair is simply not evidence of existence.",
+          "This is also a modeling lesson. If a column should participate in identity or relationship logic, decide whether NULL is actually allowed. Nullable relationship attributes and nullable alternate identifiers can make simple-looking predicates ambiguous."
+        ],
+        "bullets": [],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "-- Counterexample: a nullable list poisons NOT IN reasoning.\nSELECT customer_id\nFROM customers\nWHERE customer_id NOT IN (1, 2, NULL);\n\n-- Reasoned result: no rows, because each remaining candidate must prove\n-- it is not equal to NULL, and that comparison is UNKNOWN.\n\n-- Safer anti-join pattern for \"customers with no orders\":\nSELECT c.customer_id\nFROM customers c\nWHERE NOT EXISTS (\n  SELECT 1\n  FROM orders o\n  WHERE o.customer_id = c.customer_id\n);\n\n-- Reasoned result for the fixture:\n-- customer_id\n-- 4"
+          }
+        ]
+      },
+      {
+        "id": "constraints-are-not-filters",
+        "heading": "Constraints are not filters: CHECK treats UNKNOWN differently",
+        "paragraphs": [
+          "A final source of confusion is that CHECK constraints and WHERE filters do not have the same acceptance rule. A WHERE clause returns only TRUE rows. In PostgreSQL, a CHECK constraint is satisfied if the check expression evaluates to TRUE or NULL; it fails only when the expression is FALSE. This behavior lets nullable columns coexist with checks that apply only when a value is present.",
+          "For example, CHECK (refund_amount >= 0) rejects negative refunds. It does not reject NULL refund amounts, because refund_amount >= 0 is UNKNOWN when refund_amount is NULL. If the model requires every order to have a refund amount, that is a NOT NULL requirement, not something implied by the CHECK expression.",
+          "This difference is useful, but it must be explicit in data models. A constraint such as CHECK (status IN ('paid', 'refunded', 'cancelled')) does not by itself require status to be populated in PostgreSQL. It constrains known statuses. To require known status, combine the domain check with NOT NULL."
+        ],
+        "bullets": [],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "-- Allows NULL refund_amount, rejects negative known values.\nrefund_amount numeric(10,2) CHECK (refund_amount >= 0)\n\n-- Requires a populated, valid status.\nstatus text NOT NULL CHECK (status IN ('paid', 'refunded', 'cancelled'))\n\n-- Allows missing status, but constrains it when present.\nstatus text CHECK (status IN ('paid', 'refunded', 'cancelled'))"
+          }
+        ]
+      },
+      {
+        "id": "a-practitioner-diagnostic",
+        "heading": "A practitioner diagnostic for nullable predicates",
+        "paragraphs": [
+          "When a query result looks smaller than expected, inspect nullable predicates before assuming a join or aggregation error. The diagnostic is mechanical: list each predicate, mark nullable operands, compute TRUE, FALSE, or UNKNOWN for the disputed rows, and then apply the clause rule.",
+          "Start with the row that disappeared. For each comparison, ask whether any side can be NULL. If yes, do not translate the predicate into ordinary two-valued language. Write the result as UNKNOWN unless the operator explicitly handles NULL, such as IS NULL or IS NOT NULL. Then evaluate the compound predicate. Finally, apply the SQL clause: WHERE keeps TRUE only; inner joins match TRUE only; outer joins add preserved-side rows after nonmatches; CHECK constraints may accept UNKNOWN depending on the database’s constraint semantics.",
+          "The modeling decision comes after the diagnostic. If NULL means “not applicable,” you may need a separate category or a predicate that excludes it intentionally. If NULL means “unknown yet,” you may need metrics that report known, unknown, and total populations separately. If NULL is not valid for the business concept, use NOT NULL and load-time validation rather than writing increasingly defensive filters.",
+          "The key habit is to avoid treating missing values as if they were ordinary values. SQL gives you operators for explicit null handling, but it will not infer your business meaning for NULL. Three-valued logic is the mechanism that exposes that ambiguity."
+        ],
+        "bullets": [
+          "For every predicate, identify nullable operands.",
+          "For each disputed row, compute TRUE, FALSE, or UNKNOWN before reading the final result.",
+          "Use IS NULL or IS NOT NULL when missingness is part of the business condition.",
+          "Do not expect NOT, <>, or NOT IN to include NULL rows unless the predicate says so explicitly.",
+          "Separate domain constraints from requiredness: CHECK controls allowed known values; NOT NULL controls presence."
+        ],
+        "codeExamples": []
+      }
+    ],
+    "takeaways": [
+      "A comparison involving NULL usually evaluates to UNKNOWN, not TRUE or FALSE, so ordinary inversions like = versus <> do not partition the data when the column is nullable.",
+      "WHERE and join matching keep TRUE predicates; FALSE and UNKNOWN both fail to qualify, even though they mean different things.",
+      "Use explicit null handling and appropriate constraints when missingness has business meaning; do not rely on comparison operators to guess that meaning."
+    ],
+    "sources": [
+      {
+        "title": "PostgreSQL: Documentation: 18: 5.5. Constraints",
+        "url": "https://www.postgresql.org/docs/current/ddl-constraints.html"
+      },
+      {
+        "title": "PostgreSQL: Documentation: 18: 7.2. Table Expressions",
+        "url": "https://www.postgresql.org/docs/current/queries-table-expressions.html"
+      },
+      {
+        "title": "Chapter 8. Data Normalisation",
+        "url": "https://www.cs.uct.ac.za/mit_notes/database/htmls/chp08.html"
+      }
+    ],
+    "requiresVerification": false,
+    "verificationNotes": []
+  },
+  {
+    "slug": "lossless-decomposition-of-relational-tables",
+    "title": "Lossless decomposition of relational tables",
+    "description": "A practical guide to proving whether decomposed relational tables can be joined back without losing rows or creating spurious records, using a hypothetical order-line dataset and counterexamples.",
+    "primaryKeyword": "Lossless decomposition of relational tables",
+    "relatedKeywords": [
+      "Lossless decomposition of relational tables"
+    ],
+    "category": "Data Modeling",
+    "level": "Intermediate",
+    "readTime": "7 min",
+    "datePublished": "2026-09-23",
+    "dateModified": "2026-09-23",
+    "canonicalUrl": "https://jwatterson.com/writing/lossless-decomposition-of-relational-tables",
+    "status": "published",
+    "sourceHash": "c86c1e6c4c97fb79",
+    "lead": "Lossless decomposition answers one narrow but important question: if a table is split into smaller tables, can those tables be joined to reconstruct exactly the original records? The proof is not based on hope, row counts alone, or whether the join looks natural; it depends on the attributes shared by the decomposed tables and the functional dependencies that hold for the relation.",
+    "sections": [
+      {
+        "id": "what-lossless-means",
+        "heading": "What lossless means, and what it does not mean",
+        "paragraphs": [
+          "A decomposition is lossless when joining the decomposed relations produces exactly the original relation: no missing tuples, no extra tuples, and no invented combinations of values. If the original relation is R and it is decomposed into R1 and R2, the decomposition is lossless for a particular set of valid data when R equals the join of its projections onto R1 and R2.",
+          "The word lossless can be misleading if it is read too narrowly. A lossy decomposition does not only mean that columns disappeared. The decomposed tables might still contain every original attribute, but the join can create rows that never existed. These extra rows are often called spurious tuples. They are the dangerous case because a dashboard, feature table, or reconciliation query may see plausible-looking records rather than obvious nulls or errors.",
+          "This article focuses on relational semantics, not physical tuning. Indexes, distribution keys, join algorithms, and warehouse-specific optimizer behavior may affect runtime, but they do not prove whether a decomposition preserves meaning. PostgreSQL’s documentation describes joins as table expressions that derive rows from one or more input tables; that operational idea is useful background, but the lossless question is a modeling question: which combinations of attribute values are valid after decomposition?"
+        ],
+        "bullets": [],
+        "codeExamples": []
+      },
+      {
+        "id": "the-binary-test",
+        "heading": "The binary lossless-join test",
+        "paragraphs": [
+          "For a binary decomposition of relation R into R1 and R2, first identify the attributes the two decomposed schemas share. Call that shared set S, where S = R1 ∩ R2. The decomposition is lossless with respect to the intended functional dependencies if S functionally determines all attributes in R1 or S functionally determines all attributes in R2. Equivalently, the common attributes must contain a key for at least one side of the join.",
+          "In practical terms, the shared attributes must be strong enough to select one matching row on one side. If the common attributes can match multiple rows on both sides, the join can form combinations that were not present in the original table. A many-to-many join is not automatically wrong in analytics, but it is not a lossless reconstruction of the original relation unless the original relation actually contained all those combinations.",
+          "This is a design-time proof, not merely a data profiling observation. A current sample may happen not to contain duplicates, but the decomposition is only guaranteed lossless if the relevant functional dependency is part of the business rules for valid data. A database uniqueness constraint can help enforce that rule, but the proof still comes from the dependency itself: the join attributes determine one side of the decomposition."
+        ],
+        "bullets": [
+          "Step 1: Write the original relation schema R.",
+          "Step 2: Write the decomposed schemas R1 and R2, and confirm their union contains all attributes of R.",
+          "Step 3: Find the common attributes S = R1 ∩ R2.",
+          "Step 4: Ask whether S is a key, or contains a key, for R1 or R2 under the intended dependencies.",
+          "Step 5: If yes, the binary decomposition is lossless. If not, construct a counterexample before trusting the split."
+        ],
+        "codeExamples": []
+      },
+      {
+        "id": "hypothetical-order-table",
+        "heading": "A hypothetical order-line relation",
+        "paragraphs": [
+          "Consider a hypothetical retail order-line relation. It records one row per purchased line item, and the candidate key is the pair of order_id and line_no. Assume this table represents order-time facts, not a slowly changing customer dimension and not current customer state.",
+          "Original relation R: OrderLine(order_id, line_no, sku, quantity, customer_id, tier_at_order).",
+          "Hypothetical rows: row 1 is order_id 1001, line_no 1, sku TEA, quantity 2, customer_id C10, tier_at_order Gold. Row 2 is order_id 1001, line_no 2, sku MUG, quantity 1, customer_id C10, tier_at_order Gold. Row 3 is order_id 1002, line_no 1, sku TEA, quantity 1, customer_id C20, tier_at_order Silver.",
+          "For this relation, assume the following dependencies are part of the business rules. First, order_id and line_no determine sku and quantity because a line number identifies one line within an order. Second, order_id determines customer_id and tier_at_order because each order belongs to one customer and stores the customer tier captured at order time. These assumptions matter. If an order can contain lines for multiple customers, or if tier_at_order is not stored at the order grain, the proof changes."
+        ],
+        "bullets": [],
+        "codeExamples": []
+      },
+      {
+        "id": "a-lossless-split",
+        "heading": "A lossless split of order lines and order attributes",
+        "paragraphs": [
+          "Now decompose the original relation into two relations. R1 is OrderLineItem(order_id, line_no, sku, quantity). R2 is OrderAtSale(order_id, customer_id, tier_at_order). Their common attribute is order_id.",
+          "The projections from the hypothetical rows are straightforward. OrderLineItem contains three rows: 1001 line 1 TEA quantity 2; 1001 line 2 MUG quantity 1; and 1002 line 1 TEA quantity 1. OrderAtSale contains two rows: 1001 C10 Gold; and 1002 C20 Silver.",
+          "Joining R1 and R2 on order_id reconstructs the original three rows. Order 1001 in R1 has two line rows, and both match the single order-level row 1001 C10 Gold in R2. Order 1002 has one line row and matches the single order-level row 1002 C20 Silver. The join result is exactly the original relation’s rows and attributes.",
+          "The proof is stronger than this specific arithmetic. The common attribute is order_id. Under the stated dependency, order_id determines customer_id and tier_at_order, so order_id is a key for R2. Because the shared attributes determine one decomposed side, the binary decomposition is lossless. The join may be one-to-many from R2 to R1, but it is not many-to-many. Each line item receives exactly the one order-at-sale record that belonged to it before decomposition.",
+          "Notice what this proof does not require. It does not require order_id to be a key of the line-item table. It is not, because order 1001 has two lines. The test only needs the shared attributes to determine one side. In this case, they determine the order-level side."
+        ],
+        "bullets": [],
+        "codeExamples": []
+      },
+      {
+        "id": "a-lossy-counterexample",
+        "heading": "A lossy split that creates spurious rows",
+        "paragraphs": [
+          "Now try a different decomposition of the same original relation. R1 is LineProduct(order_id, line_no, sku, quantity). R2 is LineCustomer(line_no, customer_id, tier_at_order). The union of attributes still covers the original schema, so no column was omitted. The problem is the common attribute: line_no.",
+          "The projected LineProduct rows are: 1001 line 1 TEA quantity 2; 1001 line 2 MUG quantity 1; and 1002 line 1 TEA quantity 1. The projected LineCustomer rows are: line 1 C10 Gold; line 2 C10 Gold; and line 1 C20 Silver. Because line_no 1 appears for both customers, it is not enough information to identify the original order context.",
+          "When these two decomposed relations are joined on line_no, the result has five rows instead of three. The line 2 row joins correctly to C10 Gold. But each line_no 1 product row joins to both line_no 1 customer rows. That creates two original-looking but false records: order 1001 line 1 is paired with C20 Silver, and order 1002 line 1 is paired with C10 Gold. Those combinations did not exist in the original relation.",
+          "This decomposition is lossy even though every attribute survived. The shared attribute line_no does not determine R1, because many orders can have a line 1. It also does not determine R2, because line 1 can appear for different customers and tiers. The join has no way to know which line_no 1 customer row belonged to which order-line row. The missing relationship is not a missing column in the union; it is a missing determinant in the join.",
+          "A common practitioner mistake is to treat a repeated business label as if it were an identifier. Line number is meaningful only within an order. If line_no is separated from order_id, it cannot carry the original relationship. The decomposition has broken the key context that made the row identifiable."
+        ],
+        "bullets": [],
+        "codeExamples": []
+      },
+      {
+        "id": "multi-table-decompositions",
+        "heading": "How to reason about more than two tables",
+        "paragraphs": [
+          "Real models often decompose one relation into more than two tables. The safest way to reason about them is to apply the binary test step by step. Join two tables whose shared attributes determine one side, treat the result as an intermediate relation, and then test the next join. If every step is lossless under the declared dependencies, the full reconstruction is lossless.",
+          "For example, suppose the order relation is decomposed into OrderLineItem(order_id, line_no, sku, quantity), OrderAtSale(order_id, customer_id), and OrderTierAtSale(order_id, tier_at_order). The first join is lossless if order_id determines customer_id in OrderAtSale. The second join is lossless if order_id determines tier_at_order in OrderTierAtSale. The final reconstruction works because each added table is keyed by order_id for the attributes it contributes.",
+          "Be careful with a visually similar decomposition using CustomerTier(customer_id, tier_at_order). That split is lossless only if customer_id determines tier_at_order for the relation being modeled. If tier_at_order is historical and a customer may place orders at different tiers over time, customer_id alone is not a determinant. Joining order lines to a customer-level tier table would either duplicate records or attach the wrong historical tier. The issue is not whether customer is an important entity; it is whether customer_id is the right determinant for this attribute at this grain.",
+          "Dimensional models often join fact tables to dimension tables, and star schemas intentionally make those joins easy for analysis. That does not remove the need to state the grain and key relationships. A fact-to-dimension join can be semantically correct, but lossless reconstruction of a former wide relation still depends on whether the shared keys determine the dimension attributes being reattached."
+        ],
+        "bullets": [],
+        "codeExamples": []
+      },
+      {
+        "id": "practitioner-diagnostic",
+        "heading": "A diagnostic before accepting a decomposition",
+        "paragraphs": [
+          "Use this diagnostic when reviewing a proposed table split. It is intentionally small because most decomposition mistakes are not solved by more notation; they are solved by naming the determinant that makes the join safe.",
+          "First, state the grain of the original relation. In the hypothetical example, the grain is one order line. Second, list the candidate key or keys. Here, order_id plus line_no identifies a row. Third, state which non-key attributes belong to a higher grain. Customer and tier-at-order belong to the order grain under the stated assumptions. Fourth, check whether each decomposed table keeps the determinant needed for its attributes. OrderAtSale keeps order_id, so order_id can determine customer_id and tier_at_order. LineCustomer keeps only line_no, so it lacks the order context needed to avoid false matches.",
+          "Data checks can support this review but should not replace it. A uniqueness check on OrderAtSale.order_id would support the assumption that order_id determines the order-level attributes. A duplicate check on LineCustomer.line_no would reveal the counterexample in the lossy split. But passing checks on today’s data is weaker than a declared invariant. If future valid data may break the dependency, the decomposition is not guaranteed lossless as a model.",
+          "The practical rule is: never approve a decomposition just because the join columns have the same name. Approve it because the shared attributes functionally determine one side of the join, or because a more formal multi-table proof reduces to that condition step by step."
+        ],
+        "bullets": [
+          "If the shared attributes are a key for one side, the binary decomposition is lossless.",
+          "If the shared attributes can repeat on both sides, look for spurious tuples.",
+          "If a dependency is true only by accident in a sample, document it as unproven rather than treating it as a modeling rule.",
+          "If an attribute is historical, make sure the determinant includes the time, event, order, or version context needed to identify the correct value."
+        ],
+        "codeExamples": []
+      }
+    ],
+    "takeaways": [
+      "Lossless decomposition means the decomposed tables join back to exactly the original relation, without missing rows or spurious rows.",
+      "For a binary decomposition, the shared attributes must functionally determine all attributes on at least one side of the join.",
+      "A decomposition can be lossy even when no columns are omitted; the join can still invent false combinations.",
+      "Use hypothetical counterexamples with repeated join values to test whether the proposed determinant is strong enough.",
+      "Data profiling helps, but the durable proof comes from declared functional dependencies and candidate keys."
+    ],
+    "sources": [
+      {
+        "title": "PostgreSQL: Documentation: 18: 7.2. Table Expressions",
+        "url": "https://www.postgresql.org/docs/current/queries-table-expressions.html"
+      },
+      {
+        "title": "Star Schema OLAP Cube | Kimball Dimensional Modeling Techniques",
+        "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/star-schema-olap-cube/"
+      }
+    ],
+    "requiresVerification": false,
+    "verificationNotes": []
+  }
+]
