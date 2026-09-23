@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "phase": "active",
+  "batchId": "batch_6ab3fd4f85988190b3fe9097f944549d",
+  "inputFileId": "file-Qyme8tG3bzYfbcmg1vRKPH",
+  "model": "gpt-5.5",
+  "topicCount": 10,
+  "submissionWeek": "2026-09-21",
+  "submittedThisWeek": 10,
+  "topicSlugs": [
+    "candidate-keys-and-alternate-keys",
+    "functional-dependencies-in-analytical-tables",
+    "composite-keys-in-business-event-data",
+    "natural-keys-versus-surrogate-keys",
+    "referential-integrity-across-analytical-tables",
+    "sql-null-and-three-valued-logic",
+    "set-semantics-versus-bag-semantics-in-sql",
+    "first-normal-form-and-repeating-groups",
+    "second-and-third-normal-forms",
+    "lossless-decomposition-of-relational-tables"
+  ],
+  "submittedAt": "2026-09-23T16:24:48.132Z",
+  "batchStatus": "validating",
+  "outputFileId": null,
+  "errorFileId": null,
+  "successfulCount": 0,
+  "failedCount": 0,
+  "publishedCount": 0,
+  "failures": []
+}

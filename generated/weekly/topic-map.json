@@ -1,0 +1,1505 @@
+[
+  {
+    "slug": "candidate-keys-and-alternate-keys",
+    "title": "Candidate keys and alternate keys",
+    "primaryKeyword": "Candidate keys and alternate keys",
+    "relatedKeywords": [
+      "Candidate keys and alternate keys",
+      "candidate key",
+      "alternate key",
+      "minimal superkey"
+    ],
+    "audience": "practitioners",
+    "updateFrequency": "never",
+    "intent": "How can practitioners distinguish possible identifiers from the one selected as primary?",
+    "format": "Guide",
+    "status": "review",
+    "category": "Data Modeling",
+    "editorialBrief": {
+      "topic": "Candidate keys and alternate keys",
+      "audience": "practitioners",
+      "update_frequency": "never",
+      "content_type": "durable",
+      "category": "Data Modeling",
+      "track": "Data Foundations",
+      "cluster": "relational-foundations",
+      "primary_question": "How can practitioners distinguish possible identifiers from the one selected as primary?",
+      "scope": [
+        "Distinguish possible identifiers from the one selected as primary.",
+        "Relational semantics; leave engine tuning to the performance clusters."
+      ],
+      "exclusions": [
+        "Do not expand this into a general introduction to the entire category.",
+        "Do not repeat the Coldstart coverage listed in coldstart_coverage; link their background where useful.",
+        "Leave Functional dependencies in analytical tables to /writing/functional-dependencies-in-analytical-tables/; its separate outcome is: Use dependency violations to locate attributes stored at the wrong grain.",
+        "Leave Composite keys in business event data to /writing/composite-keys-in-business-event-data/; its separate outcome is: Decide when multiple columns together identify one event.",
+        "Do not replace or retell the three existing in-progress portfolio notes.",
+        "Do not invent employment history, client stories, measurements, expert review, or first-person hands-on experience."
+      ],
+      "original_contribution": "Create a small relational dataset with counterexamples. Use it to distinguish possible identifiers from the one selected as primary.",
+      "prerequisites": [],
+      "secondary_keywords": [
+        "candidate key",
+        "alternate key",
+        "minimal superkey"
+      ],
+      "source_urls": [
+        "https://www.postgresql.org/docs/current/ddl-constraints.html",
+        "https://www.cs.uct.ac.za/mit_notes/database/htmls/chp08.html",
+        "https://www.postgresql.org/docs/current/queries-table-expressions.html"
+      ],
+      "sources": [
+        {
+          "source_id": "pg-ddl-5",
+          "url": "https://www.postgresql.org/docs/current/ddl-constraints.html",
+          "title": "PostgreSQL: Documentation: 18: 5.5. Constraints",
+          "accessed_at": "2026-09-22T16:34:32.958740+00:00"
+        },
+        {
+          "source_id": "database-dependencies",
+          "url": "https://www.cs.uct.ac.za/mit_notes/database/htmls/chp08.html",
+          "title": "Chapter 8. Data Normalisation",
+          "accessed_at": "2026-09-22T20:47:50.052497+00:00"
+        },
+        {
+          "source_id": "pg-joins",
+          "url": "https://www.postgresql.org/docs/current/queries-table-expressions.html",
+          "title": "PostgreSQL: Documentation: 18: 7.2. Table Expressions",
+          "accessed_at": "2026-09-22T16:34:29.167087+00:00"
+        }
+      ],
+      "evidence_requirements": [
+        "Check the cited primary sources and the original scope before writing; a research lead is not proof of a new claim.",
+        "Use a clearly labeled hypothetical example. Do not invent customer results, personal experience, expert review, or test execution.",
+        "Work through the proposed example or decision framework and verify its assumptions and conclusions before publication."
+      ],
+      "distinctness_rationale": "The article is limited to this deliverable: Distinguish possible identifiers from the one selected as primary. Nearest legacy coverage is retained as background, not rewritten.",
+      "publication_order": 1,
+      "reviewed_distinctions": {},
+      "coldstart_coverage": [
+        {
+          "slug": "data-quality-checks-migration-playbook",
+          "title": "Data Quality Checks: Migration Playbook",
+          "score": 0.072,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "What data quality checks mean in a migration",
+            "Why migrations create quality risk",
+            "The migration playbook: test in layers",
+            "Choose checks by business risk, not by test count",
+            "Baseline checks to run before cutover",
+            "Where to place checks in the pipeline",
+            "Reconcile old and new systems without chasing false precision",
+            "How to triage failed checks",
+            "Common migration failure modes to watch for",
+            "Keep checks operational after migration",
+            "Minimum viable checklist for a small team"
+          ],
+          "has_article_body": true
+        },
+        {
+          "slug": "customer-data-modeling-plain-english-guide",
+          "title": "Customer Data Modeling: Plain-English Guide",
+          "score": 0.072,
+          "files": [
+            "src/_data/articles.json"
+          ],
+          "section_headings": [
+            "What customer data modeling means",
+            "Why customer data modeling matters for AI-ready data",
+            "The core building blocks of a customer data model",
+            "Start by choosing the customer grain",
+            "Model the customer lifecycle, not just the current profile",
+            "Common customer data model patterns",
+            "Identity resolution is usually the hard part",
+            "Common failure modes in customer data modeling",
+            "How to evaluate your current customer data model",
+            "A practical blueprint for building a customer data model",
+            "How to build Customer 360 without creating a dumping ground",
+            "Governance rules for AI-ready customer data",
+            "What good customer data modeling looks like"
+          ],
+          "has_article_body": true
+        },
+        {
+          "slug": "customer-data-modeling-founder-framework",
+          "title": "Customer Data Modeling: Founder Framework",
+          "score": 0.072,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "Why customer data modeling becomes a founder problem",
+            "The founder framework: five questions before tables",
+            "The core entities in a customer data model",
+            "Do not confuse accounts, users, and customers",
+            "Model the customer lifecycle as explicit states",
+            "Separate events from attributes",
+            "Identity resolution is a modeling decision, not a cleanup task",
+            "What makes customer data AI-ready",
+            "A minimum viable customer data model",
+            "Common customer data modeling failure modes",
+            "A practical implementation order",
+            "Diagnostic questions for your current model"
+          ],
+          "has_article_body": true
+        }
+      ],
+      "portfolio_context": "Technical education for practicing and aspiring data engineers. Use small, explicitly hypothetical retail-order or customer-event fixtures where useful. Do not claim Jon implemented or tested anything without supplied evidence.",
+      "cross_brand_boundary": "Coldstart and this portfolio share seed concepts, not article prose. Create a fresh example, explanation, and diagnostic outcome. Do not copy or lightly rewrite Coldstart articles.",
+      "seed_origin": {
+        "brand": "Coldstart",
+        "slug": "candidate-keys-and-alternate-keys",
+        "snapshot_sha256": "07ea360d63d3b74952b290ee982fd3c3bec11622cdf1bdf932106a7823ea0020",
+        "adapted_on": "2026-09-23"
+      }
+    },
+    "sourceHash": "87541d13ded31ae5"
+  },
+  {
+    "slug": "functional-dependencies-in-analytical-tables",
+    "title": "Functional dependencies in analytical tables",
+    "primaryKeyword": "Functional dependencies in analytical tables",
+    "relatedKeywords": [
+      "Functional dependencies in analytical tables"
+    ],
+    "audience": "practitioners",
+    "updateFrequency": "never",
+    "intent": "How can practitioners use dependency violations to locate attributes stored at the wrong grain?",
+    "format": "Guide",
+    "status": "review",
+    "category": "Data Modeling",
+    "editorialBrief": {
+      "topic": "Functional dependencies in analytical tables",
+      "audience": "practitioners",
+      "update_frequency": "never",
+      "content_type": "durable",
+      "category": "Data Modeling",
+      "track": "Data Foundations",
+      "cluster": "relational-foundations",
+      "primary_question": "How can practitioners use dependency violations to locate attributes stored at the wrong grain?",
+      "scope": [
+        "Use dependency violations to locate attributes stored at the wrong grain.",
+        "Relational semantics; leave engine tuning to the performance clusters."
+      ],
+      "exclusions": [
+        "Do not expand this into a general introduction to the entire category.",
+        "Do not repeat the Coldstart coverage listed in coldstart_coverage; link their background where useful.",
+        "Leave Candidate keys and alternate keys to /writing/candidate-keys-and-alternate-keys/; its separate outcome is: Distinguish possible identifiers from the one selected as primary.",
+        "Leave Composite keys in business event data to /writing/composite-keys-in-business-event-data/; its separate outcome is: Decide when multiple columns together identify one event.",
+        "Do not replace or retell the three existing in-progress portfolio notes.",
+        "Do not invent employment history, client stories, measurements, expert review, or first-person hands-on experience."
+      ],
+      "original_contribution": "Create a small relational dataset with counterexamples. Use it to use dependency violations to locate attributes stored at the wrong grain.",
+      "prerequisites": [
+        "candidate-keys-and-alternate-keys"
+      ],
+      "secondary_keywords": [],
+      "source_urls": [
+        "https://www.cs.uct.ac.za/mit_notes/database/htmls/chp08.html",
+        "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/grain/",
+        "https://www.postgresql.org/docs/current/queries-table-expressions.html"
+      ],
+      "sources": [
+        {
+          "source_id": "database-dependencies",
+          "url": "https://www.cs.uct.ac.za/mit_notes/database/htmls/chp08.html",
+          "title": "Chapter 8. Data Normalisation",
+          "accessed_at": "2026-09-22T20:47:50.052497+00:00"
+        },
+        {
+          "source_id": "kimball-5",
+          "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/grain/",
+          "title": "Grain | Kimball Dimensional Modeling Techniques",
+          "accessed_at": "2026-09-22T16:39:16.678265+00:00"
+        },
+        {
+          "source_id": "pg-joins",
+          "url": "https://www.postgresql.org/docs/current/queries-table-expressions.html",
+          "title": "PostgreSQL: Documentation: 18: 7.2. Table Expressions",
+          "accessed_at": "2026-09-22T16:34:29.167087+00:00"
+        }
+      ],
+      "evidence_requirements": [
+        "Check the cited primary sources and the original scope before writing; a research lead is not proof of a new claim.",
+        "Use a clearly labeled hypothetical example. Do not invent customer results, personal experience, expert review, or test execution.",
+        "Work through the proposed example or decision framework and verify its assumptions and conclusions before publication."
+      ],
+      "distinctness_rationale": "The article is limited to this deliverable: Use dependency violations to locate attributes stored at the wrong grain. Nearest legacy coverage is retained as background, not rewritten.",
+      "publication_order": 2,
+      "reviewed_distinctions": {},
+      "coldstart_coverage": [
+        {
+          "slug": "migration-without-breaking-reporting",
+          "title": "How to Migrate Data Systems Without Breaking Reporting",
+          "score": 0.077,
+          "files": [
+            "generated/review/first-six-rewrite-source.json"
+          ],
+          "section_headings": [
+            "Inventory the reporting surface first",
+            "Run old and new side by side",
+            "Move users with a rollback path"
+          ],
+          "has_article_body": true
+        },
+        {
+          "slug": "data-lineage-plain-english-guide",
+          "title": "Data Lineage: Plain-English Guide",
+          "score": 0.075,
+          "files": [
+            "src/_data/articles.json"
+          ],
+          "section_headings": [
+            "What data lineage means in plain English",
+            "Why data lineage matters in a modern data stack",
+            "The questions data lineage should help answer",
+            "The practical levels of data lineage",
+            "How data lineage is captured",
+            "Where lineage breaks down",
+            "Data lineage, documentation, and catalogs are related but different",
+            "The highest-value use cases for data lineage",
+            "How to start with data lineage without overbuilding",
+            "A practical checklist for useful lineage",
+            "How to evaluate data lineage tooling",
+            "Common mistakes when implementing data lineage",
+            "A simple maturity model for data lineage"
+          ],
+          "has_article_body": true
+        },
+        {
+          "slug": "backfills-migration-playbook",
+          "title": "Backfills: Migration Playbook",
+          "score": 0.059,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "What a backfill is",
+            "Why migrations need backfills",
+            "When not to backfill everything",
+            "Choose the right backfill strategy",
+            "Preflight inventory before running a backfill",
+            "Design the target model before moving data",
+            "A safe backfill runbook",
+            "How to validate a backfill",
+            "Cutover without surprising the business",
+            "Common backfill failure modes",
+            "Beginner checklist for your first migration backfill"
+          ],
+          "has_article_body": true
+        }
+      ],
+      "portfolio_context": "Technical education for practicing and aspiring data engineers. Use small, explicitly hypothetical retail-order or customer-event fixtures where useful. Do not claim Jon implemented or tested anything without supplied evidence.",
+      "cross_brand_boundary": "Coldstart and this portfolio share seed concepts, not article prose. Create a fresh example, explanation, and diagnostic outcome. Do not copy or lightly rewrite Coldstart articles.",
+      "seed_origin": {
+        "brand": "Coldstart",
+        "slug": "functional-dependencies-in-analytical-tables",
+        "snapshot_sha256": "07ea360d63d3b74952b290ee982fd3c3bec11622cdf1bdf932106a7823ea0020",
+        "adapted_on": "2026-09-23"
+      }
+    },
+    "sourceHash": "49e130086e5db65b"
+  },
+  {
+    "slug": "composite-keys-in-business-event-data",
+    "title": "Composite keys in business event data",
+    "primaryKeyword": "Composite keys in business event data",
+    "relatedKeywords": [
+      "Composite keys in business event data"
+    ],
+    "audience": "practitioners",
+    "updateFrequency": "never",
+    "intent": "How can practitioners decide when multiple columns together identify one event?",
+    "format": "Guide",
+    "status": "review",
+    "category": "Data Modeling",
+    "editorialBrief": {
+      "topic": "Composite keys in business event data",
+      "audience": "practitioners",
+      "update_frequency": "never",
+      "content_type": "durable",
+      "category": "Data Modeling",
+      "track": "Data Foundations",
+      "cluster": "relational-foundations",
+      "primary_question": "How can practitioners decide when multiple columns together identify one event?",
+      "scope": [
+        "Decide when multiple columns together identify one event.",
+        "Relational semantics; leave engine tuning to the performance clusters."
+      ],
+      "exclusions": [
+        "Do not expand this into a general introduction to the entire category.",
+        "Do not repeat the Coldstart coverage listed in coldstart_coverage; link their background where useful.",
+        "Leave Functional dependencies in analytical tables to /writing/functional-dependencies-in-analytical-tables/; its separate outcome is: Use dependency violations to locate attributes stored at the wrong grain.",
+        "Leave Natural keys versus surrogate keys to /writing/natural-keys-versus-surrogate-keys/; its separate outcome is: Explain identifier stability using a source identifier that changes.",
+        "Do not replace or retell the three existing in-progress portfolio notes.",
+        "Do not invent employment history, client stories, measurements, expert review, or first-person hands-on experience."
+      ],
+      "original_contribution": "Create a small relational dataset with counterexamples. Use it to decide when multiple columns together identify one event.",
+      "prerequisites": [
+        "candidate-keys-and-alternate-keys"
+      ],
+      "secondary_keywords": [],
+      "source_urls": [
+        "https://www.cs.uct.ac.za/mit_notes/database/htmls/chp08.html",
+        "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/dimension-surrogate-key/",
+        "https://www.postgresql.org/docs/current/ddl-constraints.html"
+      ],
+      "sources": [
+        {
+          "source_id": "database-dependencies",
+          "url": "https://www.cs.uct.ac.za/mit_notes/database/htmls/chp08.html",
+          "title": "Chapter 8. Data Normalisation",
+          "accessed_at": "2026-09-22T20:47:50.052497+00:00"
+        },
+        {
+          "source_id": "kimball-21",
+          "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/dimension-surrogate-key/",
+          "title": "Dimension Surrogate Keys | Kimball Dimensional Modeling Techniques",
+          "accessed_at": "2026-09-22T16:39:18.473737+00:00"
+        },
+        {
+          "source_id": "pg-ddl-5",
+          "url": "https://www.postgresql.org/docs/current/ddl-constraints.html",
+          "title": "PostgreSQL: Documentation: 18: 5.5. Constraints",
+          "accessed_at": "2026-09-22T16:34:32.958740+00:00"
+        }
+      ],
+      "evidence_requirements": [
+        "Check the cited primary sources and the original scope before writing; a research lead is not proof of a new claim.",
+        "Use a clearly labeled hypothetical example. Do not invent customer results, personal experience, expert review, or test execution.",
+        "Work through the proposed example or decision framework and verify its assumptions and conclusions before publication."
+      ],
+      "distinctness_rationale": "The article is limited to this deliverable: Decide when multiple columns together identify one event. Nearest legacy coverage is retained as background, not rewritten.",
+      "publication_order": 3,
+      "reviewed_distinctions": {},
+      "coldstart_coverage": [
+        {
+          "slug": "customer-data-modeling-founder-framework",
+          "title": "Customer Data Modeling: Founder Framework",
+          "score": 0.091,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "Why customer data modeling becomes a founder problem",
+            "The founder framework: five questions before tables",
+            "The core entities in a customer data model",
+            "Do not confuse accounts, users, and customers",
+            "Model the customer lifecycle as explicit states",
+            "Separate events from attributes",
+            "Identity resolution is a modeling decision, not a cleanup task",
+            "What makes customer data AI-ready",
+            "A minimum viable customer data model",
+            "Common customer data modeling failure modes",
+            "A practical implementation order",
+            "Diagnostic questions for your current model"
+          ],
+          "has_article_body": true
+        },
+        {
+          "slug": "data-modeling-operator-checklist",
+          "title": "Data Modeling: Operator Checklist",
+          "score": 0.078,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "What data modeling means in an operating data stack",
+            "The operator checklist for data modeling",
+            "Start with grain before columns",
+            "Model business concepts, not just source systems",
+            "Use simple layers before complex architecture",
+            "Keep metric definitions out of one-off dashboards",
+            "Test assumptions, not just pipelines",
+            "Common data modeling failure modes",
+            "Questions to ask before trusting a model",
+            "A practical implementation sequence"
+          ],
+          "has_article_body": true
+        },
+        {
+          "slug": "customer-data-modeling-plain-english-guide",
+          "title": "Customer Data Modeling: Plain-English Guide",
+          "score": 0.076,
+          "files": [
+            "src/_data/articles.json"
+          ],
+          "section_headings": [
+            "What customer data modeling means",
+            "Why customer data modeling matters for AI-ready data",
+            "The core building blocks of a customer data model",
+            "Start by choosing the customer grain",
+            "Model the customer lifecycle, not just the current profile",
+            "Common customer data model patterns",
+            "Identity resolution is usually the hard part",
+            "Common failure modes in customer data modeling",
+            "How to evaluate your current customer data model",
+            "A practical blueprint for building a customer data model",
+            "How to build Customer 360 without creating a dumping ground",
+            "Governance rules for AI-ready customer data",
+            "What good customer data modeling looks like"
+          ],
+          "has_article_body": true
+        }
+      ],
+      "portfolio_context": "Technical education for practicing and aspiring data engineers. Use small, explicitly hypothetical retail-order or customer-event fixtures where useful. Do not claim Jon implemented or tested anything without supplied evidence.",
+      "cross_brand_boundary": "Coldstart and this portfolio share seed concepts, not article prose. Create a fresh example, explanation, and diagnostic outcome. Do not copy or lightly rewrite Coldstart articles.",
+      "seed_origin": {
+        "brand": "Coldstart",
+        "slug": "composite-keys-in-business-event-data",
+        "snapshot_sha256": "07ea360d63d3b74952b290ee982fd3c3bec11622cdf1bdf932106a7823ea0020",
+        "adapted_on": "2026-09-23"
+      }
+    },
+    "sourceHash": "94ad47f41aff71d8"
+  },
+  {
+    "slug": "natural-keys-versus-surrogate-keys",
+    "title": "Natural keys versus surrogate keys",
+    "primaryKeyword": "Natural keys versus surrogate keys",
+    "relatedKeywords": [
+      "Natural keys versus surrogate keys",
+      "business key vs surrogate key",
+      "natural key"
+    ],
+    "audience": "practitioners",
+    "updateFrequency": "never",
+    "intent": "How can practitioners explain identifier stability using a source identifier that changes?",
+    "format": "Guide",
+    "status": "review",
+    "category": "Data Modeling",
+    "editorialBrief": {
+      "topic": "Natural keys versus surrogate keys",
+      "audience": "practitioners",
+      "update_frequency": "never",
+      "content_type": "durable",
+      "category": "Data Modeling",
+      "track": "Data Foundations",
+      "cluster": "relational-foundations",
+      "primary_question": "How can practitioners explain identifier stability using a source identifier that changes?",
+      "scope": [
+        "Explain identifier stability using a source identifier that changes.",
+        "Relational semantics; leave engine tuning to the performance clusters."
+      ],
+      "exclusions": [
+        "Do not expand this into a general introduction to the entire category.",
+        "Do not repeat the Coldstart coverage listed in coldstart_coverage; link their background where useful.",
+        "Leave Composite keys in business event data to /writing/composite-keys-in-business-event-data/; its separate outcome is: Decide when multiple columns together identify one event.",
+        "Leave Referential integrity across analytical tables to /writing/referential-integrity-across-analytical-tables/; its separate outcome is: Detect orphaned facts without discarding legitimate late dimensions.",
+        "Do not replace or retell the three existing in-progress portfolio notes.",
+        "Do not invent employment history, client stories, measurements, expert review, or first-person hands-on experience."
+      ],
+      "original_contribution": "Create a small relational dataset with counterexamples. Use it to explain identifier stability using a source identifier that changes.",
+      "prerequisites": [
+        "candidate-keys-and-alternate-keys"
+      ],
+      "secondary_keywords": [
+        "business key vs surrogate key",
+        "natural key"
+      ],
+      "source_urls": [
+        "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/natural-durable-supernatural-key/",
+        "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/dimension-surrogate-key/",
+        "https://www.postgresql.org/docs/current/ddl-constraints.html"
+      ],
+      "sources": [
+        {
+          "source_id": "kimball-22",
+          "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/natural-durable-supernatural-key/",
+          "title": "Natural, Durable, and Supernatural Keys | KImball Group",
+          "accessed_at": "2026-09-22T16:39:18.671946+00:00"
+        },
+        {
+          "source_id": "kimball-21",
+          "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/dimension-surrogate-key/",
+          "title": "Dimension Surrogate Keys | Kimball Dimensional Modeling Techniques",
+          "accessed_at": "2026-09-22T16:39:18.473737+00:00"
+        },
+        {
+          "source_id": "pg-ddl-5",
+          "url": "https://www.postgresql.org/docs/current/ddl-constraints.html",
+          "title": "PostgreSQL: Documentation: 18: 5.5. Constraints",
+          "accessed_at": "2026-09-22T16:34:32.958740+00:00"
+        }
+      ],
+      "evidence_requirements": [
+        "Check the cited primary sources and the original scope before writing; a research lead is not proof of a new claim.",
+        "Use a clearly labeled hypothetical example. Do not invent customer results, personal experience, expert review, or test execution.",
+        "Work through the proposed example or decision framework and verify its assumptions and conclusions before publication."
+      ],
+      "distinctness_rationale": "The article is limited to this deliverable: Explain identifier stability using a source identifier that changes. Nearest legacy coverage is retained as background, not rewritten.",
+      "publication_order": 4,
+      "reviewed_distinctions": {},
+      "coldstart_coverage": [
+        {
+          "slug": "data-modeling-migration-playbook",
+          "title": "Data Modeling: Migration Playbook",
+          "score": 0.101,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "Why Migration Is a Data Modeling Problem, Not Just a Moving Problem",
+            "Start With the Business Process and Grain",
+            "Inventory Legacy Tables, Reports, and Hidden Logic",
+            "Decide What to Migrate, Redesign, Retire, or Bridge",
+            "Create a Source-to-Target Mapping Before Writing Final Models",
+            "Use Layered Models to Control Complexity",
+            "Model for Pipeline Reliability, Not Just Query Convenience",
+            "Use Automation After the Rules Are Clear",
+            "Validate With Reconciliation, Not Vibes",
+            "Roll Out Models With Ownership and a Cutover Plan",
+            "Beginner Checklist for a Modeling Migration"
+          ],
+          "has_article_body": true
+        },
+        {
+          "slug": "data-modeling-operator-checklist",
+          "title": "Data Modeling: Operator Checklist",
+          "score": 0.097,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "What data modeling means in an operating data stack",
+            "The operator checklist for data modeling",
+            "Start with grain before columns",
+            "Model business concepts, not just source systems",
+            "Use simple layers before complex architecture",
+            "Keep metric definitions out of one-off dashboards",
+            "Test assumptions, not just pipelines",
+            "Common data modeling failure modes",
+            "Questions to ask before trusting a model",
+            "A practical implementation sequence"
+          ],
+          "has_article_body": true
+        },
+        {
+          "slug": "customer-data-modeling-plain-english-guide",
+          "title": "Customer Data Modeling: Plain-English Guide",
+          "score": 0.091,
+          "files": [
+            "src/_data/articles.json"
+          ],
+          "section_headings": [
+            "What customer data modeling means",
+            "Why customer data modeling matters for AI-ready data",
+            "The core building blocks of a customer data model",
+            "Start by choosing the customer grain",
+            "Model the customer lifecycle, not just the current profile",
+            "Common customer data model patterns",
+            "Identity resolution is usually the hard part",
+            "Common failure modes in customer data modeling",
+            "How to evaluate your current customer data model",
+            "A practical blueprint for building a customer data model",
+            "How to build Customer 360 without creating a dumping ground",
+            "Governance rules for AI-ready customer data",
+            "What good customer data modeling looks like"
+          ],
+          "has_article_body": true
+        }
+      ],
+      "portfolio_context": "Technical education for practicing and aspiring data engineers. Use small, explicitly hypothetical retail-order or customer-event fixtures where useful. Do not claim Jon implemented or tested anything without supplied evidence.",
+      "cross_brand_boundary": "Coldstart and this portfolio share seed concepts, not article prose. Create a fresh example, explanation, and diagnostic outcome. Do not copy or lightly rewrite Coldstart articles.",
+      "seed_origin": {
+        "brand": "Coldstart",
+        "slug": "natural-keys-versus-surrogate-keys",
+        "snapshot_sha256": "07ea360d63d3b74952b290ee982fd3c3bec11622cdf1bdf932106a7823ea0020",
+        "adapted_on": "2026-09-23"
+      }
+    },
+    "sourceHash": "1d3f174e25ac4eab"
+  },
+  {
+    "slug": "referential-integrity-across-analytical-tables",
+    "title": "Referential integrity across analytical tables",
+    "primaryKeyword": "Referential integrity across analytical tables",
+    "relatedKeywords": [
+      "Referential integrity across analytical tables"
+    ],
+    "audience": "practitioners",
+    "updateFrequency": "never",
+    "intent": "How can practitioners detect orphaned facts without discarding legitimate late dimensions?",
+    "format": "Guide",
+    "status": "review",
+    "category": "Data Modeling",
+    "editorialBrief": {
+      "topic": "Referential integrity across analytical tables",
+      "audience": "practitioners",
+      "update_frequency": "never",
+      "content_type": "durable",
+      "category": "Data Modeling",
+      "track": "Data Foundations",
+      "cluster": "relational-foundations",
+      "primary_question": "How can practitioners detect orphaned facts without discarding legitimate late dimensions?",
+      "scope": [
+        "Detect orphaned facts without discarding legitimate late dimensions.",
+        "Relational semantics; leave engine tuning to the performance clusters."
+      ],
+      "exclusions": [
+        "Do not expand this into a general introduction to the entire category.",
+        "Do not repeat the Coldstart coverage listed in coldstart_coverage; link their background where useful.",
+        "Leave Natural keys versus surrogate keys to /writing/natural-keys-versus-surrogate-keys/; its separate outcome is: Explain identifier stability using a source identifier that changes.",
+        "Leave SQL null and three-valued logic to /writing/sql-null-and-three-valued-logic/; its separate outcome is: Show why unknown comparisons change filters and predicates.",
+        "Do not replace or retell the three existing in-progress portfolio notes.",
+        "Do not invent employment history, client stories, measurements, expert review, or first-person hands-on experience."
+      ],
+      "original_contribution": "Create a small relational dataset with counterexamples. Use it to detect orphaned facts without discarding legitimate late dimensions.",
+      "prerequisites": [
+        "candidate-keys-and-alternate-keys"
+      ],
+      "secondary_keywords": [],
+      "source_urls": [
+        "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/late-arriving-dimension/",
+        "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/",
+        "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/late-arriving-fact/"
+      ],
+      "sources": [
+        {
+          "source_id": "kimball-late-arriving-dimension",
+          "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/late-arriving-dimension/",
+          "title": "Late Arriving Dimension | Kimball Dimensional Modeling Techniques",
+          "accessed_at": "2026-09-22T20:36:59.361657+00:00"
+        },
+        {
+          "source_id": "kimball",
+          "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/",
+          "title": "Dimensional Modeling Techniques - Kimball Group",
+          "accessed_at": "2026-09-22T16:34:26.363014+00:00"
+        },
+        {
+          "source_id": "kimball-late-arriving-fact",
+          "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/late-arriving-fact/",
+          "title": "Late Arriving Fact | Kimball Dimensional Modeling Techniques",
+          "accessed_at": "2026-09-22T20:36:55.801192+00:00"
+        }
+      ],
+      "evidence_requirements": [
+        "Check the cited primary sources and the original scope before writing; a research lead is not proof of a new claim.",
+        "Use a clearly labeled hypothetical example. Do not invent customer results, personal experience, expert review, or test execution.",
+        "Work through the proposed example or decision framework and verify its assumptions and conclusions before publication."
+      ],
+      "distinctness_rationale": "The article is limited to this deliverable: Detect orphaned facts without discarding legitimate late dimensions. Nearest legacy coverage is retained as background, not rewritten.",
+      "publication_order": 5,
+      "reviewed_distinctions": {},
+      "coldstart_coverage": [
+        {
+          "slug": "ai-ready-data-operator-checklist",
+          "title": "AI-Ready Data: Operator Checklist",
+          "score": 0.059,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "What AI-ready data means in practice",
+            "The AI-ready data checklist",
+            "Start with a real AI use case, not a platform decision",
+            "Model the core business entities before adding AI",
+            "Make grain and history explicit",
+            "Fix identifiers before trusting generated answers",
+            "Define quality thresholds by risk",
+            "Document business meaning where AI will rely on it",
+            "Control sensitive data before it enters AI workflows",
+            "Prepare documents and unstructured data for retrieval",
+            "Evaluate outputs against known examples",
+            "Monitor data and workflow drift after launch",
+            "Common failure modes that make data not AI-ready",
+            "A practical first 30 days for AI-ready data"
+          ],
+          "has_article_body": true
+        },
+        {
+          "slug": "backfills-reliability-field-note",
+          "title": "Backfills: Reliability Field Note",
+          "score": 0.056,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "What a backfill is",
+            "Why backfills create reliability risk",
+            "When a backfill is justified",
+            "Field note example: the safe backfill is smaller than the tempting one",
+            "Plan the backfill before running it",
+            "Make the run idempotent where possible",
+            "Validate before publishing rebuilt data",
+            "Communicate when historical numbers will change",
+            "Common backfill failure modes",
+            "Operator checklist for a reliable backfill",
+            "A beginner mental model"
+          ],
+          "has_article_body": true
+        },
+        {
+          "slug": "data-quality-checks-migration-playbook",
+          "title": "Data Quality Checks: Migration Playbook",
+          "score": 0.053,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "What data quality checks mean in a migration",
+            "Why migrations create quality risk",
+            "The migration playbook: test in layers",
+            "Choose checks by business risk, not by test count",
+            "Baseline checks to run before cutover",
+            "Where to place checks in the pipeline",
+            "Reconcile old and new systems without chasing false precision",
+            "How to triage failed checks",
+            "Common migration failure modes to watch for",
+            "Keep checks operational after migration",
+            "Minimum viable checklist for a small team"
+          ],
+          "has_article_body": true
+        }
+      ],
+      "portfolio_context": "Technical education for practicing and aspiring data engineers. Use small, explicitly hypothetical retail-order or customer-event fixtures where useful. Do not claim Jon implemented or tested anything without supplied evidence.",
+      "cross_brand_boundary": "Coldstart and this portfolio share seed concepts, not article prose. Create a fresh example, explanation, and diagnostic outcome. Do not copy or lightly rewrite Coldstart articles.",
+      "seed_origin": {
+        "brand": "Coldstart",
+        "slug": "referential-integrity-across-analytical-tables",
+        "snapshot_sha256": "07ea360d63d3b74952b290ee982fd3c3bec11622cdf1bdf932106a7823ea0020",
+        "adapted_on": "2026-09-23"
+      }
+    },
+    "sourceHash": "5d434aaf1bc1d440"
+  },
+  {
+    "slug": "sql-null-and-three-valued-logic",
+    "title": "SQL null and three-valued logic",
+    "primaryKeyword": "SQL null and three-valued logic",
+    "relatedKeywords": [
+      "SQL null and three-valued logic",
+      "SQL unknown",
+      "NULL comparison",
+      "three valued logic"
+    ],
+    "audience": "practitioners",
+    "updateFrequency": "never",
+    "intent": "How can practitioners show why unknown comparisons change filters and predicates?",
+    "format": "Guide",
+    "status": "review",
+    "category": "Data Modeling",
+    "editorialBrief": {
+      "topic": "SQL null and three-valued logic",
+      "audience": "practitioners",
+      "update_frequency": "never",
+      "content_type": "durable",
+      "category": "Data Modeling",
+      "track": "Data Foundations",
+      "cluster": "relational-foundations",
+      "primary_question": "How can practitioners show why unknown comparisons change filters and predicates?",
+      "scope": [
+        "Show why unknown comparisons change filters and predicates.",
+        "Relational semantics; leave engine tuning to the performance clusters."
+      ],
+      "exclusions": [
+        "Do not expand this into a general introduction to the entire category.",
+        "Do not repeat the Coldstart coverage listed in coldstart_coverage; link their background where useful.",
+        "Leave Referential integrity across analytical tables to /writing/referential-integrity-across-analytical-tables/; its separate outcome is: Detect orphaned facts without discarding legitimate late dimensions.",
+        "Leave Set semantics versus bag semantics in SQL to /writing/set-semantics-versus-bag-semantics-in-sql/; its separate outcome is: Demonstrate why duplicate rows survive ordinary relational queries.",
+        "Do not replace or retell the three existing in-progress portfolio notes.",
+        "Do not invent employment history, client stories, measurements, expert review, or first-person hands-on experience."
+      ],
+      "original_contribution": "Create a small relational dataset with counterexamples. Use it to show why unknown comparisons change filters and predicates.",
+      "prerequisites": [
+        "candidate-keys-and-alternate-keys"
+      ],
+      "secondary_keywords": [
+        "SQL unknown",
+        "NULL comparison",
+        "three valued logic"
+      ],
+      "source_urls": [
+        "https://www.postgresql.org/docs/current/ddl-constraints.html",
+        "https://www.postgresql.org/docs/current/queries-table-expressions.html",
+        "https://www.cs.uct.ac.za/mit_notes/database/htmls/chp08.html"
+      ],
+      "sources": [
+        {
+          "source_id": "pg-ddl-5",
+          "url": "https://www.postgresql.org/docs/current/ddl-constraints.html",
+          "title": "PostgreSQL: Documentation: 18: 5.5. Constraints",
+          "accessed_at": "2026-09-22T16:34:32.958740+00:00"
+        },
+        {
+          "source_id": "pg-joins",
+          "url": "https://www.postgresql.org/docs/current/queries-table-expressions.html",
+          "title": "PostgreSQL: Documentation: 18: 7.2. Table Expressions",
+          "accessed_at": "2026-09-22T16:34:29.167087+00:00"
+        },
+        {
+          "source_id": "database-dependencies",
+          "url": "https://www.cs.uct.ac.za/mit_notes/database/htmls/chp08.html",
+          "title": "Chapter 8. Data Normalisation",
+          "accessed_at": "2026-09-22T20:47:50.052497+00:00"
+        }
+      ],
+      "evidence_requirements": [
+        "Check the cited primary sources and the original scope before writing; a research lead is not proof of a new claim.",
+        "Use a clearly labeled hypothetical example. Do not invent customer results, personal experience, expert review, or test execution.",
+        "Work through the proposed example or decision framework and verify its assumptions and conclusions before publication."
+      ],
+      "distinctness_rationale": "The article is limited to this deliverable: Show why unknown comparisons change filters and predicates. Nearest legacy coverage is retained as background, not rewritten.",
+      "publication_order": 6,
+      "reviewed_distinctions": {},
+      "coldstart_coverage": [
+        {
+          "slug": "data-lineage-common-mistake",
+          "title": "Data Lineage: The Common Mistake That Breaks Dashboard Trust",
+          "score": 0.11,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "What data lineage is actually for",
+            "The common mistake: mapping tables instead of dependencies",
+            "Why weak lineage breaks dashboard trust",
+            "Example: a revenue dashboard with incomplete lineage",
+            "What useful data lineage should record",
+            "Use the right level of lineage detail",
+            "Lineage should be part of change management",
+            "Diagnostic questions for your current lineage",
+            "How to repair lineage without boiling the ocean",
+            "What lineage tools can and cannot fix"
+          ],
+          "has_article_body": true
+        },
+        {
+          "slug": "dashboard-trust-reliability-field-note",
+          "title": "Dashboard Trust: Reliability Field Note",
+          "score": 0.103,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "Field note: the dashboard was not broken, but nobody trusted it",
+            "What dashboard trust actually means",
+            "Why dashboard trust breaks",
+            "A quick diagnostic for an untrusted dashboard",
+            "The dashboard reliability model",
+            "Repair metric definitions before redesigning the dashboard",
+            "Make freshness and incidents visible",
+            "Assign ownership at three levels",
+            "Control changes that affect trusted dashboards",
+            "Decide which dashboards deserve certification",
+            "Common anti-patterns that weaken dashboard trust",
+            "A practical repair plan for an untrusted dashboard",
+            "How to know dashboard trust is returning"
+          ],
+          "has_article_body": true
+        },
+        {
+          "slug": "data-lineage-migration-playbook",
+          "title": "Data Lineage: Migration Playbook",
+          "score": 0.096,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "The migration problem lineage solves",
+            "What counts as data lineage in a migration",
+            "Set the lineage scope before mapping everything",
+            "Build a migration inventory that people can trust",
+            "Map lineage in layers, not all at once",
+            "Classify dependency risk before changing systems",
+            "Use lineage to plan cutover order",
+            "Validate the lineage path, not just the final dashboard",
+            "Protect dashboard trust during the migration",
+            "Common lineage failure modes in migrations",
+            "Keep lineage useful after the migration",
+            "Data lineage migration checklist"
+          ],
+          "has_article_body": true
+        }
+      ],
+      "portfolio_context": "Technical education for practicing and aspiring data engineers. Use small, explicitly hypothetical retail-order or customer-event fixtures where useful. Do not claim Jon implemented or tested anything without supplied evidence.",
+      "cross_brand_boundary": "Coldstart and this portfolio share seed concepts, not article prose. Create a fresh example, explanation, and diagnostic outcome. Do not copy or lightly rewrite Coldstart articles.",
+      "seed_origin": {
+        "brand": "Coldstart",
+        "slug": "sql-null-and-three-valued-logic",
+        "snapshot_sha256": "07ea360d63d3b74952b290ee982fd3c3bec11622cdf1bdf932106a7823ea0020",
+        "adapted_on": "2026-09-23"
+      }
+    },
+    "sourceHash": "92455ec31866e173"
+  },
+  {
+    "slug": "set-semantics-versus-bag-semantics-in-sql",
+    "title": "Set semantics versus bag semantics in SQL",
+    "primaryKeyword": "Set semantics versus bag semantics in SQL",
+    "relatedKeywords": [
+      "Set semantics versus bag semantics in SQL"
+    ],
+    "audience": "practitioners",
+    "updateFrequency": "never",
+    "intent": "How can practitioners demonstrate why duplicate rows survive ordinary relational queries?",
+    "format": "Guide",
+    "status": "review",
+    "category": "Data Modeling",
+    "editorialBrief": {
+      "topic": "Set semantics versus bag semantics in SQL",
+      "audience": "practitioners",
+      "update_frequency": "never",
+      "content_type": "durable",
+      "category": "Data Modeling",
+      "track": "Data Foundations",
+      "cluster": "relational-foundations",
+      "primary_question": "How can practitioners demonstrate why duplicate rows survive ordinary relational queries?",
+      "scope": [
+        "Demonstrate why duplicate rows survive ordinary relational queries.",
+        "Relational semantics; leave engine tuning to the performance clusters."
+      ],
+      "exclusions": [
+        "Do not expand this into a general introduction to the entire category.",
+        "Do not repeat the Coldstart coverage listed in coldstart_coverage; link their background where useful.",
+        "Leave SQL null and three-valued logic to /writing/sql-null-and-three-valued-logic/; its separate outcome is: Show why unknown comparisons change filters and predicates.",
+        "Leave First normal form and repeating groups to /writing/first-normal-form-and-repeating-groups/; its separate outcome is: Reshape repeating attributes without losing their parent relationship.",
+        "Do not replace or retell the three existing in-progress portfolio notes.",
+        "Do not invent employment history, client stories, measurements, expert review, or first-person hands-on experience."
+      ],
+      "original_contribution": "Create a small relational dataset with counterexamples. Use it to demonstrate why duplicate rows survive ordinary relational queries.",
+      "prerequisites": [
+        "candidate-keys-and-alternate-keys"
+      ],
+      "secondary_keywords": [],
+      "source_urls": [
+        "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/multipass-sql/",
+        "https://www.postgresql.org/docs/current/ddl-constraints.html",
+        "https://www.postgresql.org/docs/current/queries-table-expressions.html"
+      ],
+      "sources": [
+        {
+          "source_id": "kimball-multipass-sql",
+          "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/multipass-sql/",
+          "title": "Multipass SQL to Avoid Fact-to-Fact Table Joins | Kimball Dimensional Modeling Techniques",
+          "accessed_at": "2026-09-22T20:36:54.970139+00:00"
+        },
+        {
+          "source_id": "pg-ddl-5",
+          "url": "https://www.postgresql.org/docs/current/ddl-constraints.html",
+          "title": "PostgreSQL: Documentation: 18: 5.5. Constraints",
+          "accessed_at": "2026-09-22T16:34:32.958740+00:00"
+        },
+        {
+          "source_id": "pg-joins",
+          "url": "https://www.postgresql.org/docs/current/queries-table-expressions.html",
+          "title": "PostgreSQL: Documentation: 18: 7.2. Table Expressions",
+          "accessed_at": "2026-09-22T16:34:29.167087+00:00"
+        }
+      ],
+      "evidence_requirements": [
+        "Check the cited primary sources and the original scope before writing; a research lead is not proof of a new claim.",
+        "Use a clearly labeled hypothetical example. Do not invent customer results, personal experience, expert review, or test execution.",
+        "Work through the proposed example or decision framework and verify its assumptions and conclusions before publication."
+      ],
+      "distinctness_rationale": "The article is limited to this deliverable: Demonstrate why duplicate rows survive ordinary relational queries. Nearest legacy coverage is retained as background, not rewritten.",
+      "publication_order": 7,
+      "reviewed_distinctions": {},
+      "coldstart_coverage": [
+        {
+          "slug": "semantic-layers-founder-framework",
+          "title": "Semantic Layers: Founder Framework",
+          "score": 0.184,
+          "files": [
+            "generated/review/topic-map.json"
+          ],
+          "section_headings": [],
+          "has_article_body": false
+        },
+        {
+          "slug": "semantic-layers-common-mistake",
+          "title": "Semantic Layers: Common Mistake",
+          "score": 0.177,
+          "files": [
+            "generated/review/topic-map.json"
+          ],
+          "section_headings": [],
+          "has_article_body": false
+        },
+        {
+          "slug": "semantic-layers-operator-checklist",
+          "title": "Semantic Layers: Operator Checklist",
+          "score": 0.173,
+          "files": [
+            "generated/review/topic-map.json"
+          ],
+          "section_headings": [],
+          "has_article_body": false
+        }
+      ],
+      "portfolio_context": "Technical education for practicing and aspiring data engineers. Use small, explicitly hypothetical retail-order or customer-event fixtures where useful. Do not claim Jon implemented or tested anything without supplied evidence.",
+      "cross_brand_boundary": "Coldstart and this portfolio share seed concepts, not article prose. Create a fresh example, explanation, and diagnostic outcome. Do not copy or lightly rewrite Coldstart articles.",
+      "seed_origin": {
+        "brand": "Coldstart",
+        "slug": "set-semantics-versus-bag-semantics-in-sql",
+        "snapshot_sha256": "07ea360d63d3b74952b290ee982fd3c3bec11622cdf1bdf932106a7823ea0020",
+        "adapted_on": "2026-09-23"
+      }
+    },
+    "sourceHash": "d7e166c465a8b991"
+  },
+  {
+    "slug": "first-normal-form-and-repeating-groups",
+    "title": "First normal form and repeating groups",
+    "primaryKeyword": "First normal form and repeating groups",
+    "relatedKeywords": [
+      "First normal form and repeating groups"
+    ],
+    "audience": "practitioners",
+    "updateFrequency": "never",
+    "intent": "How can practitioners reshape repeating attributes without losing their parent relationship?",
+    "format": "Guide",
+    "status": "review",
+    "category": "Data Modeling",
+    "editorialBrief": {
+      "topic": "First normal form and repeating groups",
+      "audience": "practitioners",
+      "update_frequency": "never",
+      "content_type": "durable",
+      "category": "Data Modeling",
+      "track": "Data Foundations",
+      "cluster": "relational-foundations",
+      "primary_question": "How can practitioners reshape repeating attributes without losing their parent relationship?",
+      "scope": [
+        "Reshape repeating attributes without losing their parent relationship.",
+        "Relational semantics; leave engine tuning to the performance clusters."
+      ],
+      "exclusions": [
+        "Do not expand this into a general introduction to the entire category.",
+        "Do not repeat the Coldstart coverage listed in coldstart_coverage; link their background where useful.",
+        "Leave Set semantics versus bag semantics in SQL to /writing/set-semantics-versus-bag-semantics-in-sql/; its separate outcome is: Demonstrate why duplicate rows survive ordinary relational queries.",
+        "Leave Second and third normal forms to /writing/second-and-third-normal-forms/; its separate outcome is: Separate partial and transitive dependencies in an order dataset.",
+        "Do not replace or retell the three existing in-progress portfolio notes.",
+        "Do not invent employment history, client stories, measurements, expert review, or first-person hands-on experience."
+      ],
+      "original_contribution": "Create a small relational dataset with counterexamples. Use it to reshape repeating attributes without losing their parent relationship.",
+      "prerequisites": [
+        "candidate-keys-and-alternate-keys"
+      ],
+      "secondary_keywords": [],
+      "source_urls": [
+        "https://www.cs.uct.ac.za/mit_notes/database/htmls/chp08.html",
+        "https://www.postgresql.org/docs/current/queries-table-expressions.html",
+        "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/null-dimension-attribute/"
+      ],
+      "sources": [
+        {
+          "source_id": "database-dependencies",
+          "url": "https://www.cs.uct.ac.za/mit_notes/database/htmls/chp08.html",
+          "title": "Chapter 8. Data Normalisation",
+          "accessed_at": "2026-09-22T20:47:50.052497+00:00"
+        },
+        {
+          "source_id": "pg-joins",
+          "url": "https://www.postgresql.org/docs/current/queries-table-expressions.html",
+          "title": "PostgreSQL: Documentation: 18: 7.2. Table Expressions",
+          "accessed_at": "2026-09-22T16:34:29.167087+00:00"
+        },
+        {
+          "source_id": "kimball-null-dimension-attribute",
+          "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/null-dimension-attribute/",
+          "title": "Null Attributes in Dimensions | Kimball Group",
+          "accessed_at": "2026-09-22T20:31:43.814358+00:00"
+        }
+      ],
+      "evidence_requirements": [
+        "Check the cited primary sources and the original scope before writing; a research lead is not proof of a new claim.",
+        "Use a clearly labeled hypothetical example. Do not invent customer results, personal experience, expert review, or test execution.",
+        "Work through the proposed example or decision framework and verify its assumptions and conclusions before publication."
+      ],
+      "distinctness_rationale": "The article is limited to this deliverable: Reshape repeating attributes without losing their parent relationship. Nearest legacy coverage is retained as background, not rewritten.",
+      "publication_order": 8,
+      "reviewed_distinctions": {},
+      "coldstart_coverage": [
+        {
+          "slug": "data-modeling-before-dashboards",
+          "title": "Model the Business Before You Polish the Dashboard",
+          "score": 0.07,
+          "files": [
+            "generated/review/first-six-rewrite-source.json"
+          ],
+          "section_headings": [
+            "Start with the nouns and events",
+            "Write definitions where the system can use them",
+            "Let dashboards consume business-ready tables"
+          ],
+          "has_article_body": true
+        },
+        {
+          "slug": "customer-data-modeling-common-mistake",
+          "title": "Customer Data Modeling: Common Mistake",
+          "score": 0.051,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "Why customer is not one thing",
+            "The common mistake: building one universal customer table",
+            "Start with grain before columns",
+            "Example: the SaaS customer count that keeps changing",
+            "Separate customer entities from customer states",
+            "Identity resolution is a business rule, not just a matching problem",
+            "A better pattern: model customer concepts separately, then connect them",
+            "How to diagnose your current customer model",
+            "Common failure modes in customer data modeling",
+            "What a good beginner customer model looks like"
+          ],
+          "has_article_body": true
+        },
+        {
+          "slug": "customer-data-modeling-founder-framework",
+          "title": "Customer Data Modeling: Founder Framework",
+          "score": 0.048,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "Why customer data modeling becomes a founder problem",
+            "The founder framework: five questions before tables",
+            "The core entities in a customer data model",
+            "Do not confuse accounts, users, and customers",
+            "Model the customer lifecycle as explicit states",
+            "Separate events from attributes",
+            "Identity resolution is a modeling decision, not a cleanup task",
+            "What makes customer data AI-ready",
+            "A minimum viable customer data model",
+            "Common customer data modeling failure modes",
+            "A practical implementation order",
+            "Diagnostic questions for your current model"
+          ],
+          "has_article_body": true
+        }
+      ],
+      "portfolio_context": "Technical education for practicing and aspiring data engineers. Use small, explicitly hypothetical retail-order or customer-event fixtures where useful. Do not claim Jon implemented or tested anything without supplied evidence.",
+      "cross_brand_boundary": "Coldstart and this portfolio share seed concepts, not article prose. Create a fresh example, explanation, and diagnostic outcome. Do not copy or lightly rewrite Coldstart articles.",
+      "seed_origin": {
+        "brand": "Coldstart",
+        "slug": "first-normal-form-and-repeating-groups",
+        "snapshot_sha256": "07ea360d63d3b74952b290ee982fd3c3bec11622cdf1bdf932106a7823ea0020",
+        "adapted_on": "2026-09-23"
+      }
+    },
+    "sourceHash": "d4a31b8f1be86529"
+  },
+  {
+    "slug": "second-and-third-normal-forms",
+    "title": "Second and third normal forms",
+    "primaryKeyword": "Second and third normal forms",
+    "relatedKeywords": [
+      "Second and third normal forms"
+    ],
+    "audience": "practitioners",
+    "updateFrequency": "never",
+    "intent": "How can practitioners separate partial and transitive dependencies in an order dataset?",
+    "format": "Guide",
+    "status": "review",
+    "category": "Data Modeling",
+    "editorialBrief": {
+      "topic": "Second and third normal forms",
+      "audience": "practitioners",
+      "update_frequency": "never",
+      "content_type": "durable",
+      "category": "Data Modeling",
+      "track": "Data Foundations",
+      "cluster": "relational-foundations",
+      "primary_question": "How can practitioners separate partial and transitive dependencies in an order dataset?",
+      "scope": [
+        "Separate partial and transitive dependencies in an order dataset.",
+        "Relational semantics; leave engine tuning to the performance clusters."
+      ],
+      "exclusions": [
+        "Do not expand this into a general introduction to the entire category.",
+        "Do not repeat the Coldstart coverage listed in coldstart_coverage; link their background where useful.",
+        "Leave First normal form and repeating groups to /writing/first-normal-form-and-repeating-groups/; its separate outcome is: Reshape repeating attributes without losing their parent relationship.",
+        "Leave Lossless decomposition of relational tables to /writing/lossless-decomposition-of-relational-tables/; its separate outcome is: Prove whether joining decomposed tables reconstructs the original records.",
+        "Do not replace or retell the three existing in-progress portfolio notes.",
+        "Do not invent employment history, client stories, measurements, expert review, or first-person hands-on experience."
+      ],
+      "original_contribution": "Create a small relational dataset with counterexamples. Use it to separate partial and transitive dependencies in an order dataset.",
+      "prerequisites": [
+        "candidate-keys-and-alternate-keys"
+      ],
+      "secondary_keywords": [],
+      "source_urls": [
+        "https://www.cs.uct.ac.za/mit_notes/database/htmls/chp08.html",
+        "https://www.postgresql.org/docs/current/ddl-constraints.html",
+        "https://www.postgresql.org/docs/current/queries-table-expressions.html"
+      ],
+      "sources": [
+        {
+          "source_id": "database-dependencies",
+          "url": "https://www.cs.uct.ac.za/mit_notes/database/htmls/chp08.html",
+          "title": "Chapter 8. Data Normalisation",
+          "accessed_at": "2026-09-22T20:47:50.052497+00:00"
+        },
+        {
+          "source_id": "pg-ddl-5",
+          "url": "https://www.postgresql.org/docs/current/ddl-constraints.html",
+          "title": "PostgreSQL: Documentation: 18: 5.5. Constraints",
+          "accessed_at": "2026-09-22T16:34:32.958740+00:00"
+        },
+        {
+          "source_id": "pg-joins",
+          "url": "https://www.postgresql.org/docs/current/queries-table-expressions.html",
+          "title": "PostgreSQL: Documentation: 18: 7.2. Table Expressions",
+          "accessed_at": "2026-09-22T16:34:29.167087+00:00"
+        }
+      ],
+      "evidence_requirements": [
+        "Check the cited primary sources and the original scope before writing; a research lead is not proof of a new claim.",
+        "Use a clearly labeled hypothetical example. Do not invent customer results, personal experience, expert review, or test execution.",
+        "Work through the proposed example or decision framework and verify its assumptions and conclusions before publication."
+      ],
+      "distinctness_rationale": "The article is limited to this deliverable: Separate partial and transitive dependencies in an order dataset. Nearest legacy coverage is retained as background, not rewritten.",
+      "publication_order": 9,
+      "reviewed_distinctions": {},
+      "coldstart_coverage": [
+        {
+          "slug": "orchestration-reliability-field-note",
+          "title": "Orchestration: Reliability Field Note",
+          "score": 0.065,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "Field situation: the dashboard is late, but no one knows why",
+            "What orchestration means in a data system",
+            "Scheduling is not the same as orchestration",
+            "A practical reliability model for orchestration",
+            "Common orchestration failure modes",
+            "Operator checklist: what good orchestration should make obvious",
+            "Example: a daily revenue dashboard workflow",
+            "How to evaluate orchestration tools without overbuying",
+            "A sane implementation sequence",
+            "Diagnostic questions before you change the system"
+          ],
+          "has_article_body": true
+        },
+        {
+          "slug": "orchestration-founder-framework",
+          "title": "Orchestration: Founder Framework",
+          "score": 0.064,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "What orchestration means in a data system",
+            "Why founders should care before the system feels complex",
+            "Orchestration is not the same as automation",
+            "The founder framework: five questions to design orchestration",
+            "Minimum viable orchestration for an early data stack",
+            "Common orchestration failure modes",
+            "How to evaluate orchestration tools without overbuying",
+            "The operating rhythm: what to review every week",
+            "Example: repairing a fragile revenue workflow"
+          ],
+          "has_article_body": true
+        },
+        {
+          "slug": "backfills-operator-checklist",
+          "title": "Backfills: Operator Checklist",
+          "score": 0.062,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "What a backfill is",
+            "Decide whether a backfill is actually needed",
+            "Preflight checklist before you run",
+            "Map the blast radius",
+            "Choose a safe write pattern",
+            "Test on a small representative slice",
+            "Run in batches you can observe and recover",
+            "Validation checklist after the run",
+            "Communicate changed history",
+            "Common backfill failure modes",
+            "A simple backfill runbook",
+            "Definition of done for a backfill"
+          ],
+          "has_article_body": true
+        }
+      ],
+      "portfolio_context": "Technical education for practicing and aspiring data engineers. Use small, explicitly hypothetical retail-order or customer-event fixtures where useful. Do not claim Jon implemented or tested anything without supplied evidence.",
+      "cross_brand_boundary": "Coldstart and this portfolio share seed concepts, not article prose. Create a fresh example, explanation, and diagnostic outcome. Do not copy or lightly rewrite Coldstart articles.",
+      "seed_origin": {
+        "brand": "Coldstart",
+        "slug": "second-and-third-normal-forms",
+        "snapshot_sha256": "07ea360d63d3b74952b290ee982fd3c3bec11622cdf1bdf932106a7823ea0020",
+        "adapted_on": "2026-09-23"
+      }
+    },
+    "sourceHash": "edb62ab44c32f5e8"
+  },
+  {
+    "slug": "lossless-decomposition-of-relational-tables",
+    "title": "Lossless decomposition of relational tables",
+    "primaryKeyword": "Lossless decomposition of relational tables",
+    "relatedKeywords": [
+      "Lossless decomposition of relational tables"
+    ],
+    "audience": "practitioners",
+    "updateFrequency": "never",
+    "intent": "How can practitioners prove whether joining decomposed tables reconstructs the original records?",
+    "format": "Guide",
+    "status": "review",
+    "category": "Data Modeling",
+    "editorialBrief": {
+      "topic": "Lossless decomposition of relational tables",
+      "audience": "practitioners",
+      "update_frequency": "never",
+      "content_type": "durable",
+      "category": "Data Modeling",
+      "track": "Data Foundations",
+      "cluster": "relational-foundations",
+      "primary_question": "How can practitioners prove whether joining decomposed tables reconstructs the original records?",
+      "scope": [
+        "Prove whether joining decomposed tables reconstructs the original records.",
+        "Relational semantics; leave engine tuning to the performance clusters."
+      ],
+      "exclusions": [
+        "Do not expand this into a general introduction to the entire category.",
+        "Do not repeat the Coldstart coverage listed in coldstart_coverage; link their background where useful.",
+        "Leave Second and third normal forms to /writing/second-and-third-normal-forms/; its separate outcome is: Separate partial and transitive dependencies in an order dataset.",
+        "Leave Entity identity versus record identity to /writing/entity-identity-versus-record-identity/; its separate outcome is: Separate a business entity from multiple observations about it.",
+        "Do not replace or retell the three existing in-progress portfolio notes.",
+        "Do not invent employment history, client stories, measurements, expert review, or first-person hands-on experience."
+      ],
+      "original_contribution": "Create a small relational dataset with counterexamples. Use it to prove whether joining decomposed tables reconstructs the original records.",
+      "prerequisites": [
+        "candidate-keys-and-alternate-keys"
+      ],
+      "secondary_keywords": [],
+      "source_urls": [
+        "https://www.postgresql.org/docs/current/queries-table-expressions.html",
+        "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/type-0/",
+        "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/star-schema-olap-cube/"
+      ],
+      "sources": [
+        {
+          "source_id": "pg-joins",
+          "url": "https://www.postgresql.org/docs/current/queries-table-expressions.html",
+          "title": "PostgreSQL: Documentation: 18: 7.2. Table Expressions",
+          "accessed_at": "2026-09-22T16:34:29.167087+00:00"
+        },
+        {
+          "source_id": "kimball-type-0",
+          "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/type-0/",
+          "title": "Type 0: Retain Original | Kimball Dimensional Modeling Techniques",
+          "accessed_at": "2026-09-22T20:31:46.358074+00:00"
+        },
+        {
+          "source_id": "kimball-8",
+          "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/star-schema-olap-cube/",
+          "title": "Star Schema OLAP Cube | Kimball Dimensional Modeling Techniques",
+          "accessed_at": "2026-09-22T16:39:16.873130+00:00"
+        }
+      ],
+      "evidence_requirements": [
+        "Check the cited primary sources and the original scope before writing; a research lead is not proof of a new claim.",
+        "Use a clearly labeled hypothetical example. Do not invent customer results, personal experience, expert review, or test execution.",
+        "Work through the proposed example or decision framework and verify its assumptions and conclusions before publication."
+      ],
+      "distinctness_rationale": "The article is limited to this deliverable: Prove whether joining decomposed tables reconstructs the original records. Nearest legacy coverage is retained as background, not rewritten.",
+      "publication_order": 10,
+      "reviewed_distinctions": {},
+      "coldstart_coverage": [
+        {
+          "slug": "customer-data-modeling-founder-framework",
+          "title": "Customer Data Modeling: Founder Framework",
+          "score": 0.032,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "Why customer data modeling becomes a founder problem",
+            "The founder framework: five questions before tables",
+            "The core entities in a customer data model",
+            "Do not confuse accounts, users, and customers",
+            "Model the customer lifecycle as explicit states",
+            "Separate events from attributes",
+            "Identity resolution is a modeling decision, not a cleanup task",
+            "What makes customer data AI-ready",
+            "A minimum viable customer data model",
+            "Common customer data modeling failure modes",
+            "A practical implementation order",
+            "Diagnostic questions for your current model"
+          ],
+          "has_article_body": true
+        },
+        {
+          "slug": "source-system-drift-reliability-field-note",
+          "title": "Source System Drift: Reliability Field Note",
+          "score": 0.029,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "Field note: the pipeline did not fail, but the metric changed",
+            "What source system drift means",
+            "Why beginners miss source system drift",
+            "Common failure modes caused by source system drift",
+            "How to diagnose source system drift",
+            "A better modeling response: isolate raw source behavior from business meaning",
+            "Checks that catch drift before users do",
+            "The ownership boundary: analytics cannot absorb every source change",
+            "Operator rules for working with drifting sources"
+          ],
+          "has_article_body": true
+        },
+        {
+          "slug": "data-modeling-before-dashboards",
+          "title": "Data Modeling Before Dashboards: Build Metrics People Can Trust",
+          "score": 0.029,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/rewritten-first-six-articles.json"
+          ],
+          "section_headings": [
+            "Why dashboards fail when the model is unfinished",
+            "Start with the business nouns and events",
+            "Define the grain before defining the metric",
+            "Write metric definitions where the system can use them",
+            "Let dashboards consume business-ready tables",
+            "Common failure modes to catch early",
+            "A checklist before building or rebuilding a dashboard",
+            "Polish the dashboard after the meaning is stable"
+          ],
+          "has_article_body": true
+        }
+      ],
+      "portfolio_context": "Technical education for practicing and aspiring data engineers. Use small, explicitly hypothetical retail-order or customer-event fixtures where useful. Do not claim Jon implemented or tested anything without supplied evidence.",
+      "cross_brand_boundary": "Coldstart and this portfolio share seed concepts, not article prose. Create a fresh example, explanation, and diagnostic outcome. Do not copy or lightly rewrite Coldstart articles.",
+      "seed_origin": {
+        "brand": "Coldstart",
+        "slug": "lossless-decomposition-of-relational-tables",
+        "snapshot_sha256": "07ea360d63d3b74952b290ee982fd3c3bec11622cdf1bdf932106a7823ea0020",
+        "adapted_on": "2026-09-23"
+      }
+    },
+    "sourceHash": "c86c1e6c4c97fb79"
+  }
+]
