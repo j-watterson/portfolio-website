@@ -9,16 +9,16 @@ Set semantics versus bag semantics in SQL,,review,practitioners,never
 First normal form and repeating groups,,review,practitioners,never
 Second and third normal forms,,review,practitioners,never
 Lossless decomposition of relational tables,https://jwatterson.com/writing/lossless-decomposition-of-relational-tables,published,practitioners,never
-Entity identity versus record identity,,not written,practitioners,never
-Optional relationships in data models,,not written,practitioners,never
-Cardinality and participation constraints,,not written,practitioners,never
-Weak entities and identifying relationships,,not written,practitioners,never
-Associative entities for many-to-many relationships,,not written,practitioners,never
-Database constraints versus validation queries,,not written,practitioners,never
-Uniqueness with nullable business identifiers,,not written,practitioners,never
-Domain constraints for categorical data,,not written,practitioners,never
-Relational division for analytical questions,,not written,practitioners,never
-Temporal uniqueness constraints,,not written,practitioners,never
+Entity identity versus record identity,,review,practitioners,never
+Optional relationships in data models,,review,practitioners,never
+Cardinality and participation constraints,,review,practitioners,never
+Weak entities and identifying relationships,,review,practitioners,never
+Associative entities for many-to-many relationships,,review,practitioners,never
+Database constraints versus validation queries,,review,practitioners,never
+Uniqueness with nullable business identifiers,,review,practitioners,never
+Domain constraints for categorical data,,review,practitioners,never
+Relational division for analytical questions,,review,practitioners,never
+Temporal uniqueness constraints,,review,practitioners,never
 Floating-point error in financial analytics,,not written,practitioners,never
 Fixed-point decimal precision and scale,,not written,practitioners,never
 Rounding at ingestion versus presentation,,not written,practitioners,never

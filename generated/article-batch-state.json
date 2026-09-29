@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "phase": "active",
+  "phase": "finalized",
   "batchId": "batch_6abae322faa88190b95e32a320b7dabf",
   "inputFileId": "file-3ujVBsNGBmJP18c11GBofd",
   "model": "gpt-5.5",
@@ -20,11 +20,12 @@
     "temporal-uniqueness-constraints"
   ],
   "submittedAt": "2026-09-28T21:58:59.424Z",
-  "batchStatus": "validating",
-  "outputFileId": null,
+  "batchStatus": "completed",
+  "outputFileId": "file-NeRLiR8LxqZeCydxMB7iLg",
   "errorFileId": null,
-  "successfulCount": 0,
+  "successfulCount": 10,
   "failedCount": 0,
   "publishedCount": 0,
-  "failures": []
+  "failures": [],
+  "finalizedAt": "2026-09-29T01:17:33.434Z"
 }
