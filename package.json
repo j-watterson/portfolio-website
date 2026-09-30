@@ -30,7 +30,8 @@
     "article-batch:submit": "node scripts/article-batch-pipeline.mjs submit",
     "article-batch:finalize": "node scripts/article-batch-pipeline.mjs finalize",
     "test:articles": "node --test tests/*.test.mjs",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "verify:writing": "node scripts/verify-writing-routes.mjs"
   },
   "dependencies": {
     "@vinext/cloudflare": "^1.0.0-beta.4",

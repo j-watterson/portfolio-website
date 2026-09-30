@@ -19,8 +19,11 @@ export default async function WritingPage({ searchParams }: { searchParams: Prom
     <>
       <section className="page-hero shell"><p className="eyebrow">Writing</p><h1>Notes on building data systems that hold up.</h1><p className="page-lead">Practical explanations of data modeling, reliable pipelines, and the engineering decisions behind useful analytics.</p><a className="text-link" href="/writing/feed.xml">Subscribe via RSS <span aria-hidden="true">→</span></a></section>
       {visible.length > 0 && <>
-        <section className="section shell writing-grid" aria-label="Published articles">
-          {visible.map(article => <article key={article.slug}><span className="mono">{article.category}</span><h2><Link href={`/writing/${article.slug}`}>{article.title}</Link></h2><p>{article.description}</p><small><time dateTime={article.datePublished}>{displayDate(article.datePublished)}</time> · {article.readTime}</small><Link className="text-link writing-read" href={`/writing/${article.slug}`}>Read article <span aria-hidden="true">→</span></Link></article>)}
+        <section className="section shell" aria-labelledby="published-heading">
+          <p className="eyebrow">Published articles</p><h2 id="published-heading">{page === 1 ? "Latest articles" : "Earlier articles"}</h2>
+          <div className="writing-grid">
+          {visible.map(article => <article key={article.slug}><span className="mono">{article.category}</span><h3 className="writing-title"><Link href={`/writing/${article.slug}`}>{article.title}</Link></h3><p>{article.description}</p><small><time dateTime={article.datePublished}>{displayDate(article.datePublished)}</time> · {article.readTime}</small><Link className="text-link writing-read" href={`/writing/${article.slug}`}>Read article <span aria-hidden="true">→</span></Link></article>)}
+          </div>
         </section>
         {pages > 1 && <nav className="shell writing-pagination" aria-label="Article pages">{page > 1 && <Link href={page === 2 ? "/writing" : `/writing?page=${page - 1}`}>← Newer articles</Link>}<span>Page {page} of {pages}</span>{page < pages && <Link href={`/writing?page=${page + 1}`}>Older articles →</Link>}</nav>}
       </>}

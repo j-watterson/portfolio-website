@@ -1,6 +1,6 @@
 # Publishing articles on jwatterson.com
 
-The repository contains 764 researched technical topics, an independent OpenAI Batch pipeline, and article pages under `/writing/{slug}`. Existing project pages and the three in-progress writing notes remain in place. No articles were generated or deployed during setup.
+The repository contains 764 researched technical topics, an independent OpenAI Batch pipeline, and article pages under `/writing/{slug}`. Existing project pages and the three in-progress writing notes remain in place. Published articles are listed newest first on `/writing` and included automatically in `/sitemap.xml` and `/writing/feed.xml`.
 
 ## Enable it in GitHub
 
@@ -34,7 +34,7 @@ Under **Settings → Secrets and variables → Actions**, add:
 | Secret | `CLOUDFLARE_ACCOUNT_ID` | The account containing the existing portfolio Worker |
 | Variable | `DEPLOY_TO_CLOUDFLARE` | `true` |
 
-The existing Worker name in `wrangler.jsonc` and `.openai/hosting.json` identity are preserved. Check the Worker owns the production `jwatterson.com` domain. Run **Actions → Deploy portfolio to Cloudflare → Run workflow** once to verify credentials and deployment. That workflow also deploys relevant human pushes to `main`. Batch finalization builds and deploys directly after publishing because commits made with `GITHUB_TOKEN` do not start ordinary `push` workflows. If deployment fails after the content commit succeeds, fix deployment and rerun **Deploy portfolio to Cloudflare**; do not submit another batch.
+The existing Worker name in `wrangler.jsonc` and `.openai/hosting.json` identity are preserved. Check the Worker owns the production `jwatterson.com` domain. Run **Actions → Deploy portfolio to Cloudflare → Run workflow** once to verify credentials and deployment. That workflow also deploys relevant human pushes to `main`. Batch finalization builds and deploys directly after publishing because commits made with `GITHUB_TOKEN` do not start ordinary `push` workflows. It verifies live writing after deployment. If a content commit succeeds but direct deployment fails, subsequent hourly finalizations detect the missing live articles and rebuild/redeploy current main automatically. Invalid credentials or a disabled deployment integration still require configuration repair; do not submit another batch to fix deployment.
 
 See [Cloudflare's GitHub Actions deployment guidance](https://developers.cloudflare.com/workers/ci-cd/external-cicd/github-actions/) and [GitHub's workflow trigger behavior](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/trigger-a-workflow).
 
@@ -42,12 +42,22 @@ See [Cloudflare's GitHub Actions deployment guidance](https://developers.cloudfl
 
 - Submission: Monday at **16:17 UTC** (9:17 a.m. Pacific daylight time / 8:17 a.m. Pacific standard time). GitHub schedules can be delayed.
 - Finalization: hourly at minute 47. Batch processing is asynchronous, with a requested 24-hour completion window; see [OpenAI's Batch guide](https://developers.openai.com/api/docs/guides/batch).
-- Limit: at most **10 submitted topics per Monday–Sunday UTC week**, including manual runs. Failed or held requests still consume that allowance. This is a target of ten articles, not a guarantee that ten pass publication each week.
+- Limit: at most **10 submitted topics per Monday–Sunday UTC week**, including manual runs. Failed requests and automatic editorial retries still consume that allowance. The target is ten new published articles per week. API outages, rejected edits, build/deployment errors, or an exhausted queue can reduce that count; the pipeline does not promise ten regardless of failures.
 - The next available CSV rows are selected in order. A nonempty publication URL, a published article/reserved note with the same slug, or status `review`, `published`, `skip`, or `failed` prevents selection. Eligible statuses are `not written`, `ready`, and `pending`.
 - With fewer than ten eligible topics, it submits only the remainder. With none, it logs that the queue is exhausted and makes **no OpenAI calls**. It never invents topics, recycles published rows, or expands the list. The scheduled checks continue as harmless no-ops. Any already-active batch can still finish.
 - To pause completely, disable both batch workflows in Actions. Cadence labels in the CSV describe editorial review intervals; they do not schedule rewrites.
 
-Tool-specific articles and model-flagged uncertain articles are held for human review. They are not exposed on the site. Durable articles passing validation may publish automatically. Structural checks do not establish factual accuracy: review sources, examples, and the public output, particularly during initial runs. Generated prose must not invent Jon's experience or claim tests that were never run.
+## Hands-off editorial publication
+
+The scheduled finalizer runs with `--auto-review`. Every successful generated draft receives an automatic editorial pass using the same model recorded at submission and the existing `OPENAI_API_KEY`. The editor uses the Responses API's web search to check authoritative sources, resolve verification notes, correct examples, and remove unsupported claims. This adds normal Responses API and web-search usage on top of Batch generation costs. The configured model must support Responses, web search, and Structured Outputs; the default remains `gpt-5.5`. See [OpenAI web search documentation](https://developers.openai.com/api/docs/guides/tools-web-search).
+
+A revised article must pass schema, identity, source-evidence, publication-status, and site-build checks. Tool-specific drafts do not require a human approval: the editor can publish source-supported, version-specific explanations with clearly illustrative code. It must not claim code was executed or invent personal experience. Automated review cannot guarantee factual accuracy and does not execute generated code.
+
+Accepted revisions publish, commit, and deploy automatically through the configured deployment path. Rejected edits are archived and their topics remain `ready` for a future weekly retry, without a human review queue. One rejected draft does not block the other valid articles. Repeated API/configuration failures remain visible in Actions and may need operational intervention. The weekly limit is still ten topic submissions, including retries.
+
+Editorial results and source URLs are cached in `generated/weekly/editorial-BATCH_ID.json`, so a retry after a downstream validation failure reuses successful edits. Original drafts are preserved in `generated/weekly/drafts-BATCH_ID.json`. Finalization uses the immutable submitted brief. The Actions summary reports generation, publication, review, and retry counts. Live-site checks wait for the deployment and fail if published articles do not appear; previews alone do not prove production was updated.
+
+The September 30 update returns the sixteen remaining old review-held topics to `ready`, so the next weekly batches process them without manual approval. It does not resubmit the current week's already-used allowance or change the active batch history.
 
 ## Files and local checks
 
@@ -61,7 +71,9 @@ Tool-specific articles and model-flagged uncertain articles are held for human r
 | `prompts/article-system-prompt.md` | Personal-blog style and evidence rules |
 | `generated/article-batch-state.json` | Active batch and weekly allowance; created on first submission |
 | `generated/weekly/topics-BATCH_ID.json` | Immutable submitted brief snapshot for that batch |
-| `generated/weekly/batch-BATCH_ID.json` | Returned articles, including review holds |
+| `generated/weekly/batch-BATCH_ID.json` | Accepted articles after automatic editing |
+| `generated/weekly/drafts-BATCH_ID.json` | Original model output before editing |
+| `generated/weekly/editorial-BATCH_ID.json` | Cached revisions, search evidence, and retry reasons |
 
 Use Node 22.12+ (or `nvm use`) and run:
 
@@ -102,7 +114,9 @@ Start from a clean, current checkout. Because automation commits to `main`, run 
 
 Do not clear existing statuses, publication URLs, articles, or batch state when adding topics. The one-time `scripts/import-coldstart-topics.py` refuses to overwrite an existing library; it is provenance tooling, not the maintenance workflow. Runtime does not require Coldstart's directory or credentials files.
 
-## Review held articles
+## Optional manual publication
+
+The scheduled workflow no longer needs this step. It remains available for an intentional manual editorial release or for local finalization without `--auto-review`.
 
 Find the relevant batch ID in state/history and open both archived JSON files. Verify the sources and every claim, execute version-specific examples where required, and edit the draft so it makes only supportable statements. Keep the submitted `slug`, `primaryKeyword`, `category`, and `sourceHash`. The flag below is an explicit editorial approval of all eligible articles in the supplied file, so use a file containing only the drafts you have reviewed if approving a subset.
 
@@ -121,3 +135,15 @@ Commit `content/articles.json`, `scripts/topic-concepts.csv`, and edited review 
 An active batch blocks another submission. Pending batches only need time. Successful responses in a partially failed Batch can publish; failures are recorded in state. Unreturned/failed API requests retain their original eligible CSV status for a later week. To stop retrying a topic, change its status to `skip` (or `failed`). Validation failures roll back article/CSV changes and keep the active state available for investigation.
 
 If a push fails after OpenAI accepted a batch, download the workflow's **writing-submission-recovery** artifact and recover its state plus weekly files into the latest branch before retrying. Likewise, **writing-finalization-recovery** preserves publication files on finalization failure. Check the OpenAI Batch dashboard and recorded ID first: deleting state or blindly rerunning a lost submission can create duplicate paid batches. Workflows never force-push. Do not publish locally and in Actions concurrently.
+
+## Check publication visibility
+
+Validation, deployment, and publishing workflows preview the production Worker after a build and run `npm run verify:writing`. This checks that every published article has an accessible page and sitemap entry, the first twelve articles appear newest first on `/writing`, and the latest thirty appear in RSS. Failures stop the workflow before committing/deploying new content.
+
+To check the deployed site against this checkout after deployment:
+
+```bash
+npm run verify:writing -- --base-url=https://jwatterson.com
+```
+
+A failure can indicate a stale deployment as well as a rendering defect. Unaccepted drafts are intentionally excluded and retried automatically by future weekly batches. September 30's two reviewed releases and their SQL/source evidence are documented in [article-review-2026-09-30.md](article-review-2026-09-30.md).

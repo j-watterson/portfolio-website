@@ -17,6 +17,9 @@ async function setup(t,count=2,tool=false) {
  const csv=readTopicCsv(await readFile(join(root,'scripts/topic-concepts.csv'),'utf8'));
  const research=await json(join(root,'scripts/topic-research.json'));
  const rows=csv.rows.filter(row=>research[slugify(row[0])].content_type===(tool?'tool-specific':'durable')).slice(0,count);
+ // Fixtures must not inherit the live queue's published/review statuses.
+ rows.forEach(row=>{row[csv.indexes.url]='';row[csv.indexes.status]='not written';});
+ await save(join(root,'content/articles.json'),[]);
  await writeFile(join(root,'scripts/topic-concepts.csv'),writeCsv([csv.headers,...rows]));
  return {root,rows};
 }
@@ -33,7 +36,7 @@ test('real preparation, mocked Batch, publication, metadata preservation and rep
  const {root,rows}=await setup(t);await submit(root);
  const topics=await json(join(root,'generated/weekly/topic-map.json'));
  const requests=(await readFile(join(root,'generated/batches/article-generation.jsonl'),'utf8')).trim().split('\n').map(JSON.parse);
- assert.equal(requests.length,2);assert.match(requests[0].body.input[0].content,/Do not invent facts about Jon/);
+ assert.equal(requests.length,2);assert.equal(topics[0].status,undefined);assert.match(requests[0].body.input[0].content,/Choose status from the evidence rules/);assert.match(requests[0].body.input[0].content,/Do not invent facts about Jon/);
  assert.match(requests[0].body.input[1].content,/portfolio_context/);assert.match(requests[0].body.input[1].content,/exclusions/);
  assert.deepEqual(await json(join(root,'generated/weekly/topics-batch-test.json')),topics);
  const old={...article(topics[0]),slug:'existing-article',title:'Existing article',canonicalUrl:'https://jwatterson.com/writing/existing-article'};
@@ -49,7 +52,9 @@ test('real preparation, mocked Batch, publication, metadata preservation and rep
 test('tool-specific results are held, archived, skipped subsequently and explicitly approvable',async t=>{
  const {root}=await setup(t,1,true);await submit(root,1);
  const [topic]=await json(join(root,'generated/weekly/topic-map.json'));
- const result=await finalizeBatch({root,client:clientFor([article(topic)])});assert.equal(result.state.publishedCount,0);
+ const summaryPath=join(root,'summary.md');
+ const result=await finalizeBatch({root,summaryPath,client:clientFor([article(topic)])});
+ assert.match(await readFile(summaryPath,'utf8'),/Published: 0. Held for review: 1/);assert.equal(result.state.publishedCount,0);assert.equal(result.state.reviewCount,1);assert.deepEqual(result.state.reviewSlugs,[topic.slug]);
  assert.deepEqual(await json(join(root,'content/articles.json')),[]);
  assert.equal((await json(join(root,'generated/weekly/batch-batch-test.json')))[0].status,'review');
  let row=readTopicCsv(await readFile(join(root,'scripts/topic-concepts.csv'),'utf8')).rows[0];assert.equal(row[1],'');assert.equal(row[2],'review');
@@ -113,4 +118,55 @@ test('a downstream validation failure rolls back publication and CSV without los
  assert.deepEqual(await json(join(root,'content/articles.json')),[]);
  assert.equal(await readFile(join(root,'scripts/topic-concepts.csv'),'utf8'),before);
  assert.equal((await json(join(root,'generated/article-batch-state.json'))).phase,'active');
+});
+
+
+test('finalization uses its immutable brief even if the working topic map changes',async t=>{
+ const {root}=await setup(t,1);await submit(root,1);
+ const topics=await json(join(root,'generated/weekly/topics-batch-test.json'));
+ await save(join(root,'generated/weekly/topic-map.json'),[]);
+ const result=await finalizeBatch({root,client:clientFor(topics.map(article))});
+ assert.equal(result.state.publishedCount,1);
+ assert.equal((await json(join(root,'content/articles.json')))[0].slug,topics[0].slug);
+});
+
+test('hands-off mode edits and publishes tool-specific drafts without a human approval',async t=>{
+ const {root}=await setup(t,1,true);await submit(root,1);
+ const [topic]=await json(join(root,'generated/weekly/topic-map.json'));
+ const draft={...article(topic),status:'review',requiresVerification:true,verificationNotes:['Check source']};
+ const result=await finalizeBatch({root,autoReview:true,client:clientFor([draft]),editor:async()=>({article:article(topic),evidence:{responseId:'review-1',sources:[draft.sources[0].url]}})});
+ assert.equal(result.state.publishedCount,1);assert.equal(result.state.reviewCount,0);
+ assert.equal((await json(join(root,'generated/weekly/drafts-batch-test.json')))[0].requiresVerification,true);
+ assert.equal((await json(join(root,'generated/weekly/editorial-batch-test.json')))[0].evidence.responseId,'review-1');
+});
+
+test('a failed automatic edit does not block good articles and returns its topic to the queue',async t=>{
+ const {root}=await setup(t,2);await submit(root,2);
+ const topics=await json(join(root,'generated/weekly/topic-map.json'));
+ const result=await finalizeBatch({root,autoReview:true,client:clientFor(topics.map(article)),editor:async({article:a})=>{
+  if(a.slug===topics[0].slug)throw Error('Temporary editorial API failure');
+  return {article:a,evidence:{responseId:'review-2'}};
+ }});
+ assert.equal(result.state.publishedCount,1);assert.equal(result.state.retryCount,1);
+ const csv=readTopicCsv(await readFile(join(root,'scripts/topic-concepts.csv'),'utf8'));
+ assert.equal(csv.rows[0][csv.indexes.status],'ready');assert.equal(csv.rows[1][csv.indexes.status],'published');
+});
+
+test('automatic review cache avoids paying again after a downstream build validation failure',async t=>{
+ const {root}=await setup(t,1);await submit(root,1);const topics=await json(join(root,'generated/weekly/topic-map.json'));
+ let calls=0;const options={root,autoReview:true,client:clientFor(topics.map(article)),editor:async({article:a})=>{
+  calls++;return {article:a,evidence:{responseId:'review-cache'}};
+ }};
+ await assert.rejects(finalizeBatch({...options,runCommand:async()=>{throw Error('Injected failure');}}),/Injected failure/);
+ await finalizeBatch(options);assert.equal(calls,1);
+});
+
+test('total automatic editorial failure leaves no active batch or human review queue',async t=>{
+ const {root}=await setup(t,1);await submit(root,1);const topics=await json(join(root,'generated/weekly/topic-map.json'));
+ const summaryPath=join(root,'summary.md');
+ await assert.rejects(finalizeBatch({root,summaryPath,autoReview:true,client:clientFor(topics.map(article)),editor:async()=>{throw Error('Source search unavailable');}}),/no publishable articles/);
+ const state=await json(join(root,'generated/article-batch-state.json'));
+ assert.equal(state.phase,'failed');assert.equal(state.retryCount,1);
+ assert.equal(readTopicCsv(await readFile(join(root,'scripts/topic-concepts.csv'),'utf8')).rows[0][2],'ready');
+ assert.match(await readFile(summaryPath,'utf8'),/Source search unavailable/);
 });

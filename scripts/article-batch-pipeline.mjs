@@ -2,6 +2,8 @@ import { spawn } from "node:child_process";
 import { appendFile, readFile, writeFile, mkdir } from "node:fs/promises";
 import { dirname, resolve, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { editArticle } from "./lib/automatic-editor.mjs";
+import { readTopicCsv, writeCsv, slugify } from "./lib/topic-csv.mjs";
 import { loadLocalKey } from "./lib/local-env.mjs";
 
 const ACTIVE_BATCH_STATUSES = new Set([
@@ -30,6 +32,7 @@ export function createOpenAIClient({ apiKey, apiBase = "https://api.openai.com/v
   async function requestJson(method, path, payload) {
     const response = await fetchImpl(`${apiBase}${path}`, {
       method,
+      signal: AbortSignal.timeout(300000),
       headers: {
         Authorization: `Bearer ${apiKey}`,
         ...(payload === undefined ? {} : { "Content-Type": "application/json" })
@@ -40,6 +43,8 @@ export function createOpenAIClient({ apiKey, apiBase = "https://api.openai.com/v
   }
 
   return {
+    createResponse(payload) { return requestJson("POST", "/responses", payload); },
+
     async uploadBatchFile(path) {
       const form = new FormData();
       form.append("purpose", "batch");
@@ -184,6 +189,37 @@ export async function finalizeBatch(options = {}) {
   }
 
   const extracted = extractBatchArticles(resultTexts.join("\n"), state.topicSlugs || []);
+  const generatedCount = extracted.articles.length;
+  const editorialFailures = [];
+  if (options.autoReview && generatedCount) {
+    const [topics, schema, categories] = await Promise.all([
+      `generated/weekly/topics-${state.batchId}.json`, "schemas/article.schema.json", "content/categories.json"
+    ].map(async path => JSON.parse(await readFile(join(root, path), "utf8"))));
+    const decisions = [];
+    const accepted = [];
+    // Persist each result so a later API failure never loses the completed reviews.
+    const editorialPath = join(root, `generated/weekly/editorial-${state.batchId}.json`);
+    let previous = [];
+    try { previous = JSON.parse(await readFile(editorialPath, "utf8")); }
+    catch (error) { if (error.code !== "ENOENT") throw error; }
+    for (const article of extracted.articles) {
+      const cached = previous.find(result => result.slug === article.slug && result.article?.sourceHash === article.sourceHash && result.evidence);
+      try {
+        const result = cached || await (options.editor || editArticle)({
+          client, article, topic: topics.find(topic => topic.slug === article.slug), schema, categories, model: state.model
+        });
+        accepted.push(result.article);
+        decisions.push({ slug: article.slug, ...result });
+      } catch (error) {
+        editorialFailures.push({ customId: `article-${article.slug}`, code: "editorial_retry", message: String(error.message).slice(0, 500) });
+        decisions.push({ slug: article.slug, error: String(error.message).slice(0, 500) });
+      }
+      await writeJson(editorialPath, decisions);
+    }
+    await writeJson(join(root, `generated/weekly/drafts-${state.batchId}.json`), extracted.articles);
+    extracted.articles = accepted;
+    extracted.failures.push(...editorialFailures);
+  }
   const reviewPath = join(root, options.reviewPath || DEFAULT_REVIEW_PATH);
   await writeJson(reviewPath, extracted.articles);
   await writeJson(join(root, `generated/weekly/batch-${state.batchId}.json`), extracted.articles);
@@ -200,7 +236,9 @@ export async function finalizeBatch(options = {}) {
     }));
     try {
       await runCommand(root, "scripts/publish-reviewed-articles.mjs", [
-        "--articles=generated/weekly/generated-articles.json"
+        "--articles=generated/weekly/generated-articles.json",
+        `--topics=generated/weekly/topics-${state.batchId}.json`,
+        ...(options.autoReview ? ["--auto-reviewed"] : [])
       ], process.env);
       await runCommand(root, "scripts/validate-writing.mjs", [], process.env);
       await runCommand(root, "scripts/update-topic-concepts-from-articles.mjs", [], process.env);
@@ -217,6 +255,22 @@ export async function finalizeBatch(options = {}) {
   // Preserve policy-adjusted review statuses in the durable archive.
   if (extracted.articles.length) await writeJson(join(root, `generated/weekly/batch-${state.batchId}.json`), JSON.parse(await readFile(reviewPath, "utf8")));
 
+  const heldArticles = extracted.articles.length
+    ? JSON.parse(await readFile(reviewPath, "utf8")).filter(article => article.status === "review")
+    : [];
+
+  // Failed editorial checks stay eligible for a future week's automatic retry.
+  if (editorialFailures.length) {
+    const path = join(root, "scripts/topic-concepts.csv");
+    const csv = readTopicCsv(await readFile(path, "utf8"));
+    const retrySlugs = new Set(editorialFailures.map(failure => failure.customId.slice("article-".length)));
+    for (const row of csv.rows) {
+      if (retrySlugs.has(slugify(row[csv.indexes.topic])) && !row[csv.indexes.url] &&
+          !["skip", "failed", "published"].includes(row[csv.indexes.status])) row[csv.indexes.status] = "ready";
+    }
+    await writeText(path, writeCsv([csv.headers, ...csv.rows]));
+  }
+
   const nextState = {
     ...state,
     phase: extracted.articles.length ? "finalized" : "failed",
@@ -224,19 +278,36 @@ export async function finalizeBatch(options = {}) {
     outputFileId: batch.output_file_id || null,
     errorFileId: batch.error_file_id || null,
     finalizedAt: new Date().toISOString(),
-    successfulCount: extracted.articles.length,
+    successfulCount: generatedCount,
     failedCount: extracted.failures.length,
     publishedCount,
+    automaticReview: Boolean(options.autoReview),
+    retryCount: editorialFailures.length,
+    reviewCount: heldArticles.length,
+    reviewSlugs: heldArticles.map(article => article.slug),
     failures: extracted.failures
   };
   await writeJson(statePath, nextState);
 
+  if (options.summaryPath) {
+    const lines = [
+      "## Writing batch publication",
+      `Generated: ${generatedCount}. Published: ${publishedCount}. Held for review: ${heldArticles.length}. Automatic retry: ${editorialFailures.length}. Failed: ${extracted.failures.length}.`,
+      "",
+      ...extracted.failures.map(failure => `- ${failure.customId || "Batch"}: ${failure.code}: ${failure.message}`),
+      ...heldArticles.map(article => `- ${article.slug}: ${article.verificationNotes.join(" ") || "Editorial review required."}`),
+      "",
+      "Published articles enter /writing, /sitemap.xml, and the RSS feed on the next deployment."
+    ];
+    await appendFile(options.summaryPath, lines.join("\n") + "\n");
+  }
   if (!extracted.articles.length) {
     const error = new Error(`OpenAI batch ${state.batchId} produced no publishable articles.`);
     error.stateWritten = true;
     throw error;
   }
 
+  if (heldArticles.length) console.warn(`::warning::${heldArticles.length} articles held for review; ${publishedCount} published. See the batch archive and job summary.`);
   console.log(`Finalized batch ${state.batchId}: ${extracted.articles.length} successful, ${extracted.failures.length} failed, ${publishedCount} newly published.`);
   return { outcome: "finalized", state: nextState, articles: extracted.articles };
 }
@@ -423,7 +494,7 @@ async function main() {
     return;
   }
   if (command === "finalize") {
-    const result = await finalizeBatch();
+    const result = await finalizeBatch({ summaryPath: process.env.GITHUB_STEP_SUMMARY, autoReview: process.argv.includes("--auto-review") });
     if (process.env.GITHUB_OUTPUT) {
       await appendFile(process.env.GITHUB_OUTPUT, `outcome=${result.outcome}\npublished_count=${result.state.publishedCount || 0}\nstate_written=${result.outcome === "finalized"}\n`);
     }

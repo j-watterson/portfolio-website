@@ -73,7 +73,7 @@ export function selectTopics(csv, articles, count) {
     used.add(slug);
     topics.push({ slug, title: keyword, primaryKeyword: keyword, relatedKeywords: [keyword],
       ...(indexes.audience >= 0 ? { audience: row[indexes.audience].trim(), updateFrequency: row[indexes.update_frequency].trim() } : {}),
-      intent: `Teach ${keyword} clearly for Jon Watterson’s technical readers.`, format: "Guide", status: "review" });
+      intent: `Teach ${keyword} clearly for Jon Watterson’s technical readers.`, format: "Guide" });
     if (topics.length === count) break;
   }
   return topics;

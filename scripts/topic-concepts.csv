@@ -1,24 +1,24 @@
 topic,url,status,audience,update_frequency
-Candidate keys and alternate keys,,review,practitioners,never
-Functional dependencies in analytical tables,,review,practitioners,never
-Composite keys in business event data,,review,practitioners,never
-Natural keys versus surrogate keys,,review,practitioners,never
-Referential integrity across analytical tables,,review,practitioners,never
+Candidate keys and alternate keys,,ready,practitioners,never
+Functional dependencies in analytical tables,,ready,practitioners,never
+Composite keys in business event data,,ready,practitioners,never
+Natural keys versus surrogate keys,,ready,practitioners,never
+Referential integrity across analytical tables,,ready,practitioners,never
 SQL null and three-valued logic,https://jwatterson.com/writing/sql-null-and-three-valued-logic,published,practitioners,never
-Set semantics versus bag semantics in SQL,,review,practitioners,never
-First normal form and repeating groups,,review,practitioners,never
-Second and third normal forms,,review,practitioners,never
+Set semantics versus bag semantics in SQL,,ready,practitioners,never
+First normal form and repeating groups,,ready,practitioners,never
+Second and third normal forms,,ready,practitioners,never
 Lossless decomposition of relational tables,https://jwatterson.com/writing/lossless-decomposition-of-relational-tables,published,practitioners,never
-Entity identity versus record identity,,review,practitioners,never
-Optional relationships in data models,,review,practitioners,never
-Cardinality and participation constraints,,review,practitioners,never
-Weak entities and identifying relationships,,review,practitioners,never
-Associative entities for many-to-many relationships,,review,practitioners,never
-Database constraints versus validation queries,,review,practitioners,never
-Uniqueness with nullable business identifiers,,review,practitioners,never
-Domain constraints for categorical data,,review,practitioners,never
-Relational division for analytical questions,,review,practitioners,never
-Temporal uniqueness constraints,,review,practitioners,never
+Entity identity versus record identity,,ready,practitioners,never
+Optional relationships in data models,,ready,practitioners,never
+Cardinality and participation constraints,https://jwatterson.com/writing/cardinality-and-participation-constraints,published,practitioners,never
+Weak entities and identifying relationships,,ready,practitioners,never
+Associative entities for many-to-many relationships,,ready,practitioners,never
+Database constraints versus validation queries,https://jwatterson.com/writing/database-constraints-versus-validation-queries,published,practitioners,never
+Uniqueness with nullable business identifiers,,ready,practitioners,never
+Domain constraints for categorical data,,ready,practitioners,never
+Relational division for analytical questions,,ready,practitioners,never
+Temporal uniqueness constraints,,ready,practitioners,never
 Floating-point error in financial analytics,,not written,practitioners,never
 Fixed-point decimal precision and scale,,not written,practitioners,never
 Rounding at ingestion versus presentation,,not written,practitioners,never

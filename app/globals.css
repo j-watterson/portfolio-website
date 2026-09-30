@@ -285,7 +285,7 @@ kbd { padding: 3px 6px; border: 1px solid var(--line); border-radius: 5px; color
 .writing-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; padding-top: 20px; }
 .writing-grid article { min-height: 350px; display: flex; flex-direction: column; padding: 28px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
 .writing-grid .mono { color: var(--accent); font-size: .65rem; }
-.writing-grid h2 { margin-top: 50px; font-size: 1.55rem; }
+.writing-grid .writing-title { margin-top: 50px; font-size: 1.55rem; }
 .writing-grid p, .writing-grid small { color: var(--muted); }
 .coming-soon { margin-top: auto; padding-top: 20px; border-top: 1px solid var(--line); color: var(--muted); font: .68rem ui-monospace, "SFMono-Regular", Consolas, monospace; text-transform: uppercase; }
 .small-cta { display: flex; justify-content: space-between; padding: 0 0 100px; }
@@ -382,7 +382,7 @@ kbd { padding: 3px 6px; border: 1px solid var(--line); border-radius: 5px; color
 }
 
 /* Writing follows the portfolio's existing palette and readable content widths. */
-.writing-grid h2 a:hover, .writing-body a, .writing-related a, .writing-pagination a { color: var(--accent); }
+.writing-grid .writing-title a:hover, .writing-body a, .writing-related a, .writing-pagination a { color: var(--accent); }
 .writing-read { margin-top: auto; padding-top: 24px; }
 .writing-planned h3 { margin-top: 36px; font-size: 1.55rem; line-height: 1.2; }
 .writing-pagination { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 20px; padding-bottom: 40px; }
