@@ -1,0 +1,1574 @@
+[
+  {
+    "slug": "candidate-keys-and-alternate-keys",
+    "title": "Candidate keys and alternate keys",
+    "description": "A practical guide to separating all possible row identifiers from the one chosen as the primary key, using a hypothetical customer table with counterexamples.",
+    "primaryKeyword": "Candidate keys and alternate keys",
+    "relatedKeywords": [
+      "Candidate keys and alternate keys",
+      "candidate key",
+      "alternate key",
+      "minimal superkey"
+    ],
+    "category": "Data Modeling",
+    "level": "Beginner",
+    "readTime": "7 min",
+    "datePublished": "2026-10-05",
+    "dateModified": "2026-10-05",
+    "canonicalUrl": "https://jwatterson.com/writing/candidate-keys-and-alternate-keys",
+    "status": "published",
+    "sourceHash": "196eb90a7a669a6a",
+    "lead": "Candidate keys are the identifiers that could uniquely name rows in a relation. The primary key is the candidate key you choose to use as the main identifier. Alternate keys are the remaining candidate keys you still want the model to respect. The distinction matters because a table can have several valid identifiers, but only one should carry the job of being the default reference point for joins, foreign keys, and human reasoning.",
+    "sections": [
+      {
+        "id": "the-short-version",
+        "heading": "The short version",
+        "paragraphs": [
+          "A superkey is any set of attributes that uniquely identifies a row. A candidate key is a minimal superkey: it is unique, and no attribute can be removed without losing uniqueness. A primary key is the candidate key selected as the table’s principal identifier. An alternate key is a candidate key that was not selected as primary.",
+          "This is a modeling distinction before it is an implementation detail. A database can enforce primary key and unique constraints, but the modeler still has to decide which facts are stable enough to be identifiers and which facts only look unique in today’s sample data.",
+          "For example, a customer table might have a generated customer_id, an email address, and a loyalty_card_number. If all three are unique and required by the business rules, each may be a candidate key. If the model chooses customer_id as the primary key, then email and loyalty_card_number become alternate keys. If email can be reused, missing, shared, or corrected, it is not a candidate key even if it is unique in a small extract."
+        ],
+        "bullets": [
+          "Superkey: any unique row identifier, possibly with extra columns.",
+          "Candidate key: a minimal superkey.",
+          "Primary key: the candidate key chosen as the main identifier.",
+          "Alternate key: a candidate key not chosen as primary."
+        ],
+        "codeExamples": []
+      },
+      {
+        "id": "hypothetical-customer-fixture",
+        "heading": "A hypothetical customer fixture",
+        "paragraphs": [
+          "Use this small hypothetical retail customer relation. The goal is not to design a complete customer model. The goal is to separate possible identifiers from the selected identifier.",
+          "Assume the intended relation is one row per registered customer. The business has assigned each customer a stable internal customer_id. Each registered customer must have exactly one account_email and one loyalty_card_number. For this fixture, both account_email and loyalty_card_number are required to be unique among registered customers.",
+          "Under those assumptions, three single-column attributes identify a customer: customer_id, account_email, and loyalty_card_number. Each is unique. Each is minimal because no smaller subset exists than one column. Therefore, each is a candidate key. If the data model chooses customer_id as the primary key, then account_email and loyalty_card_number are alternate keys.",
+          "The phrase ‘under those assumptions’ is doing real work. Candidate keys come from semantics, not from a lucky profile of one dataset. If emails are allowed to change, they can still be an alternate key for the current customer table if the rule is ‘current email is unique and required.’ If email history is stored in the same relation, email probably stops identifying one current customer row. If loyalty cards can be missing or reassigned, loyalty_card_number is not a candidate key for this relation."
+        ],
+        "bullets": [],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "-- Illustrative PostgreSQL 18-style DDL for the hypothetical fixture.\n-- This is a modeling example, not an execution result.\n\nCREATE TABLE registered_customer (\n    customer_id          integer PRIMARY KEY,\n    account_email        text NOT NULL UNIQUE,\n    loyalty_card_number  text NOT NULL UNIQUE,\n    full_name            text NOT NULL,\n    signup_date          date NOT NULL\n);\n\nINSERT INTO registered_customer\n    (customer_id, account_email, loyalty_card_number, full_name, signup_date)\nVALUES\n    (101, 'a Rivera@example.test', 'LC-7001', 'Avery Rivera', DATE '2026-01-04'),\n    (102, 'b Shah@example.test',    'LC-7002', 'Blair Shah',   DATE '2026-01-05'),\n    (103, 'c Morgan@example.test',  'LC-7003', 'Casey Morgan', DATE '2026-01-07');"
+          }
+        ]
+      },
+      {
+        "id": "counterexamples-that-look-like-keys",
+        "heading": "Counterexamples that look like keys",
+        "paragraphs": [
+          "Many modeling errors start when a column is treated as a key because it is unique in a sample. The sample may be clean, incomplete, or too small to show the real rule. Here are four common counterexamples using the same hypothetical customer context.",
+          "First, full_name is not a key. In the three-row fixture, full_name happens to be unique. But names do not identify registered customers under normal retail assumptions. Two customers can share the same name, and one customer can change a name. Uniqueness in the current rows is not enough.",
+          "Second, signup_date is not a key. It is not unique in the intended domain. Even if this sample has different dates, many customers can sign up on the same date. A date may help describe a customer; it does not identify one.",
+          "Third, customer_id plus account_email is a superkey but not a candidate key. The pair is unique because customer_id is already unique. However, account_email can be removed and the remaining customer_id still identifies the row. That makes the pair non-minimal. It is a superkey with an unnecessary passenger.",
+          "Fourth, account_email may fail as a candidate key if the business rule changes. Suppose guest checkout rows, family accounts, or historical email records are added to the same relation. If account_email can be null, shared, or repeated over time, it is not a candidate key for that relation. It may belong in a separate relation with its own grain and validity rules."
+        ],
+        "bullets": [
+          "A column that is unique in a sample is only a candidate key if the business rule guarantees uniqueness for the relation.",
+          "Adding extra columns to an already unique identifier creates a superkey, not a candidate key.",
+          "A descriptive attribute can be important for analytics while still being invalid as an identifier.",
+          "When the grain changes, old keys may stop being keys."
+        ],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "-- Diagnostic queries for the hypothetical fixture.\n-- These queries find duplicate values in possible single-column identifiers.\n-- A zero-row result is necessary evidence, but not sufficient proof, of a candidate key.\n\nSELECT account_email, COUNT(*) AS row_count\nFROM registered_customer\nGROUP BY account_email\nHAVING COUNT(*) > 1;\n\nSELECT loyalty_card_number, COUNT(*) AS row_count\nFROM registered_customer\nGROUP BY loyalty_card_number\nHAVING COUNT(*) > 1;\n\nSELECT full_name, COUNT(*) AS row_count\nFROM registered_customer\nGROUP BY full_name\nHAVING COUNT(*) > 1;"
+          }
+        ]
+      },
+      {
+        "id": "how-to-classify-possible-identifiers",
+        "heading": "How to classify possible identifiers",
+        "paragraphs": [
+          "A practical way to classify identifiers is to start with the relation’s grain, then test each possible identifier against uniqueness, minimality, requiredness, and stability. These checks are conceptual first. Data profiling can reveal violations, but it cannot by itself define the business rule.",
+          "Step one: state the grain. For the example table, the grain is one row per registered customer. Without this sentence, the key conversation is ambiguous. An email may identify a current registered customer, an email address record, a login credential, or a message recipient depending on the table.",
+          "Step two: list plausible identifiers. In the hypothetical fixture, the plausible identifiers are customer_id, account_email, and loyalty_card_number. Less plausible attributes such as full_name and signup_date can still be examined, but they should not be promoted merely because they look unique today.",
+          "Step three: check uniqueness against the intended domain. A key must identify at most one row. If the organization allows two registered customers to share an email address, account_email is not a candidate key. If it does not allow sharing, and the table stores only the current email for each registered customer, then account_email can be a candidate key.",
+          "Step four: check requiredness. In relational key theory, key attributes identify tuples; in SQL implementations, nullable unique columns need special attention. PostgreSQL documentation describes primary key constraints as enforcing both uniqueness and not-null behavior. It also documents unique constraints, where null handling is a separate concern. Practically, if a supposed key can be missing, it is not a reliable identifier for the relation unless the design explicitly handles that case.",
+          "Step five: check minimality. If customer_id alone identifies a row, then customer_id plus account_email is not a candidate key. It is still unique, but it is not minimal. Minimality prevents bloated identifiers that make foreign keys wider and obscure the real dependency.",
+          "Step six: select one primary key. The selected primary key should be stable, compact enough to reference, and aligned with how dependent tables will point to this relation. The other candidate keys do not disappear. They remain alternate keys and should be documented and, where appropriate, constrained."
+        ],
+        "bullets": [],
+        "codeExamples": []
+      },
+      {
+        "id": "primary-key-choice-does-not-erase-alternate-keys",
+        "heading": "Primary key choice does not erase alternate keys",
+        "paragraphs": [
+          "Choosing customer_id as the primary key does not mean account_email and loyalty_card_number are unimportant. It means customer_id is the identifier the model uses as the principal reference. Alternate keys still express business rules: no two registered customers can have the same current account email, and no two registered customers can have the same loyalty card number.",
+          "This distinction prevents two opposite mistakes. The first mistake is using every unique field as if it were the primary key. That leads to inconsistent joins: one pipeline joins orders to customers by customer_id, another joins events by email, and a third joins rewards activity by loyalty card. When the values change or arrive late, the model has no single anchor.",
+          "The second mistake is enforcing only the primary key and ignoring alternate keys. If customer_id is unique but account_email is allowed to duplicate accidentally, the table may still satisfy its primary key constraint while violating the business rule that each current account email belongs to one registered customer. The primary key protects row identity; alternate keys protect other valid identifiers.",
+          "In SQL, a common implementation is a primary key constraint for the selected key and unique constraints for alternate keys. That maps well to the concept but is not the whole design. The model should also record what the alternate key means: current email, verified email, login email, billing email, active loyalty card, or something else. Without that meaning, the constraint name may be correct while the data model remains unclear."
+        ],
+        "bullets": [],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "-- Illustrative implementation of one primary key and two alternate keys.\n-- Constraint names make the modeling decision explicit.\n\nCREATE TABLE registered_customer (\n    customer_id          integer NOT NULL,\n    account_email        text NOT NULL,\n    loyalty_card_number  text NOT NULL,\n    full_name            text NOT NULL,\n    signup_date          date NOT NULL,\n\n    CONSTRAINT pk_registered_customer\n        PRIMARY KEY (customer_id),\n\n    CONSTRAINT ak_registered_customer_account_email\n        UNIQUE (account_email),\n\n    CONSTRAINT ak_registered_customer_loyalty_card_number\n        UNIQUE (loyalty_card_number)\n);"
+          }
+        ]
+      },
+      {
+        "id": "join-semantics-and-foreign-keys",
+        "heading": "Join semantics and foreign keys",
+        "paragraphs": [
+          "Keys also shape how tables relate. Suppose a hypothetical order table has one row per order and stores customer_id. A foreign key from customer_order.customer_id to registered_customer.customer_id says each order references the selected customer identifier. The join condition follows the modeled relationship, not whichever customer attribute happens to be available in an event feed.",
+          "If an upstream source supplies only account_email, that does not make account_email the primary key. It means the ingestion process may need to resolve account_email to customer_id using the alternate key. The alternate key is useful precisely because it gives a safe lookup path while preserving customer_id as the table’s primary reference.",
+          "This is where candidate keys and alternate keys become practical for data engineering. They make joins intentional. Joining orders to customers on full_name is invalid even if a profiling query shows no duplicate names today. Joining on account_email can be valid if account_email is an enforced alternate key and the business meaning is current customer email. Joining on customer_id is usually preferred when the dependent table already carries that primary identifier.",
+          "The rule is simple: a join key should match a declared relationship or a declared alternate identifier, not a coincidental attribute. PostgreSQL’s table expression documentation describes joins as deriving rows from related table expressions, but the database cannot infer your business grain from a join predicate alone. The data model has to supply that meaning."
+        ],
+        "bullets": [],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "-- Hypothetical dependent table using the selected primary identifier.\n\nCREATE TABLE customer_order (\n    order_id     integer PRIMARY KEY,\n    customer_id  integer NOT NULL,\n    order_date   date NOT NULL,\n    order_total  numeric(10,2) NOT NULL,\n\n    CONSTRAINT fk_customer_order_registered_customer\n        FOREIGN KEY (customer_id)\n        REFERENCES registered_customer (customer_id)\n);\n\n-- If a source event arrives with only an email address, the alternate key can resolve it.\n-- This is illustrative SQL, not an execution result.\n\nSELECT\n    e.source_event_id,\n    c.customer_id,\n    e.event_time\nFROM source_email_event AS e\nJOIN registered_customer AS c\n  ON c.account_email = e.account_email;"
+          }
+        ]
+      },
+      {
+        "id": "a-practical-diagnostic",
+        "heading": "A practical diagnostic for your own model",
+        "paragraphs": [
+          "When reviewing a table, write down each possible identifier in four columns: unique, required, minimal, and stable for this relation. Then classify it as primary key, alternate key, non-minimal superkey, or not a key. This small exercise often exposes hidden grain problems.",
+          "For the hypothetical registered_customer relation, the diagnostic looks like this in prose. customer_id is unique, required, minimal, and stable, so it is a candidate key and the selected primary key. account_email is unique, required, and minimal under the stated rule, so it is a candidate key and an alternate key. loyalty_card_number is also a candidate key and an alternate key under the stated rule. customer_id plus account_email is unique but not minimal, so it is a superkey but not a candidate key. full_name is not guaranteed unique, so it is not a key. signup_date is not unique and not a key.",
+          "The most useful part of the diagnostic is not the label itself. It is the argument behind the label. If two engineers disagree about whether account_email is an alternate key, the disagreement should move to the rule: Can a registered customer lack an email? Can two customers share one? Are historical emails stored in this table? Can an email be reassigned to a different customer record? Once those questions are answered, the key classification usually becomes straightforward.",
+          "Do not let implementation shortcuts decide the model silently. A generated integer can be an excellent primary key, but it does not remove the need to constrain natural alternate identifiers. A natural identifier can be a valid primary key, but it should still be judged for stability and meaning. The core question is always the same: which attributes identify one row at this table’s grain, and which one will the model choose as the main reference?"
+        ],
+        "bullets": [
+          "Start with the table grain before naming keys.",
+          "Treat sample uniqueness as evidence to investigate, not as proof.",
+          "A primary key is selected from candidate keys; it is not the only possible identifier by definition.",
+          "Alternate keys should be documented and usually enforced when the database supports the rule.",
+          "Non-minimal unique combinations are superkeys, not candidate keys."
+        ],
+        "codeExamples": []
+      }
+    ],
+    "takeaways": [
+      "Candidate keys are all minimal identifiers for a relation; the primary key is the one chosen as the principal identifier.",
+      "Alternate keys are not second-class data. They are candidate keys that still express business rules even though they were not selected as primary.",
+      "A unique-looking column is not automatically a key. It must match the table grain, be required, be unique by rule, and be minimal.",
+      "Adding columns to an already unique identifier creates a non-minimal superkey, not a better candidate key.",
+      "Use constraints and clear names to make primary and alternate key decisions visible in the schema."
+    ],
+    "sources": [
+      {
+        "title": "PostgreSQL: Documentation: 18: 5.5. Constraints",
+        "url": "https://www.postgresql.org/docs/current/ddl-constraints.html"
+      },
+      {
+        "title": "Chapter 8. Data Normalisation",
+        "url": "https://www.cs.uct.ac.za/mit_notes/database/htmls/chp08.html"
+      },
+      {
+        "title": "PostgreSQL: Documentation: 18: 7.2. Table Expressions",
+        "url": "https://www.postgresql.org/docs/current/queries-table-expressions.html"
+      }
+    ],
+    "requiresVerification": false,
+    "verificationNotes": []
+  },
+  {
+    "slug": "functional-dependencies-in-analytical-tables",
+    "title": "Functional dependencies in analytical tables",
+    "description": "Use functional dependency violations to find analytical attributes stored at the wrong grain, with a small hypothetical order-line dataset and an illustrative SQL diagnostic.",
+    "primaryKeyword": "Functional dependencies in analytical tables",
+    "relatedKeywords": [
+      "Functional dependencies in analytical tables"
+    ],
+    "category": "Data Modeling",
+    "level": "Intermediate",
+    "readTime": "7 min",
+    "datePublished": "2026-10-05",
+    "dateModified": "2026-10-05",
+    "canonicalUrl": "https://jwatterson.com/writing/functional-dependencies-in-analytical-tables",
+    "status": "published",
+    "sourceHash": "054e2af4b227bd6a",
+    "lead": "Functional dependencies are a practical way to ask whether an attribute belongs at the grain where it is stored. In an analytical table, a violation often points to a column that is being treated as stable at one level of detail even though the data says it changes at another.",
+    "sections": [
+      {
+        "id": "the-grain-question-behind-a-dependency",
+        "heading": "The grain question behind a dependency",
+        "paragraphs": [
+          "A functional dependency says that one set of attributes determines another attribute. If customer_id determines customer_name, then every row with the same customer_id should have the same customer_name. If product_id determines product_category, then every row with the same product_id should have the same product_category. The useful part for data engineers is not the formal notation; it is the diagnostic question: when the same determinant has more than one dependent value, what grain is the dependent attribute really stored at?",
+          "Analytical tables commonly repeat descriptive attributes for convenience. A fact table at order-line grain may contain order_date, customer_id, product_id, customer_tier, product_category, and category_manager. Repetition alone is not a problem. A single order_date repeated across the lines of the same order may be intentional denormalization. The problem appears when the repeated attribute is interpreted as if it belongs to one grain, while the observed rows show that it varies at another.",
+          "This article assumes you already understand identifiers and selected keys. The focus here is narrower: use dependency violations as evidence that a descriptive attribute may be stored at the wrong grain, or that its determinant is missing part of the real business context."
+        ],
+        "bullets": [],
+        "codeExamples": []
+      },
+      {
+        "id": "a-hypothetical-order-line-table",
+        "heading": "A hypothetical order-line table",
+        "paragraphs": [
+          "Consider a hypothetical retail table named order_lines. Its declared analytical grain is one row per product sold on an order. In other words, order_id plus line_no identifies one row. The table repeats several descriptors so that analysts can group sales without joining dimensions.",
+          "Here is the fixture, shown as rows rather than as a fully designed model:"
+        ],
+        "bullets": [
+          "1001, line 1, 2026-01-10, C001, Ada Lim, Silver, P10, Trail Helmet, Safety, Lee, quantity 1",
+          "1001, line 2, 2026-01-10, C001, Ada Lim, Silver, P11, Bike Light, Safety, Lee, quantity 2",
+          "1002, line 1, 2026-01-11, C002, Bo Chen, Bronze, P12, Water Bottle, Accessories, Nora, quantity 1",
+          "1003, line 1, 2026-02-05, C001, Ada Lim, Gold, P13, Floor Pump, Accessories, Nora, quantity 1",
+          "1004, line 1, 2026-02-08, C003, Cy Diaz, Silver, P11, Bike Light, Safety, Noor, quantity 1",
+          "1004, line 2, 2026-02-08, C003, Cy Diaz, Silver, P14, Gloves, Apparel, Mina, quantity 1",
+          "1005, line 1, 2026-02-09, C002, Bo Chen, Bronze, P12, Water Bottle, Accessories, Nora, quantity 2",
+          "1006, line 1, 2026-02-12, C004, Dee Park, Bronze, P15, Energy Bar, Accessories, Mina, quantity 5"
+        ],
+        "codeExamples": []
+      },
+      {
+        "id": "expected-dependencies-to-test",
+        "heading": "Expected dependencies to test",
+        "paragraphs": [
+          "Before writing checks, state the dependencies you believe should hold. This step matters because not every violation is a modeling defect. Some proposed dependencies are simply false business rules.",
+          "For the hypothetical table, these are plausible expectations:"
+        ],
+        "bullets": [
+          "order_id determines order_date and customer_id. All lines on the same order should belong to the same order header.",
+          "customer_id determines customer_name, assuming this table stores a stable customer display name and not a historical name snapshot.",
+          "product_id determines product_name, assuming product names are stable for the reporting period or are represented by a type 1-style descriptor.",
+          "product_id determines product_category, assuming each product is assigned to one category in this simplified fixture.",
+          "customer_id determines customer_tier only if tier is treated as a stable customer attribute. If tier can change over time, this dependency should not be expected.",
+          "category determines category_manager only if there is exactly one manager per category for the reporting period. If responsibility changes by date, region, or subcategory, category alone is not the correct determinant."
+        ],
+        "codeExamples": []
+      },
+      {
+        "id": "illustrative-sql-diagnostic",
+        "heading": "Illustrative SQL diagnostic",
+        "paragraphs": [
+          "A dependency violation check groups by the determinant and counts the distinct dependent values. Any group with more than one dependent value is a counterexample to the proposed dependency.",
+          "The following is illustrative PostgreSQL-style SQL. It uses a VALUES fixture and common table expressions to keep the example self-contained. No claim is made that this was executed in a live database; the expected violating groups are worked through from the rows above."
+        ],
+        "bullets": [],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "WITH order_lines (\n    order_id,\n    line_no,\n    order_date,\n    customer_id,\n    customer_name,\n    customer_tier,\n    product_id,\n    product_name,\n    category,\n    category_manager,\n    quantity\n) AS (\n    VALUES\n    (1001, 1, DATE '2026-01-10', 'C001', 'Ada Lim',  'Silver', 'P10', 'Trail Helmet', 'Safety',      'Lee',  1),\n    (1001, 2, DATE '2026-01-10', 'C001', 'Ada Lim',  'Silver', 'P11', 'Bike Light',   'Safety',      'Lee',  2),\n    (1002, 1, DATE '2026-01-11', 'C002', 'Bo Chen',  'Bronze', 'P12', 'Water Bottle', 'Accessories', 'Nora', 1),\n    (1003, 1, DATE '2026-02-05', 'C001', 'Ada Lim',  'Gold',   'P13', 'Floor Pump',   'Accessories', 'Nora', 1),\n    (1004, 1, DATE '2026-02-08', 'C003', 'Cy Diaz',  'Silver', 'P11', 'Bike Light',   'Safety',      'Noor', 1),\n    (1004, 2, DATE '2026-02-08', 'C003', 'Cy Diaz',  'Silver', 'P14', 'Gloves',       'Apparel',     'Mina', 1),\n    (1005, 1, DATE '2026-02-09', 'C002', 'Bo Chen',  'Bronze', 'P12', 'Water Bottle', 'Accessories', 'Nora', 2),\n    (1006, 1, DATE '2026-02-12', 'C004', 'Dee Park', 'Bronze', 'P15', 'Energy Bar',   'Accessories', 'Mina', 5)\n),\nviolations AS (\n    SELECT\n        'customer_id -> customer_tier' AS dependency,\n        customer_id AS determinant,\n        COUNT(DISTINCT customer_tier) AS distinct_dependent_values,\n        STRING_AGG(DISTINCT customer_tier, ', ' ORDER BY customer_tier) AS observed_values\n    FROM order_lines\n    GROUP BY customer_id\n    HAVING COUNT(DISTINCT customer_tier) > 1\n\n    UNION ALL\n\n    SELECT\n        'category -> category_manager' AS dependency,\n        category AS determinant,\n        COUNT(DISTINCT category_manager) AS distinct_dependent_values,\n        STRING_AGG(DISTINCT category_manager, ', ' ORDER BY category_manager) AS observed_values\n    FROM order_lines\n    GROUP BY category\n    HAVING COUNT(DISTINCT category_manager) > 1\n\n    UNION ALL\n\n    SELECT\n        'order_id -> product_id' AS dependency,\n        CAST(order_id AS text) AS determinant,\n        COUNT(DISTINCT product_id) AS distinct_dependent_values,\n        STRING_AGG(DISTINCT product_id, ', ' ORDER BY product_id) AS observed_values\n    FROM order_lines\n    GROUP BY order_id\n    HAVING COUNT(DISTINCT product_id) > 1\n)\nSELECT *\nFROM violations\nORDER BY dependency, determinant;"
+          }
+        ]
+      },
+      {
+        "id": "working-through-the-results",
+        "heading": "Working through the results",
+        "paragraphs": [
+          "The expected counterexamples are easy to verify from the fixture. For customer_id -> customer_tier, customer C001 appears as Silver on order 1001 and Gold on order 1003. The dependency is violated because the same customer_id has two tier values. That does not automatically mean the data is wrong. It means customer_tier is not a stable customer-grain attribute in this dataset. It is likely a time-dependent customer attribute or an order-time snapshot.",
+          "The modeling response depends on the business meaning. If reports need the tier at the time of sale, then customer_tier belongs with an order-effective context, such as customer_id plus order_date or customer_id plus a tier effective-period table. If reports need the current tier, then storing historical row-level copies in the order-line table can mislead analysts because old order lines will retain old values unless intentionally restated.",
+          "For category -> category_manager, the fixture has Safety managed by Lee and Noor, and Accessories managed by Nora and Mina. The same category has multiple managers. Again, the violation is a clue, not a verdict. Category_manager may depend on category plus date, category plus region, category plus subcategory, or an organizational assignment table. If the table presents category_manager as if category alone determines it, rollups by manager can double count or shift responsibility in confusing ways.",
+          "The third proposed dependency, order_id -> product_id, also violates: order 1001 contains P10 and P11, and order 1004 contains P11 and P14. This is a useful counterexample because it is not a defect. It shows that order_id is a header-level determinant, while product_id lives at order-line grain. The violation tells you that order_id alone is not the grain of this table. If someone builds an order-level mart from this table and carries product_id along without aggregation rules, they are mixing grains.",
+          "Notice the difference between a helpful dependency and a bad one. customer_id -> customer_tier was plausible but failed, revealing a time-varying attribute. category -> category_manager was plausible but failed, revealing a missing assignment context. order_id -> product_id failed because the proposed dependency contradicted the stated order-line grain. All three results teach something, but only the first two are likely wrong-grain attribute candidates."
+        ],
+        "bullets": [],
+        "codeExamples": []
+      },
+      {
+        "id": "turn-violations-into-modeling-decisions",
+        "heading": "Turn violations into modeling decisions",
+        "paragraphs": [
+          "A dependency check should end in a modeling decision, not just a test failure. For each violation, ask three questions: what did we assume the determinant was, what determinant does the data suggest instead, and what should analysts be allowed to infer from this column?",
+          "For customer_tier, a better model might separate current customer attributes from historical order attributes. A customer dimension can hold the current tier if reports intentionally use current-state grouping. A customer-tier history table can hold effective dates if reports need point-in-time behavior. An order fact or order header can store tier_at_order if the business wants the exact value captured when the order was placed.",
+          "For category_manager, a better model might introduce a category_manager_assignment table with effective dates. The order-line table could keep category and join through order_date when manager-at-sale is needed. If manager responsibility is not historically meaningful, the manager should not be stored as a line-level fact attribute; it should be looked up from the current organizational structure.",
+          "For order_id -> product_id, the fix is different. There may be nothing to fix in the source table. The issue appears when the table is consumed at order grain. If a downstream table has one row per order, it must aggregate line-level attributes or omit them. For example, total_quantity can be summed, but product_id cannot be selected as a single value unless the table is filtered to one-line orders or a rule such as primary_product_id is explicitly defined."
+        ],
+        "bullets": [],
+        "codeExamples": []
+      },
+      {
+        "id": "practical-checklist",
+        "heading": "A practical checklist",
+        "paragraphs": [
+          "Use dependency checks as lightweight model reviews during development, not only as production tests. They are especially useful when a wide analytical table has been assembled from facts, dimensions, and snapshots, because wide tables can hide grain mismatches behind convenient column names.",
+          "The workflow is simple. First, write down the declared grain in one sentence. Second, list attributes that look like they belong to a coarser or different grain. Third, propose dependencies in plain language. Fourth, run grouped distinct-count checks. Fifth, interpret each violation with the business meaning before changing the model.",
+          "Be careful with nulls. Depending on the SQL engine and expression used, COUNT(DISTINCT column) may ignore null values. If null versus non-null is meaningful, handle nulls explicitly in the diagnostic. Also be careful with descriptive text fields such as names. A dependency violation on customer_name may be a spelling cleanup issue rather than a grain issue. The diagnostic finds counterexamples; the modeler still decides what those counterexamples mean."
+        ],
+        "bullets": [
+          "If a dependent attribute changes for the same determinant, it probably has a finer grain, a time component, or a missing business qualifier.",
+          "If a proposed dependency fails because the determinant is too coarse, do not force the data to comply; restate the grain or choose the correct determinant.",
+          "If a downstream table changes grain, line-level descriptors need aggregation, exclusion, or an explicit selection rule."
+        ],
+        "codeExamples": []
+      }
+    ],
+    "takeaways": [
+      "Functional dependency violations are practical counterexamples to grain assumptions in analytical tables.",
+      "A violation does not automatically prove bad data; it shows that the dependent attribute is not determined by the columns you thought determined it.",
+      "Wrong-grain fixes usually involve adding time context, moving the attribute to a dimension or assignment table, or removing the attribute from a coarser-grain output."
+    ],
+    "sources": [
+      {
+        "title": "Chapter 8. Data Normalisation",
+        "url": "https://www.cs.uct.ac.za/mit_notes/database/htmls/chp08.html"
+      },
+      {
+        "title": "Grain | Kimball Dimensional Modeling Techniques",
+        "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/grain/"
+      },
+      {
+        "title": "PostgreSQL: Documentation: 18: 7.2. Table Expressions",
+        "url": "https://www.postgresql.org/docs/current/queries-table-expressions.html"
+      }
+    ],
+    "requiresVerification": false,
+    "verificationNotes": []
+  },
+  {
+    "slug": "composite-keys-in-business-event-data",
+    "title": "Composite keys in business event data",
+    "description": "A practical guide to deciding when several columns together identify one business event, using a hypothetical retail event fixture with counterexamples and diagnostic SQL.",
+    "primaryKeyword": "Composite keys in business event data",
+    "relatedKeywords": [
+      "Composite keys in business event data"
+    ],
+    "category": "Data Modeling",
+    "level": "Intermediate",
+    "readTime": "8 min",
+    "datePublished": "2026-10-05",
+    "dateModified": "2026-10-05",
+    "canonicalUrl": "https://jwatterson.com/writing/composite-keys-in-business-event-data",
+    "status": "published",
+    "sourceHash": "550bafa0c80e9b28",
+    "lead": "A composite key is not just a group of columns that happens to be unique today. In business event data, the useful question is narrower: which columns together identify one occurrence of the event at the grain your table claims to store? This article works through that decision with a small hypothetical retail dataset and several counterexamples.",
+    "sections": [
+      {
+        "id": "start-with-the-event-grain",
+        "heading": "Start with the event grain",
+        "paragraphs": [
+          "Before choosing a key, write the event grain in one sentence. For example: one row represents one item line recorded on a point-of-sale receipt. That sentence is doing more work than the column list. It says the row is not one customer visit, not one receipt, not one SKU per day, and not one final order total. It is one item line event.",
+          "A composite key is appropriate when no single available column identifies that event, but a minimal set of columns does. In relational terms, a candidate key is a set of attributes that uniquely identifies a tuple, and a composite candidate key uses more than one attribute. Minimality matters: if removing a column still leaves the rows uniquely identified under the business rule, the larger set is not the key; it is a superkey.",
+          "For event data, this decision depends on the source system’s numbering rules and the event’s business scope. Receipt numbers may reset each day. Line numbers may only be meaningful within a receipt. Register identifiers may only be unique within a store. Customer identifiers usually identify people or accounts, not event occurrences. A column can be useful context without being part of the event identity.",
+          "This article is not a general argument for or against surrogate keys. A warehouse may add a generated event_id for storage, joins, or ingestion mechanics. That does not remove the modeling question. If the business event is naturally identified by store_id, register_id, business_date, receipt_no, and line_no, then those columns still describe the event’s alternate key even when a surrogate is present."
+        ],
+        "bullets": [
+          "Declare the row grain before evaluating uniqueness.",
+          "Use business rules about numbering scope, not only distinct counts in one extract.",
+          "Require the key to be minimal: every column must be necessary.",
+          "Separate event identity from descriptive attributes such as customer_id, sku, or amount."
+        ],
+        "codeExamples": []
+      },
+      {
+        "id": "hypothetical-retail-fixture",
+        "heading": "A hypothetical retail fixture with counterexamples",
+        "paragraphs": [
+          "Consider a hypothetical retailer that records item lines from store registers. The source system assigns receipt numbers per register per business day. Within each receipt, line_no identifies the item line printed on the receipt. The proposed event table is pos_item_event, and the intended grain is one item line on one receipt.",
+          "The following fixture is deliberately small. It includes rows that break tempting but wrong keys. The expected composite key for the stated assumptions is store_id, register_id, business_date, receipt_no, line_no.",
+          "Rows 1 and 2 show that receipt_no alone is too broad because a receipt has multiple item lines. Rows 1 and 3 show that receipt_no plus line_no is still too broad because another store can issue the same receipt and line number. Rows 1 and 4 show that business_date is needed when receipt numbers reset on later days. Rows 1 and 5 show that register_id is needed when registers in the same store can issue overlapping receipt numbers. Rows 6 and 7 show that sku is not a safe substitute for line_no because the same SKU can appear twice on the same receipt as separate item lines.",
+          "Under the stated assumptions, the five-column combination identifies each row in the fixture. More importantly, each column has a reason to be present. store_id scopes the register. register_id scopes the receipt sequence. business_date handles the daily reset. receipt_no identifies the receipt within that register and date. line_no identifies the item line within the receipt.",
+          "The fixture also shows why sample uniqueness is not enough. In a quiet store, receipt_no and line_no may appear unique for a day’s extract. That does not make them an event key if the source rules allow the same pair tomorrow, in another store, or at another register."
+        ],
+        "bullets": [],
+        "codeExamples": [
+          {
+            "language": "csv",
+            "code": "row_id,store_id,register_id,business_date,receipt_no,line_no,sku,customer_id,quantity\n1,S001,R07,2026-04-01,1032,1,BAGEL,C101,1\n2,S001,R07,2026-04-01,1032,2,COFFEE,C101,1\n3,S002,R07,2026-04-01,1032,1,BAGEL,C204,1\n4,S001,R07,2026-04-02,1032,1,BAGEL,C117,1\n5,S001,R08,2026-04-01,1032,1,TEA,C155,1\n6,S001,R07,2026-04-01,1033,1,MUFFIN,C101,1\n7,S001,R07,2026-04-01,1033,2,MUFFIN,C101,1"
+          }
+        ]
+      },
+      {
+        "id": "test-candidates-against-counterexamples",
+        "heading": "Test candidates against counterexamples, not just counts",
+        "paragraphs": [
+          "A practical key review starts by proposing candidate sets and asking what real or plausible case would violate each one. The goal is not to make every possible combination unique. The goal is to find the minimal set that identifies the event under the declared grain and source rules.",
+          "For the hypothetical POS event, receipt_no is rejected because receipts have multiple lines and receipt numbers repeat. receipt_no plus line_no is rejected because that pair is only meaningful within a broader issuing context. store_id, business_date, receipt_no, and line_no is tempting, but it is rejected if registers issue receipt numbers independently inside the same store. store_id, register_id, business_date, receipt_no, and sku is rejected because the same SKU can be scanned twice on the same receipt. customer_id, business_date, and sku is rejected because a customer can buy the same SKU more than once in a day, and because customer_id does not identify the register transaction.",
+          "The diagnostic SQL below is illustrative PostgreSQL-style SQL, not execution evidence. It checks whether a proposed key has duplicate groups in a loaded table. A duplicate result means the proposed key cannot identify one row at the declared grain. A zero-row result is not a proof by itself; it only says the loaded data did not contradict the candidate. You still need the source rules and counterexamples.",
+          "After a candidate passes the duplicate check, test minimality by removing one column at a time. If removing register_id still produces no duplicates in a small sample, do not immediately drop it. Ask whether the source rules guarantee receipt numbers are unique across all registers in a store for a business day. If they do not, register_id remains part of the key even if this extract happens not to expose the collision."
+        ],
+        "bullets": [
+          "A duplicate group disproves a candidate key for the loaded data.",
+          "No duplicates in one sample do not prove the business rule.",
+          "A key column is justified by the event’s numbering scope, not by habit.",
+          "Minimality is tested against rules and plausible counterexamples, not only against today’s file."
+        ],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "-- Illustrative PostgreSQL-style diagnostic: find duplicate groups for the proposed key.\nselect\n  store_id,\n  register_id,\n  business_date,\n  receipt_no,\n  line_no,\n  count(*) as row_count\nfrom pos_item_event\ngroup by\n  store_id,\n  register_id,\n  business_date,\n  receipt_no,\n  line_no\nhaving count(*) > 1;\n\n-- Counterexample check: show why receipt_no plus line_no is not enough.\nselect\n  receipt_no,\n  line_no,\n  count(*) as row_count\nfrom pos_item_event\ngroup by receipt_no, line_no\nhaving count(*) > 1;\n\n-- Minimality probe: if this returns duplicates, register_id is necessary in the loaded data.\nselect\n  store_id,\n  business_date,\n  receipt_no,\n  line_no,\n  count(*) as row_count\nfrom pos_item_event\ngroup by\n  store_id,\n  business_date,\n  receipt_no,\n  line_no\nhaving count(*) > 1;"
+          }
+        ]
+      },
+      {
+        "id": "when-the-composite-key-changes",
+        "heading": "When the composite key needs another column",
+        "paragraphs": [
+          "Sometimes the five-column POS key above is still not enough, because the event grain was misstated. Suppose the table stores every register action, including sale, void, return, and price override actions. Now one receipt line may have multiple events over time. If the row is one register action, line_no identifies the line affected, not the action itself. The key may need event_type plus action_sequence, source_event_no, or an event timestamp if the source guarantees it is unique at the required scope.",
+          "This is a grain problem, not a performance problem. Adding more columns to force uniqueness can hide the fact that the table mixes different event types. If sale rows and void rows are both present, decide whether the table is a line-item state table or an event log. A line-item state table might have one row per current receipt line and include status. An event log might have one row per action and use a different key. Both designs can be valid, but they answer different questions.",
+          "Another common change occurs when events are consolidated from several source systems. If two POS platforms both use store_id, register_id, business_date, receipt_no, and line_no, those values may collide after integration. In that case, source_system or source_instance can be part of the composite key, or the ingestion process can map each source event to a durable enterprise event identifier. The modeling rule is the same: the key must identify one event within the universe of rows stored in the table.",
+          "Do not add mutable descriptive attributes just to break ties. Amount, product name, cashier name, customer segment, and loyalty status are usually facts about the event or related entities, not identifiers of the event. If changing a value would create a new key for what the business still considers the same event, the column probably does not belong in the event key."
+        ],
+        "bullets": [
+          "If one receipt line can have multiple actions, line_no may identify the line but not the event.",
+          "If multiple source systems are merged, include the source scope or map to a shared event identifier.",
+          "Avoid using mutable descriptions to make a weak key look unique.",
+          "A wider key is acceptable only when each added column narrows the event’s identity."
+        ],
+        "codeExamples": []
+      },
+      {
+        "id": "enforce-and-document-the-decision",
+        "heading": "Enforce and document the decision",
+        "paragraphs": [
+          "Once the key is chosen, write it down near the model definition: one row per item line recorded on a POS receipt; identified by store_id, register_id, business_date, receipt_no, and line_no. Also document the assumptions that make it true: receipt numbers are assigned per register per business day, line numbers are unique within a receipt, and the table stores item line records rather than every register action.",
+          "Relational databases commonly support primary key and unique constraints over multiple columns. In an analytical warehouse, the same idea may appear as a model test rather than a physical constraint. The important part is that the rule is executable somewhere. If duplicates appear, the failure should tell the data team whether the grain is wrong, the source assumptions changed, or the ingestion process duplicated an event.",
+          "A generated event_id can still be useful. It can make downstream joins shorter and insulate consumers from a long natural identifier. But the generated value should not be the only recorded answer to the identity question. Keeping the composite key as an enforced or tested alternate key preserves the business rule and makes duplicate diagnosis possible.",
+          "A good composite key decision leaves a clear audit trail: this is the event, this is its scope, these are the columns that identify it, these are the counterexamples that rejected smaller candidates, and these are the tests or constraints that guard the rule."
+        ],
+        "bullets": [
+          "Document the grain and the key together.",
+          "Preserve the business key even if a surrogate event_id is added.",
+          "Turn the key rule into a constraint, model test, or duplicate diagnostic.",
+          "Revisit the key when the table’s event universe expands."
+        ],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "-- Illustrative PostgreSQL-style constraint for the hypothetical table.\n-- This is a modeling example, not a recommendation about physical tuning.\nalter table pos_item_event\nadd constraint pos_item_event_business_key\nunique (store_id, register_id, business_date, receipt_no, line_no);"
+          }
+        ]
+      }
+    ],
+    "takeaways": [
+      "A composite key is justified when multiple columns are jointly necessary to identify one event at the declared grain.",
+      "Counterexamples are the fastest way to reject attractive but wrong keys, such as receipt_no plus line_no when numbers repeat by store, register, or date.",
+      "Sample uniqueness is not enough. Use source numbering rules, plausible collisions, and minimality checks before accepting a composite key.",
+      "Generated surrogate identifiers can coexist with composite business keys, but they should not erase the documented event identity rule."
+    ],
+    "sources": [
+      {
+        "title": "Chapter 8. Data Normalisation",
+        "url": "https://www.cs.uct.ac.za/mit_notes/database/htmls/chp08.html"
+      },
+      {
+        "title": "Dimension Surrogate Keys | Kimball Dimensional Modeling Techniques",
+        "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimension-surrogate-key/"
+      },
+      {
+        "title": "PostgreSQL: Documentation: 18: 5.5. Constraints",
+        "url": "https://www.postgresql.org/docs/current/ddl-constraints.html"
+      }
+    ],
+    "requiresVerification": false,
+    "verificationNotes": []
+  },
+  {
+    "slug": "natural-keys-versus-surrogate-keys",
+    "title": "Natural keys versus surrogate keys",
+    "description": "A practical guide to explaining identifier stability when a source customer identifier changes, using a small hypothetical retail dataset and counterexamples.",
+    "primaryKeyword": "Natural keys versus surrogate keys",
+    "relatedKeywords": [
+      "Natural keys versus surrogate keys",
+      "business key vs surrogate key",
+      "natural key"
+    ],
+    "category": "Data Modeling",
+    "level": "Intermediate",
+    "readTime": "8 min",
+    "datePublished": "2026-10-05",
+    "dateModified": "2026-10-05",
+    "canonicalUrl": "https://jwatterson.com/writing/natural-keys-versus-surrogate-keys",
+    "status": "published",
+    "sourceHash": "e6500a82b6698b94",
+    "lead": "The practical question in natural keys versus surrogate keys is not whether business identifiers are good or bad. It is whether the identifier you choose will continue to identify the same thing after source systems rename, merge, split, or reissue values. This guide uses a small hypothetical retail example to show why a changing source customer ID is usually a poor primary identifier for analytical relationships, and how to model the stable identity without throwing away the source identifier.",
+    "sections": [
+      {
+        "id": "the-stability-question",
+        "heading": "The stability question behind the key debate",
+        "paragraphs": [
+          "A natural key is an identifier made from attributes that come from the business domain, such as a loyalty number, product SKU, tax ID, or source customer ID. A surrogate key is an identifier assigned by the data model or database, such as customer_key 501. In practice, the important distinction is not whether the value looks meaningful. The important question is whether the value is stable for the entity you are trying to identify.",
+          "Assume the prerequisite idea of candidate keys: a candidate key must uniquely identify one row at the intended grain. For a customer dimension, the grain might be one real-world customer identity. For an order fact, the grain might be one order event. A value can be unique today and still fail as a long-term identifier if it can change for the same entity or be reused for a different entity.",
+          "A source customer ID is especially tempting because it often arrives already populated, already indexed in the source application, and already present on events. But a source ID is usually a source-system identifier, not necessarily an enterprise identity. It may be stable inside one application while still changing when accounts migrate regions, when a CRM is replaced, when duplicate profiles are merged, or when guest accounts convert to loyalty accounts."
+        ],
+        "bullets": [
+          "Ask: does this value identify the business entity, or only the source system’s current row for that entity?",
+          "Ask: can the value change while the entity remains the same?",
+          "Ask: can the value be reused after deletion, migration, or account closure?",
+          "Ask: does the value exist at the time every dependent fact is created?"
+        ],
+        "codeExamples": []
+      },
+      {
+        "id": "hypothetical-retail-fixture",
+        "heading": "A hypothetical retail fixture where the source ID changes",
+        "paragraphs": [
+          "Consider a hypothetical retail dataset with customers and orders. The source application emits a source_customer_id on every customer profile and order. At first glance, source_customer_id looks like a natural key for the customer table because it is populated and unique in each daily feed.",
+          "On 2026-01-10, the source has customer C-100 with loyalty number L-9001 and email ana@example.test. That customer places order O-1 for 100. On 2026-01-20, the same source ID C-100 places order O-2 for 50. On 2026-02-01, the retailer migrates customers in one region to a new account namespace. The same real-world loyalty member now appears as source customer E-778, still associated with loyalty number L-9001. On 2026-02-05, E-778 places order O-3 for 40.",
+          "There is also a second customer, C-200, with loyalty number L-9002, who places order O-4 for 20. The correct customer-level revenue is straightforward: the customer behind L-9001 has 100 + 50 + 40 = 190, and the customer behind L-9002 has 20. The modeling problem is that this correct result is not recoverable if the changing source ID is treated as the stable customer identity without an alias history.",
+          "This is a hypothetical example, not a claim about a specific retailer or source system. The numbers are deliberately small so the expected result can be checked by inspection."
+        ],
+        "bullets": [
+          "C-100 and E-778 are two source identifiers for the same customer identity.",
+          "The business event amounts are 100, 50, 40, and 20.",
+          "The correct total for the first customer identity is 190, not 150 or 40.",
+          "The model needs to preserve the source identifiers while relating both to a stable customer identity."
+        ],
+        "codeExamples": []
+      },
+      {
+        "id": "counterexample-source-id-as-identity",
+        "heading": "Counterexample: using the changing source ID as the customer identity",
+        "paragraphs": [
+          "If source_customer_id is used as the primary customer identifier in the analytical model, orders before and after the migration are split into different customer groups. The source ID remains useful for lineage and reconciliation, but it does not provide the stable identity needed for customer-level analysis.",
+          "The following illustrative SQL encodes the counterexample. It is not a benchmark and does not rely on engine-specific performance behavior. The expected grouped result is C-100 = 150, C-200 = 20, and E-778 = 40, which is wrong for the customer identity question because C-100 and E-778 represent the same customer."
+        ],
+        "bullets": [],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "WITH orders(order_id, source_customer_id, order_date, amount) AS (\n  VALUES\n    ('O-1', 'C-100', DATE '2026-01-10', 100.00),\n    ('O-2', 'C-100', DATE '2026-01-20',  50.00),\n    ('O-3', 'E-778', DATE '2026-02-05',  40.00),\n    ('O-4', 'C-200', DATE '2026-02-05',  20.00)\n)\nSELECT\n  source_customer_id,\n  SUM(amount) AS revenue\nFROM orders\nGROUP BY source_customer_id\nORDER BY source_customer_id;"
+          }
+        ]
+      },
+      {
+        "id": "why-updating-the-natural-key-does-not-fix-it",
+        "heading": "Why simply updating the natural key does not fix the history",
+        "paragraphs": [
+          "One reaction is to update C-100 to E-778 everywhere. That can make the current customer table look tidy, but it destroys part of the historical evidence unless the old identifier is retained somewhere. Historical events arrived with C-100. Reconciliation to the source feed, audit questions, and late-arriving events may still need to know that C-100 was a valid source identifier for the customer at the time.",
+          "Another reaction is to make source_customer_id a mutable primary key and let updates cascade to related tables. That treats a business correction as though it were the same as an identifier correction. Sometimes a source really did send the wrong ID and a correction should be applied. But a namespace migration is different: C-100 was not wrong on 2026-01-10. It was the identifier that the source used at that time.",
+          "A relational model should be able to say both things at once: the stable customer identity is the same across the migration, and the observed source identifiers changed over time. A single mutable natural key is a poor place to store both claims."
+        ],
+        "bullets": [
+          "Do not overwrite away old source identifiers if they are needed for lineage, reconciliation, or late events.",
+          "Do not assume every source ID change means the previous value was erroneous.",
+          "Do not confuse the source row’s current identifier with the analytical entity’s durable identity."
+        ],
+        "codeExamples": []
+      },
+      {
+        "id": "model-the-stable-identity-explicitly",
+        "heading": "Model the stable identity explicitly",
+        "paragraphs": [
+          "A more robust design separates the stable customer identity from the source identifiers that have represented it. The customer table gets a surrogate customer_key that identifies the analytical customer identity. A separate identity map records which source identifiers map to that customer_key and when they were valid. Facts can then join through the map, preserving both stable analysis and source traceability.",
+          "In the hypothetical fixture, customer_key 501 represents the customer who was C-100 before 2026-02-01 and E-778 starting on 2026-02-01. Customer_key 502 represents C-200. When orders join through the identity map using both the source ID and the event date, the revenue rolls up to the stable customer identity: customer_key 501 has 190, and customer_key 502 has 20.",
+          "This does not mean the surrogate key magically solves identity resolution. The model still needs business rules for deciding that C-100 and E-778 are the same customer. In this example, the rule uses the stable loyalty number L-9001. In another dataset, the rule might require a merge table from the source, a customer master record, or a reviewed identity-resolution process. The surrogate key gives the model a stable place to attach that decision."
+        ],
+        "bullets": [],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "WITH identity_map(source_customer_id, customer_key, valid_from, valid_to) AS (\n  VALUES\n    ('C-100', 501, DATE '2026-01-01', DATE '2026-02-01'),\n    ('E-778', 501, DATE '2026-02-01', NULL),\n    ('C-200', 502, DATE '2026-01-01', NULL)\n),\norders(order_id, source_customer_id, order_date, amount) AS (\n  VALUES\n    ('O-1', 'C-100', DATE '2026-01-10', 100.00),\n    ('O-2', 'C-100', DATE '2026-01-20',  50.00),\n    ('O-3', 'E-778', DATE '2026-02-05',  40.00),\n    ('O-4', 'C-200', DATE '2026-02-05',  20.00)\n)\nSELECT\n  m.customer_key,\n  SUM(o.amount) AS revenue\nFROM orders o\nJOIN identity_map m\n  ON o.source_customer_id = m.source_customer_id\n AND o.order_date >= m.valid_from\n AND (m.valid_to IS NULL OR o.order_date < m.valid_to)\nGROUP BY m.customer_key\nORDER BY m.customer_key;"
+          }
+        ]
+      },
+      {
+        "id": "where-natural-keys-still-belong",
+        "heading": "Where natural keys still belong",
+        "paragraphs": [
+          "The lesson is not that natural keys are always wrong. A natural key can be appropriate when the business truly controls its stability at the modeled grain, when changes are rare and explicitly governed, and when downstream relationships can tolerate the key’s shape and meaning. A country code reference table, a controlled internal product code, or a ledger account number may be reasonable natural-key candidates in the right organization.",
+          "But a natural key should earn that role. It should be evaluated as a candidate key, not accepted because it arrived from a source feed. If the key can change for the same entity, then using it as the primary relationship target will split history unless the model has a durable identity above it. If the key can be reused for a different entity, then it can create false joins across time. If the key can be absent, then it cannot identify every row at the intended grain.",
+          "In dimensional modeling language, Kimball distinguishes natural keys from more durable or surrogate identifiers, and describes surrogate keys as a common technique for dimension rows. The important practical point for this article is narrower: keep the source natural key as data, but do not force it to carry a stability promise it cannot keep."
+        ],
+        "bullets": [
+          "Use natural keys when they are genuinely stable, unique, and mandatory at the modeled grain.",
+          "Use surrogate keys when the model needs a stable internal identifier independent of changing source values.",
+          "Keep source natural keys as alternate keys or lineage attributes even when they are not the primary analytical identity."
+        ],
+        "codeExamples": []
+      },
+      {
+        "id": "constraints-and-diagnostics",
+        "heading": "Constraints and diagnostics that make the decision concrete",
+        "paragraphs": [
+          "Surrogate keys do not remove the need for constraints. They create a stable target for relationships, but the model still needs rules that prevent ambiguous mappings. Relational constraints such as primary keys, unique constraints, and foreign keys express these rules in the schema when the database supports and enforces them. PostgreSQL’s documentation, for example, describes these constraint types as mechanisms for maintaining data integrity; the same modeling ideas apply beyond one engine even though syntax and enforcement details vary.",
+          "For the hypothetical identity map, useful checks include: no duplicate active mapping for the same source system and source customer ID at the same time; no overlapping validity windows for the same source identifier; every order should map to exactly one customer_key for its event date; and every customer_key should be traceable to the business rule or source record that created it. Some of these checks can be enforced with database constraints. Others may need data tests because temporal non-overlap rules are more complex than a single-column unique constraint.",
+          "A good diagnostic query for this topic is not only “are source_customer_id values unique today?” It is “has any supposedly stable identifier mapped to multiple customer identities, or has one customer identity been represented by multiple source identifiers over time?” The first case warns about false merges. The second case warns that using the source ID alone will split history."
+        ],
+        "bullets": [
+          "Test uniqueness at the grain and time period you actually use.",
+          "Track identifier changes as first-class data, not as accidental updates.",
+          "Require facts to map to exactly one stable identity when the metric depends on that identity.",
+          "Investigate both false splits and false merges; either can make customer metrics wrong."
+        ],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "-- Illustrative diagnostic: source IDs that appear under more than one stable identity.\nSELECT\n  source_system,\n  source_customer_id,\n  COUNT(DISTINCT customer_key) AS customer_identity_count\nFROM customer_identity_map\nGROUP BY source_system, source_customer_id\nHAVING COUNT(DISTINCT customer_key) > 1;\n\n-- Illustrative diagnostic: customer identities represented by multiple source IDs.\nSELECT\n  customer_key,\n  COUNT(DISTINCT source_customer_id) AS source_id_count\nFROM customer_identity_map\nGROUP BY customer_key\nHAVING COUNT(DISTINCT source_customer_id) > 1;"
+          }
+        ]
+      },
+      {
+        "id": "decision-rule",
+        "heading": "A decision rule for practitioners",
+        "paragraphs": [
+          "When explaining natural keys versus surrogate keys to a team, avoid framing it as a matter of taste. Frame it as a stability contract. The primary key used by other tables is a promise that the same value will continue to identify the same entity at the chosen grain. If the business cannot make that promise for a source identifier, the analytical model should not pretend otherwise.",
+          "For the hypothetical retail case, source_customer_id is still valuable. It should be stored, indexed where useful, and used for reconciliation to the source. It may participate in an alternate key with source_system and valid dates. But it should not be the stable customer identity because the example shows a same-customer ID change that would split revenue from 190 into 150 and 40.",
+          "The concise rule is: use the natural key when it is stable enough to be the relationship target; use a surrogate key when the model needs a stable identity that can survive changes in source identifiers; and keep the natural identifiers as governed attributes so the model remains explainable."
+        ],
+        "bullets": [],
+        "codeExamples": []
+      }
+    ],
+    "takeaways": [
+      "The real issue in natural keys versus surrogate keys is identifier stability at the modeled grain, not whether the value is human-readable.",
+      "A changing source customer ID can be unique in each feed and still be wrong as the stable customer identity because it splits history.",
+      "A surrogate customer_key plus an identity map preserves both stable analysis and source traceability, but it still requires explicit business rules and data quality checks.",
+      "Natural keys remain useful as alternate keys, lineage attributes, and reconciliation handles even when they should not be primary relationship targets."
+    ],
+    "sources": [
+      {
+        "title": "Natural, Durable, and Supernatural Keys | Kimball Group",
+        "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/natural-durable-supernatural-key/"
+      },
+      {
+        "title": "Dimension Surrogate Keys | Kimball Dimensional Modeling Techniques",
+        "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/dimension-surrogate-key/"
+      },
+      {
+        "title": "PostgreSQL: Documentation: 18: 5.5. Constraints",
+        "url": "https://www.postgresql.org/docs/current/ddl-constraints.html"
+      }
+    ],
+    "requiresVerification": false,
+    "verificationNotes": []
+  },
+  {
+    "slug": "referential-integrity-across-analytical-tables",
+    "title": "Referential integrity across analytical tables",
+    "description": "A practical guide to detecting orphaned facts in analytical tables while preserving legitimate late-arriving dimensions and pending dimension matches.",
+    "primaryKeyword": "Referential integrity across analytical tables",
+    "relatedKeywords": [
+      "Referential integrity across analytical tables"
+    ],
+    "category": "Data Modeling",
+    "level": "Intermediate",
+    "readTime": "7 min",
+    "datePublished": "2026-10-05",
+    "dateModified": "2026-10-05",
+    "canonicalUrl": "https://jwatterson.com/writing/referential-integrity-across-analytical-tables",
+    "status": "published",
+    "sourceHash": "328008b66a4d121b",
+    "lead": "Analytical warehouses often cannot treat referential integrity exactly like an OLTP database. A fact row can arrive before its dimension row is complete, but that does not mean every missing dimension reference is acceptable. The useful practice is to classify missing references: preserve legitimate late-arriving dimensions, isolate real orphans, and make the unresolved middle visible.",
+    "sections": [
+      {
+        "id": "why-analytical-referential-integrity-is-different",
+        "heading": "Why analytical referential integrity is different",
+        "paragraphs": [
+          "In a transactional system, a foreign key from an order to a customer can often be enforced at write time. If the customer does not exist, the transaction is rejected. Analytical tables have a different timing problem. Facts, dimensions, and corrections may arrive from different source feeds, at different times, and with different levels of completeness.",
+          "The relational expectation still matters: an order fact that claims to belong to customer key 101 should have a corresponding customer dimension row for key 101. Without that expectation, joins become ambiguous, measures disappear under inner joins, and analysts cannot tell whether missing attributes mean “unknown,” “not yet loaded,” or “bad reference.”",
+          "The trap is treating every non-match as the same defect. Kimball dimensional modeling guidance distinguishes late-arriving dimensions and late-arriving facts. A fact can arrive before all dimension attributes are known, and a dimension can be inferred first and completed later. That means the data engineering check should not simply delete, reject, or inner join away every fact that does not currently have a fully populated dimension row.",
+          "A better rule is: detect orphaned facts without discarding legitimate late dimensions. The check needs to separate at least five cases: a normal match, a match to an inferred late-arriving dimension row, a recent fact still inside an accepted dimension-arrival window, an aged missing dimension, and a populated foreign key that points nowhere."
+        ],
+        "bullets": [],
+        "codeExamples": []
+      },
+      {
+        "id": "hypothetical-retail-fixture",
+        "heading": "A hypothetical retail fixture with counterexamples",
+        "paragraphs": [
+          "Consider a hypothetical retail order mart. The fact table records one row per order. The customer dimension has a warehouse customer key and a source customer identifier. The source identifier is included only to help diagnose arrival timing; the example does not depend on a broader debate about natural and surrogate keys.",
+          "The dimension includes an agreed unknown customer row with key 0. It also includes one inferred customer row: customer key 102 exists because an order arrived before the customer profile was complete. That row is not an orphan; it is a deliberate placeholder that should be completed later.",
+          "Assume the diagnostic runs at 2026-02-16 00:00:00 and the team allows a two-day grace period for customer dimensions to arrive. A fact loaded on or after 2026-02-14 00:00:00 with no customer key is still pending. A fact older than that with no customer key has exceeded the grace period. These thresholds are business rules, not universal constants."
+        ],
+        "bullets": [
+          "Order O1002 is a legitimate late-arriving dimension case because it joins to an inferred customer dimension row.",
+          "Order O1003 is not yet an orphan because it was loaded inside the two-day grace period and still carries a source customer id.",
+          "Order O1004 is an orphaned surrogate-key reference because it points to customer key 999, which is absent from the customer dimension.",
+          "Order O1006 is an aged missing dimension because it has no customer key and has exceeded the grace period.",
+          "Order O1007 is routed to the explicit unknown customer member, which is different from an accidental non-match."
+        ],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "-- Illustrative SQL fixture. Syntax may need minor adaptation by engine.\nWITH dim_customer AS (\n    SELECT 0 AS customer_key, 'UNKNOWN' AS source_customer_id, 'Unknown customer' AS customer_name, FALSE AS is_inferred\n    UNION ALL SELECT 101, 'C001', 'Aster Bikes', FALSE\n    UNION ALL SELECT 102, 'C002', 'Inferred pending profile', TRUE\n    UNION ALL SELECT 103, 'C003', 'Northwind Outlet', FALSE\n),\nfact_order AS (\n    SELECT 'O1001' AS order_id, DATE '2026-02-10' AS order_date, 'C001' AS source_customer_id, 101 AS customer_key, 120.00 AS order_amount, TIMESTAMP '2026-02-10 09:10:00' AS load_received_at\n    UNION ALL SELECT 'O1002', DATE '2026-02-11', 'C002', 102, 45.00, TIMESTAMP '2026-02-11 10:00:00'\n    UNION ALL SELECT 'O1003', DATE '2026-02-15', 'C004', NULL, 80.00, TIMESTAMP '2026-02-15 08:30:00'\n    UNION ALL SELECT 'O1004', DATE '2026-02-13', 'C999', 999, 22.00, TIMESTAMP '2026-02-10 07:45:00'\n    UNION ALL SELECT 'O1005', DATE '2026-02-14', 'C003', 103, 60.00, TIMESTAMP '2026-02-14 12:00:00'\n    UNION ALL SELECT 'O1006', DATE '2026-02-10', 'C005', NULL, 35.00, TIMESTAMP '2026-02-10 11:00:00'\n    UNION ALL SELECT 'O1007', DATE '2026-02-12', NULL, 0, 15.00, TIMESTAMP '2026-02-12 14:00:00'\n)\nSELECT *\nFROM fact_order;"
+          }
+        ]
+      },
+      {
+        "id": "the-counterexample-inner-join-hides-the-problem",
+        "heading": "Counterexample: an inner join hides the problem",
+        "paragraphs": [
+          "A common mistake is to validate a fact table by joining it to the dimension and checking whether the query returns rows. An inner join is not a referential integrity diagnostic. It silently removes the evidence you need to inspect.",
+          "In the fixture, the total order amount is 377.00. An inner join from facts to customer dimension on customer_key returns O1001, O1002, O1005, and O1007. It drops O1003 because the customer key is not assigned yet, drops O1004 because key 999 does not exist, and drops O1006 because no key was assigned. The joined total is 240.00, not because the business only took 240.00 of orders, but because 137.00 was filtered out by the join.",
+          "That discarded 137.00 mixes different meanings: 80.00 is a recent pending late-dimension case, 22.00 is a bad populated key, and 35.00 is an aged unresolved dimension. The inner join removes all three and gives the team no way to decide what should happen next."
+        ],
+        "bullets": [],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "WITH dim_customer AS (\n    SELECT 0 AS customer_key, 'UNKNOWN' AS source_customer_id, 'Unknown customer' AS customer_name, FALSE AS is_inferred\n    UNION ALL SELECT 101, 'C001', 'Aster Bikes', FALSE\n    UNION ALL SELECT 102, 'C002', 'Inferred pending profile', TRUE\n    UNION ALL SELECT 103, 'C003', 'Northwind Outlet', FALSE\n),\nfact_order AS (\n    SELECT 'O1001' AS order_id, DATE '2026-02-10' AS order_date, 'C001' AS source_customer_id, 101 AS customer_key, 120.00 AS order_amount, TIMESTAMP '2026-02-10 09:10:00' AS load_received_at\n    UNION ALL SELECT 'O1002', DATE '2026-02-11', 'C002', 102, 45.00, TIMESTAMP '2026-02-11 10:00:00'\n    UNION ALL SELECT 'O1003', DATE '2026-02-15', 'C004', NULL, 80.00, TIMESTAMP '2026-02-15 08:30:00'\n    UNION ALL SELECT 'O1004', DATE '2026-02-13', 'C999', 999, 22.00, TIMESTAMP '2026-02-10 07:45:00'\n    UNION ALL SELECT 'O1005', DATE '2026-02-14', 'C003', 103, 60.00, TIMESTAMP '2026-02-14 12:00:00'\n    UNION ALL SELECT 'O1006', DATE '2026-02-10', 'C005', NULL, 35.00, TIMESTAMP '2026-02-10 11:00:00'\n    UNION ALL SELECT 'O1007', DATE '2026-02-12', NULL, 0, 15.00, TIMESTAMP '2026-02-12 14:00:00'\n)\nSELECT\n    COUNT(*) AS joined_order_count,\n    SUM(f.order_amount) AS joined_order_amount\nFROM fact_order f\nJOIN dim_customer d\n  ON f.customer_key = d.customer_key;\n\n-- Expected result for this fixture:\n-- joined_order_count = 4\n-- joined_order_amount = 240.00"
+          }
+        ]
+      },
+      {
+        "id": "classification-query-for-orphan-detection",
+        "heading": "A classification query for orphan detection",
+        "paragraphs": [
+          "Use a left join, but do not stop at “dimension row is null.” Add the timing and modeling rules that distinguish acceptable lateness from a true orphan. The output should be a classified exception set, not just a pass/fail result.",
+          "The order of the cases matters. A reserved unknown member is a modeled route and should not be confused with an accidental missing dimension row. A populated customer key that fails to join is usually more suspicious than a null customer key, because the fact claims a specific warehouse key that the dimension does not contain. An inferred dimension row is a successful reference, but it should remain visible because too many inferred rows can indicate upstream customer-profile latency.",
+          "For the hypothetical fixture, the expected classification is six categories: two matched real-dimension facts totaling 180.00, one inferred late-dimension match totaling 45.00, one recent pending late-dimension fact totaling 80.00, one orphaned surrogate-key fact totaling 22.00, one aged missing-dimension fact totaling 35.00, and one unknown-member route totaling 15.00. The immediately actionable referential defects are O1004 and O1006, totaling 57.00. O1002 and O1003 should not be discarded."
+        ],
+        "bullets": [],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "WITH dim_customer AS (\n    SELECT 0 AS customer_key, 'UNKNOWN' AS source_customer_id, 'Unknown customer' AS customer_name, FALSE AS is_inferred\n    UNION ALL SELECT 101, 'C001', 'Aster Bikes', FALSE\n    UNION ALL SELECT 102, 'C002', 'Inferred pending profile', TRUE\n    UNION ALL SELECT 103, 'C003', 'Northwind Outlet', FALSE\n),\nfact_order AS (\n    SELECT 'O1001' AS order_id, DATE '2026-02-10' AS order_date, 'C001' AS source_customer_id, 101 AS customer_key, 120.00 AS order_amount, TIMESTAMP '2026-02-10 09:10:00' AS load_received_at\n    UNION ALL SELECT 'O1002', DATE '2026-02-11', 'C002', 102, 45.00, TIMESTAMP '2026-02-11 10:00:00'\n    UNION ALL SELECT 'O1003', DATE '2026-02-15', 'C004', NULL, 80.00, TIMESTAMP '2026-02-15 08:30:00'\n    UNION ALL SELECT 'O1004', DATE '2026-02-13', 'C999', 999, 22.00, TIMESTAMP '2026-02-10 07:45:00'\n    UNION ALL SELECT 'O1005', DATE '2026-02-14', 'C003', 103, 60.00, TIMESTAMP '2026-02-14 12:00:00'\n    UNION ALL SELECT 'O1006', DATE '2026-02-10', 'C005', NULL, 35.00, TIMESTAMP '2026-02-10 11:00:00'\n    UNION ALL SELECT 'O1007', DATE '2026-02-12', NULL, 0, 15.00, TIMESTAMP '2026-02-12 14:00:00'\n),\nclassified AS (\n    SELECT\n        f.order_id,\n        f.source_customer_id,\n        f.customer_key,\n        f.order_amount,\n        f.load_received_at,\n        d.customer_name,\n        d.is_inferred,\n        CASE\n            WHEN f.customer_key = 0 AND d.customer_key IS NOT NULL\n                THEN 'unknown_member_route'\n            WHEN f.customer_key IS NOT NULL AND d.customer_key IS NULL\n                THEN 'orphaned_surrogate_key'\n            WHEN d.customer_key IS NOT NULL AND d.is_inferred = TRUE\n                THEN 'matched_inferred_late_dimension'\n            WHEN f.customer_key IS NULL\n                 AND d.customer_key IS NULL\n                 AND f.load_received_at >= TIMESTAMP '2026-02-14 00:00:00'\n                THEN 'pending_late_dimension_within_grace'\n            WHEN f.customer_key IS NULL AND d.customer_key IS NULL\n                THEN 'aged_missing_dimension'\n            ELSE 'matched_real_dimension'\n        END AS reference_status\n    FROM fact_order f\n    LEFT JOIN dim_customer d\n      ON f.customer_key = d.customer_key\n)\nSELECT\n    reference_status,\n    COUNT(*) AS order_count,\n    SUM(order_amount) AS order_amount\nFROM classified\nGROUP BY reference_status\nORDER BY reference_status;\n\n-- Expected result for this fixture:\n-- aged_missing_dimension: 1 order, 35.00\n-- matched_inferred_late_dimension: 1 order, 45.00\n-- matched_real_dimension: 2 orders, 180.00\n-- orphaned_surrogate_key: 1 order, 22.00\n-- pending_late_dimension_within_grace: 1 order, 80.00\n-- unknown_member_route: 1 order, 15.00"
+          }
+        ]
+      },
+      {
+        "id": "turn-classification-into-a-data-contract",
+        "heading": "Turn the classification into a data contract",
+        "paragraphs": [
+          "The diagnostic becomes useful when each status has an owner and a consequence. Otherwise, the query is just a report of known messiness. The contract should say which statuses are allowed in published marts, which are allowed only temporarily, and which should block or quarantine rows before broad consumption.",
+          "A reasonable pattern is to publish matched real dimensions, matched inferred dimensions, and explicit unknown-member routes if the business accepts them. Recent pending late dimensions can remain in a staging or exception area until the dimension arrives or the grace period expires. Orphaned surrogate keys and aged missing dimensions should be treated as defects because the model no longer has a credible path from the fact to the dimension.",
+          "There is a tradeoff. If the grace period is too short, the pipeline will raise false alarms during normal source latency. If it is too long, real defects remain mixed with ordinary pending data. The right window depends on the source system’s expected arrival pattern and the reporting tolerance for incomplete dimensional attributes.",
+          "The same classification can support both row-level repair and aggregate monitoring. Row-level output tells an engineer which orders need investigation. Aggregates tell the team whether a recurring upstream issue is getting worse. For example, a rising count of inferred customer rows might mean the customer-profile feed is lagging behind the order feed, even though the fact rows are not technically orphaned."
+        ],
+        "bullets": [
+          "Matched real dimension: publish normally.",
+          "Matched inferred late dimension: publish if inferred dimensions are part of the model, but monitor completion.",
+          "Pending late dimension within grace: keep visible and reprocess when the dimension arrives; do not classify as a defect yet.",
+          "Orphaned surrogate key: investigate immediately because the fact points to a dimension key that does not exist.",
+          "Aged missing dimension: investigate or route to an agreed unknown member according to business rules.",
+          "Unknown member route: publish only if the unknown member is an explicit modeling choice, not a silent default."
+        ],
+        "codeExamples": []
+      },
+      {
+        "id": "practical-implementation-notes",
+        "heading": "Practical implementation notes",
+        "paragraphs": [
+          "This article focuses on relational semantics, not engine tuning. The core pattern is portable: preserve facts, left join to the dimension, classify the reference status, and aggregate exceptions by status. In a production pipeline, the same logic might live in a transformation model, a data quality test, an exception table, or a reconciliation dashboard.",
+          "The most important implementation detail is to keep the exception rows. A boolean test such as “all fact customer keys exist in dim_customer” is too blunt for analytical loading. Store order_id, source_customer_id, customer_key, load time, reference_status, and the diagnostic run time. Those columns make the difference between a failed check and a repairable queue.",
+          "Another practical detail is to avoid using only aggregate thresholds. A rule such as “less than 0.1 percent orphaned facts is acceptable” may be useful for alerting, but it should not replace row-level classification. One high-value orphan can matter more than many low-value rows, and a small defect can reveal a broken key assignment path.",
+          "Finally, do not use the diagnostic as an excuse to discard facts. Inner joins, delete-and-reload shortcuts, and broad filters can make quality metrics look cleaner while making the analytical dataset less truthful. The goal is to preserve the business event, identify its current reference status, and repair the relationship when the necessary dimension information becomes available."
+        ],
+        "bullets": [],
+        "codeExamples": []
+      }
+    ],
+    "takeaways": [
+      "Referential integrity still matters in analytical models, even when load timing prevents strict transactional enforcement.",
+      "A missing dimension match is not always an orphan; inferred dimensions and recent pending facts are legitimate late-arriving cases when they are explicitly modeled.",
+      "Use classification, not an inner join, to separate matched facts, inferred late dimensions, pending late dimensions, orphaned keys, aged missing dimensions, and unknown-member routes.",
+      "The example’s actionable defects are the orphaned populated key and the aged missing dimension, totaling 57.00; the late-arriving cases should remain visible rather than being discarded."
+    ],
+    "sources": [
+      {
+        "title": "Late Arriving Dimension | Kimball Dimensional Modeling Techniques",
+        "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/late-arriving-dimension/"
+      },
+      {
+        "title": "Late Arriving Fact | Kimball Dimensional Modeling Techniques",
+        "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/late-arriving-fact/"
+      },
+      {
+        "title": "Dimensional Modeling Techniques - Kimball Group",
+        "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/"
+      }
+    ],
+    "requiresVerification": false,
+    "verificationNotes": []
+  },
+  {
+    "slug": "set-semantics-versus-bag-semantics-in-sql",
+    "title": "Set semantics versus bag semantics in SQL",
+    "description": "A practical guide to showing why duplicate rows survive ordinary SQL queries, using a small hypothetical retail dataset and grain-based diagnostics.",
+    "primaryKeyword": "Set semantics versus bag semantics in SQL",
+    "relatedKeywords": [
+      "Set semantics versus bag semantics in SQL"
+    ],
+    "category": "Data Modeling",
+    "level": "Intermediate",
+    "readTime": "7 min",
+    "datePublished": "2026-10-05",
+    "dateModified": "2026-10-05",
+    "canonicalUrl": "https://jwatterson.com/writing/set-semantics-versus-bag-semantics-in-sql",
+    "status": "published",
+    "sourceHash": "1c35775a5478a301",
+    "lead": "SQL looks relational, but ordinary SELECT queries do not behave like pure set operations. Unless a query asks for duplicate elimination, SQL preserves duplicate rows. That matters when a join, projection, or report appears to be “duplicating” data. Often the query is doing exactly what bag semantics say it should do.",
+    "sections": [
+      {
+        "id": "the-reader-problem",
+        "heading": "The reader problem: the same-looking row appears twice",
+        "paragraphs": [
+          "A common debugging moment in analytics engineering is seeing the same customer, product, or date repeated in a result and asking whether SQL made a mistake. The short answer is no: ordinary SQL query results use bag semantics, also called multiset semantics. A bag can contain two rows with the same values. A mathematical set cannot.",
+          "Relational theory is usually introduced with sets. In set semantics, a relation has no duplicate tuples. But SQL tables and query results can contain duplicate rows unless constraints or query operators prevent them. A primary key can prevent duplicate identifiers in a base table. A UNIQUE constraint can prevent duplicate values for selected columns. Neither of those constraints says that every SELECT result must be duplicate-free.",
+          "This distinction is not an engine tuning issue. It is a modeling and query semantics issue. The practical skill is to identify the grain of each intermediate result: what one row represents at that point in the query. If the grain is “one order line,” then seeing a customer repeated across multiple rows is expected. If the desired grain is “one customer,” the query must aggregate, filter, or deduplicate intentionally."
+        ],
+        "bullets": [],
+        "codeExamples": []
+      },
+      {
+        "id": "hypothetical-fixture",
+        "heading": "A small hypothetical retail fixture",
+        "paragraphs": [
+          "Use this hypothetical retail dataset. It is deliberately small enough to reason about by inspection. The important assumption is that declared identifiers are unique at their natural grain: one row per customer, one row per order, and one row per order line within an order.",
+          "The fixture avoids null-specific behavior. Every foreign key value shown has a matching parent row. The goal is only to show why ordinary projection and joins preserve duplicate-looking rows."
+        ],
+        "bullets": [
+          "customers has grain one row per customer.",
+          "orders has grain one row per order.",
+          "order_lines has grain one row per line item on an order.",
+          "A customer may place many orders, and an order may have many lines."
+        ],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "-- Hypothetical fixture for explanation; not evidence of execution.\nCREATE TABLE customers (\n  customer_id text PRIMARY KEY,\n  email text UNIQUE,\n  customer_name text NOT NULL\n);\n\nCREATE TABLE orders (\n  order_id text PRIMARY KEY,\n  customer_id text NOT NULL REFERENCES customers(customer_id),\n  order_date date NOT NULL\n);\n\nCREATE TABLE order_lines (\n  order_id text NOT NULL REFERENCES orders(order_id),\n  line_no integer NOT NULL,\n  sku text NOT NULL,\n  quantity integer NOT NULL,\n  PRIMARY KEY (order_id, line_no)\n);\n\nINSERT INTO customers (customer_id, email, customer_name) VALUES\n  ('C1', 'ada@example.test', 'Ada'),\n  ('C2', 'ben@example.test', 'Ben');\n\nINSERT INTO orders (order_id, customer_id, order_date) VALUES\n  ('O10', 'C1', DATE '2026-10-01'),\n  ('O11', 'C1', DATE '2026-10-02'),\n  ('O12', 'C2', DATE '2026-10-02');\n\nINSERT INTO order_lines (order_id, line_no, sku, quantity) VALUES\n  ('O10', 1, 'PEN', 2),\n  ('O10', 2, 'PAD', 1),\n  ('O11', 1, 'PEN', 1),\n  ('O12', 1, 'PAD', 3);"
+          }
+        ]
+      },
+      {
+        "id": "projection-preserves-duplicates",
+        "heading": "Projection in SQL is not set projection unless you ask",
+        "paragraphs": [
+          "Start with the simplest counterexample: select only customer_id from orders. The orders table has three rows. Two of those rows belong to customer C1. In relational algebra under set semantics, projecting only customer_id would produce the set of customer identifiers: C1 and C2. Ordinary SQL does not do that. It returns one output row for each input order row, with only the requested column retained.",
+          "The expected result has three rows: C1, C1, and C2. The two C1 rows are not contradictory. They represent two different input orders after the order_id column has been removed from the output. Once order_id is no longer visible, two rows can have the same displayed values while still being the result of two distinct input rows.",
+          "Adding DISTINCT changes the operator. It asks SQL to eliminate duplicate rows across the selected columns. The expected distinct result has two rows: C1 and C2. That is useful when the question is “which customers have placed at least one order?” It is wrong if the question is “how many orders are represented?” because it discards multiplicity."
+        ],
+        "bullets": [],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "-- Ordinary SQL projection: expected rows are C1, C1, C2.\nSELECT customer_id\nFROM orders\nORDER BY customer_id;\n\n-- Explicit duplicate elimination: expected rows are C1, C2.\nSELECT DISTINCT customer_id\nFROM orders\nORDER BY customer_id;"
+          }
+        ]
+      },
+      {
+        "id": "joins-multiply-by-matching-rows",
+        "heading": "Joins preserve every matching combination",
+        "paragraphs": [
+          "Joins are the second place where bag semantics surprise people. A join does not produce one row per customer just because customers is part of the query. It produces rows according to the matches between the joined inputs. PostgreSQL’s table expression documentation describes joined tables in terms of rows formed from matching rows of the inputs; the same conceptual rule is enough for this example.",
+          "Join customers to orders. Customer C1 matches two orders, so C1 appears twice. Customer C2 matches one order, so C2 appears once. Nothing is duplicated accidentally; the result grain is one row per order with customer attributes attached.",
+          "Now join through order_lines. Order O10 has two lines, O11 has one line, and O12 has one line. The result grain becomes one row per order line with customer and order attributes attached. Ada appears three times because Ada has three order lines across two orders. Ben appears once because Ben has one order line. If the query selects only customer_name, the output may look like duplicate customer rows, but the hidden grain is still order line.",
+          "This is the main diagnostic move: do not ask first whether duplicates exist. Ask what the query’s row grain is. A repeated value is only an error if it violates the intended grain."
+        ],
+        "bullets": [],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "-- Expected result grain: one row per order.\n-- Ada appears for O10 and O11; Ben appears for O12.\nSELECT c.customer_name, o.order_id\nFROM customers AS c\nJOIN orders AS o\n  ON o.customer_id = c.customer_id\nORDER BY c.customer_name, o.order_id;\n\n-- Expected result grain: one row per order line.\n-- Rows: Ada/O10/1, Ada/O10/2, Ada/O11/1, Ben/O12/1.\nSELECT c.customer_name, l.order_id, l.line_no, l.sku, l.quantity\nFROM customers AS c\nJOIN orders AS o\n  ON o.customer_id = c.customer_id\nJOIN order_lines AS l\n  ON l.order_id = o.order_id\nORDER BY c.customer_name, l.order_id, l.line_no;"
+          }
+        ]
+      },
+      {
+        "id": "counterexample-distinct-hides-the-wrong-problem",
+        "heading": "Counterexample: DISTINCT can hide the wrong problem",
+        "paragraphs": [
+          "Suppose a report wants one row per customer with two metrics: number of orders and number of order lines. A tempting but unsafe reaction to repeated customer rows is to add DISTINCT to the final SELECT. That may make the display shorter, but it does not answer the metric question. It can also hide a many-to-many join path that inflated counts before the final projection.",
+          "A better pattern is to aggregate at the intended grain before joining result sets. For this fixture, count orders per customer from orders, count lines per customer by joining orders to order_lines, then join the two customer-grain summaries. The Kimball Group’s guidance on multipass SQL addresses a related dimensional modeling concern: avoid direct fact-to-fact joins when combining metrics at different grains; aggregate each fact stream to a common grain first.",
+          "The arithmetic is checkable by inspection. C1 has orders O10 and O11, so order_count is 2. C1 has lines O10-1, O10-2, and O11-1, so line_count is 3. C2 has order O12 and line O12-1, so both counts are 1. The final customer-grain result should therefore be C1: 2 orders and 3 lines; C2: 1 order and 1 line."
+        ],
+        "bullets": [],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "-- Customer-grain metrics by aggregating before the final join.\nWITH order_counts AS (\n  SELECT customer_id, COUNT(*) AS order_count\n  FROM orders\n  GROUP BY customer_id\n),\nline_counts AS (\n  SELECT o.customer_id, COUNT(*) AS line_count\n  FROM orders AS o\n  JOIN order_lines AS l\n    ON l.order_id = o.order_id\n  GROUP BY o.customer_id\n)\nSELECT c.customer_id,\n       c.customer_name,\n       oc.order_count,\n       lc.line_count\nFROM customers AS c\nLEFT JOIN order_counts AS oc\n  ON oc.customer_id = c.customer_id\nLEFT JOIN line_counts AS lc\n  ON lc.customer_id = c.customer_id\nORDER BY c.customer_id;\n\n-- Expected rows from the hypothetical fixture:\n-- C1, Ada, 2, 3\n-- C2, Ben, 1, 1"
+          }
+        ]
+      },
+      {
+        "id": "diagnostic-queries-for-grain",
+        "heading": "A diagnostic for duplicate-looking rows",
+        "paragraphs": [
+          "When a result has duplicate-looking rows, compare the displayed row count with the count at the intended key. This is a semantics diagnostic, not a performance prescription. It helps separate three cases: expected multiplicity, missing key columns in the SELECT list, and a genuinely unintended join path.",
+          "For the order-line join above, the physical result has four rows. If the intended grain is customer, the same result contains only two distinct customer_ids. That mismatch is not automatically a bug, but it proves that the current query is not customer-grain. If the intended grain is order line, then the key is order_id plus line_no, and the four rows are exactly right.",
+          "Constraints help make this reasoning reliable. A primary key on customers states that customer_id identifies one customer row. A primary key on order_lines states that order_id plus line_no identifies one line row. PostgreSQL’s constraint documentation describes primary keys and unique constraints as mechanisms for enforcing uniqueness. The key point for modeling is that uniqueness belongs to declared or inferred grains; it does not magically propagate to every projection of a query."
+        ],
+        "bullets": [
+          "Name the intended grain in one sentence: one row per customer, order, order line, day, or other entity.",
+          "List the columns that identify that grain.",
+          "Count result rows and count distinct grain keys.",
+          "If result rows exceed distinct grain keys, inspect joins and projections before adding DISTINCT.",
+          "Use DISTINCT only when duplicate elimination is part of the question, not as a reflexive cleanup step."
+        ],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "-- Diagnostic: compare result rows with customer-grain rows.\nWITH result AS (\n  SELECT c.customer_id, c.customer_name, l.order_id, l.line_no\n  FROM customers AS c\n  JOIN orders AS o\n    ON o.customer_id = c.customer_id\n  JOIN order_lines AS l\n    ON l.order_id = o.order_id\n)\nSELECT\n  COUNT(*) AS result_rows,\n  COUNT(*) - (\n    SELECT COUNT(*)\n    FROM (SELECT DISTINCT customer_id FROM result) AS distinct_customers\n  ) AS rows_above_customer_grain\nFROM result;\n\n-- From the fixture, result_rows is 4 and rows_above_customer_grain is 2.\n-- That says the result is not one row per customer."
+          }
+        ]
+      },
+      {
+        "id": "practical-rule",
+        "heading": "The practical rule",
+        "paragraphs": [
+          "In SQL, duplicate rows survive ordinary relational queries because SQL generally operates on bags. SELECT keeps one output row for each qualifying input row. Projection can remove the columns that made those rows distinguishable. Joins form rows for matching combinations. DISTINCT, GROUP BY, and properly chosen aggregation are explicit changes to that behavior.",
+          "This is why “the query duplicated my customers” is often an imprecise diagnosis. More precise language is: “the query is at order-line grain, but I selected customer columns,” or “the join path creates multiple matches per intended key,” or “I need a customer-grain aggregate before the final join.” That phrasing points to the fix without erasing meaningful multiplicity."
+        ],
+        "bullets": [],
+        "codeExamples": []
+      }
+    ],
+    "takeaways": [
+      "Ordinary SQL uses bag semantics: duplicate-looking rows can survive projection and joins unless duplicate elimination is explicitly requested.",
+      "A repeated value is not necessarily a duplicate entity. Determine the row grain before deciding whether the result is wrong.",
+      "DISTINCT is correct when the question requires unique selected rows, but it can hide grain mistakes and inflated intermediate results.",
+      "Primary keys and unique constraints enforce uniqueness in base tables or declared column sets; they do not guarantee every query result is duplicate-free.",
+      "For mixed-grain metrics, aggregate each input to the intended common grain before joining the summaries."
+    ],
+    "sources": [
+      {
+        "title": "PostgreSQL: Documentation: 18: 5.5. Constraints",
+        "url": "https://www.postgresql.org/docs/current/ddl-constraints.html"
+      },
+      {
+        "title": "PostgreSQL: Documentation: 18: 7.2. Table Expressions",
+        "url": "https://www.postgresql.org/docs/current/queries-table-expressions.html"
+      },
+      {
+        "title": "Multipass SQL to Avoid Fact-to-Fact Table Joins | Kimball Dimensional Modeling Techniques",
+        "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/multipass-sql/"
+      }
+    ],
+    "requiresVerification": false,
+    "verificationNotes": []
+  },
+  {
+    "slug": "first-normal-form-and-repeating-groups",
+    "title": "First normal form and repeating groups",
+    "description": "A practical guide to reshaping repeating attributes into child tables while preserving the parent key, using a small hypothetical retail-order example with counterexamples and diagnostics.",
+    "primaryKeyword": "First normal form and repeating groups",
+    "relatedKeywords": [
+      "First normal form and repeating groups"
+    ],
+    "category": "Data Modeling",
+    "level": "Beginner",
+    "readTime": "7 min",
+    "datePublished": "2026-10-05",
+    "dateModified": "2026-10-05",
+    "canonicalUrl": "https://jwatterson.com/writing/first-normal-form-and-repeating-groups",
+    "status": "published",
+    "sourceHash": "dfe49a876eb00e39",
+    "lead": "Repeating attributes are easy to create and painful to query. A table with item_1_sku, item_2_sku, and item_3_sku looks convenient until a fourth item appears, an item needs its own status, or an analyst must count products across orders. First normal form is the point where you stop hiding a set of child facts inside one parent row. The practical move is not just to split columns out; it is to split them out while carrying the parent key and the child grain with them.",
+    "sections": [
+      {
+        "id": "the-modeling-problem",
+        "heading": "The modeling problem: repeated facts inside one row",
+        "paragraphs": [
+          "First normal form is often summarized as removing repeating groups and storing values from atomic domains. For practitioners, the useful test is simpler: if the same kind of fact appears multiple times in one row, and the column names differ mainly by a suffix or position, you probably have a repeating group.",
+          "Consider this hypothetical retail-order extract. It is not a benchmark or production example; it is a small fixture for reasoning about keys and dependencies. The business event is an order. Each order can contain zero or more purchased products. A compact spreadsheet-style design might store the first three products directly on the order row.",
+          "This design appears to preserve the order, because every product column sits beside order_id. But the relationship is only implicit. The parent order is mixed with several child item occurrences. The table’s candidate key may be order_id, but order_id does not identify a single product occurrence. It identifies a row that may contain several product facts."
+        ],
+        "bullets": [
+          "Parent grain: one row per order.",
+          "Hidden child grain: one product occurrence within an order.",
+          "Symptom: item_1_sku, item_2_sku, and item_3_sku are the same attribute repeated by position.",
+          "Risk: the design has no stable place for the fourth item, item-level status, item-level discount, or item-level return reason."
+        ],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "-- Hypothetical denormalized order extract\n-- The numbered columns are the repeating group.\nCREATE TABLE order_extract_bad (\n  order_id        INTEGER PRIMARY KEY,\n  order_date      DATE NOT NULL,\n  customer_id     INTEGER NOT NULL,\n  item_1_sku      TEXT,\n  item_1_qty      INTEGER,\n  item_1_price    NUMERIC(10,2),\n  item_2_sku      TEXT,\n  item_2_qty      INTEGER,\n  item_2_price    NUMERIC(10,2),\n  item_3_sku      TEXT,\n  item_3_qty      INTEGER,\n  item_3_price    NUMERIC(10,2)\n);\n\nINSERT INTO order_extract_bad VALUES\n  (1001, DATE '2026-10-01', 501, 'MUG-BLUE', 2, 8.00, 'TEA-EARL', 1, 12.50, NULL, NULL, NULL),\n  (1002, DATE '2026-10-01', 502, 'MUG-BLUE', 1, 8.00, NULL, NULL, NULL, NULL, NULL, NULL),\n  (1003, DATE '2026-10-02', 501, 'INFUSER', 1, 6.00, 'TEA-GRN', 2, 11.00, 'HONEY', 1, 5.50);"
+          }
+        ]
+      },
+      {
+        "id": "why-naive-splitting-loses-meaning",
+        "heading": "Counterexamples: two ways to split the columns incorrectly",
+        "paragraphs": [
+          "The fix is not merely to make a taller table. The fix is to preserve the parent relationship and define the child key. Two common counterexamples show why.",
+          "The first counterexample is to create an item table without order_id. This produces a bag of item facts, but no fact states which order contained which item. The parent-child relationship has been discarded. You can count sku values, but you cannot reconstruct order 1001.",
+          "The second counterexample is to create a child table with order_id and sku only, treating those two columns as the key. That fails when the same product can appear twice on an order for different reasons. For example, a customer might buy one mug at full price and another as part of a later promotion in the same order, or a source system might record separate item rows because they came from different fulfillment locations. Whether that can happen is a business rule. The data model should not accidentally prohibit it unless the rule is explicit.",
+          "A safer child grain is one row per order line. The line is identified by the parent order_id plus a line_number assigned by the source or by the ingestion process according to a deterministic rule. Now the row has an address: order 1003, line 2. The sku is an attribute of that line, not the identifier of the relationship itself."
+        ],
+        "bullets": [
+          "Bad split 1: store sku, quantity, and price in a separate table but omit order_id. The parent relationship is lost.",
+          "Bad split 2: use order_id plus sku as the key when the same sku can occur more than once per order.",
+          "Better split: use order_id plus a child discriminator such as line_number, then store sku, quantity, and price as attributes of that child row."
+        ],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "-- Counterexample: this table has item facts but no parent order.\nCREATE TABLE order_item_orphan_bad (\n  sku        TEXT NOT NULL,\n  quantity   INTEGER NOT NULL,\n  unit_price NUMERIC(10,2) NOT NULL\n);\n\n-- Counterexample: this key may be too narrow if a sku can appear twice on one order.\nCREATE TABLE order_item_key_too_narrow_bad (\n  order_id   INTEGER NOT NULL,\n  sku        TEXT NOT NULL,\n  quantity   INTEGER NOT NULL,\n  unit_price NUMERIC(10,2) NOT NULL,\n  PRIMARY KEY (order_id, sku)\n);"
+          }
+        ]
+      },
+      {
+        "id": "reshape-with-parent-key",
+        "heading": "A 1NF reshape that keeps the parent-child relationship",
+        "paragraphs": [
+          "A first-normal-form design separates the parent order facts from the repeating item facts. The order table keeps facts that occur once per order: order date and customer id. The order_line table keeps facts that occur once per product occurrence within an order: sku, quantity, and unit price. The foreign key from order_line.order_id to orders.order_id is the preserved parent relationship.",
+          "This is not just cleaner column naming. It changes what the keys can say. orders.order_id identifies one order. order_line.order_id plus order_line.line_number identifies one line on that order. The model can now represent one item, three items, or thirty items without altering the table definition. It can also attach future line-level facts, such as fulfillment_status or return_reason, without adding item_1_return_reason, item_2_return_reason, and so on.",
+          "Here is the same hypothetical data reshaped. The expected line counts are easy to verify from the fixture: order 1001 has two non-null item slots, order 1002 has one, and order 1003 has three, for six order_line rows total. The relationship is not lost because every child row carries order_id."
+        ],
+        "bullets": [
+          "Parent table grain: one row per order.",
+          "Child table grain: one row per order line.",
+          "Parent key: order_id.",
+          "Child key: order_id plus line_number.",
+          "Relationship: order_line.order_id references orders.order_id."
+        ],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "-- Hypothetical 1NF reshape.\nCREATE TABLE orders (\n  order_id    INTEGER PRIMARY KEY,\n  order_date  DATE NOT NULL,\n  customer_id INTEGER NOT NULL\n);\n\nCREATE TABLE order_line (\n  order_id    INTEGER NOT NULL REFERENCES orders(order_id),\n  line_number INTEGER NOT NULL,\n  sku         TEXT NOT NULL,\n  quantity    INTEGER NOT NULL CHECK (quantity > 0),\n  unit_price  NUMERIC(10,2) NOT NULL CHECK (unit_price >= 0),\n  PRIMARY KEY (order_id, line_number)\n);\n\nINSERT INTO orders VALUES\n  (1001, DATE '2026-10-01', 501),\n  (1002, DATE '2026-10-01', 502),\n  (1003, DATE '2026-10-02', 501);\n\nINSERT INTO order_line VALUES\n  (1001, 1, 'MUG-BLUE', 2, 8.00),\n  (1001, 2, 'TEA-EARL', 1, 12.50),\n  (1002, 1, 'MUG-BLUE', 1, 8.00),\n  (1003, 1, 'INFUSER', 1, 6.00),\n  (1003, 2, 'TEA-GRN', 2, 11.00),\n  (1003, 3, 'HONEY', 1, 5.50);"
+          }
+        ]
+      },
+      {
+        "id": "query-after-reshaping",
+        "heading": "How the reshaped model answers the original questions",
+        "paragraphs": [
+          "After the reshape, ordinary joins recover the combined view when needed. The parent relationship is not encoded in column names; it is represented by a foreign key and used in a join predicate. PostgreSQL’s documentation describes joined tables as table expressions formed from two input tables and a join condition. The same relational idea applies here: combine orders and order_line where their order_id values match.",
+          "The line-level table also makes aggregations less fragile. In the denormalized table, counting units of MUG-BLUE requires checking item_1_sku, item_2_sku, and item_3_sku separately, then remembering to update the query when item_4_sku appears. In the reshaped table, sku is one column and each line is one row.",
+          "Using the fixture above, the total units by sku are: MUG-BLUE equals 3 units, TEA-EARL equals 1, INFUSER equals 1, TEA-GRN equals 2, and HONEY equals 1. The total revenue by order is also straightforward: order 1001 is 28.50, order 1002 is 8.00, and order 1003 is 33.50. These results follow directly from quantity multiplied by unit_price on the six child rows."
+        ],
+        "bullets": [],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "-- Reconstruct an order with its lines.\nSELECT\n  o.order_id,\n  o.order_date,\n  o.customer_id,\n  l.line_number,\n  l.sku,\n  l.quantity,\n  l.unit_price\nFROM orders AS o\nJOIN order_line AS l\n  ON l.order_id = o.order_id\nORDER BY o.order_id, l.line_number;\n\n-- Count units by product across all orders.\nSELECT\n  sku,\n  SUM(quantity) AS units_sold\nFROM order_line\nGROUP BY sku\nORDER BY sku;\n\n-- Expected units_sold from the hypothetical fixture:\n-- HONEY: 1\n-- INFUSER: 1\n-- MUG-BLUE: 3\n-- TEA-EARL: 1\n-- TEA-GRN: 2\n\n-- Compute order revenue without scanning numbered item columns.\nSELECT\n  order_id,\n  SUM(quantity * unit_price) AS order_revenue\nFROM order_line\nGROUP BY order_id\nORDER BY order_id;\n\n-- Expected order_revenue:\n-- 1001: 28.50\n-- 1002: 8.00\n-- 1003: 33.50"
+          }
+        ]
+      },
+      {
+        "id": "diagnostic-checklist",
+        "heading": "Diagnostic checklist for repeating groups",
+        "paragraphs": [
+          "Use this diagnostic when reviewing extracts, staging tables, or early dimensional models. The goal is not to normalize everything for its own sake. The goal is to avoid hiding child relationships inside a parent row where keys and constraints cannot describe them.",
+          "First, inspect column names. Repeating groups often advertise themselves with numeric suffixes: phone_1, phone_2, item_1_sku, item_2_sku, contact_a, contact_b. A suffix is not automatically wrong; for example, billing_address and shipping_address may be two distinct roles rather than a repeating group. The question is whether the columns contain the same kind of fact repeated by position.",
+          "Second, ask what the smallest identifiable fact is. If the table is one row per order, but several columns describe individual products, the table is carrying two grains. Write both grains down before changing the schema. If you cannot name the child grain, the split will likely be unstable.",
+          "Third, preserve the parent key. A repeating group normally becomes a child table, not a standalone list. The child table needs the parent identifier plus a discriminator that identifies one child occurrence under that parent. That discriminator could be a source line id, an ordinal line number, an effective timestamp, or another business-approved component. The choice depends on the real entity being modeled.",
+          "Fourth, avoid using null columns to mean absent child rows. In the bad order extract, NULL in item_3_sku for order 1001 means there is no third item. That is different from an unknown sku for a real third item. Nulls can be appropriate for missing attributes, but they are a poor substitute for representing variable numbers of children. If an order has two lines, store two child rows.",
+          "Finally, decide whether the child order matters. In the example, line_number is part of the key because source line position is useful for identifying a line. If order does not matter, you may still need a child identifier. Do not assume that sku or email address is sufficient unless the business rule says duplicates are impossible within the parent."
+        ],
+        "bullets": [
+          "Look for positional suffixes in column names.",
+          "Write down the parent grain and the child grain separately.",
+          "Carry the parent key into the child table.",
+          "Choose a child discriminator that matches the business rule.",
+          "Represent absent children by absent child rows, not by a fixed set of null slots.",
+          "Treat distinct roles differently from repeated positions."
+        ],
+        "codeExamples": []
+      },
+      {
+        "id": "tradeoffs-and-boundaries",
+        "heading": "Tradeoffs and boundaries",
+        "paragraphs": [
+          "This article is deliberately narrow. It does not cover second normal form, third normal form, or whether SQL query results behave as sets or bags. It also does not claim that every downstream table must be fully normalized. Analytical marts sometimes denormalize for usability or performance after the base relationships are understood. That is a separate decision from whether the source concept has a repeating group.",
+          "The practical tradeoff is that normalized child tables require joins. That is not a defect; it is how the model expresses a relationship that was already present. The important question is where the relationship should be explicit. In a durable relational model, parent-child relationships belong in keys, foreign keys, and rows, not in repeated column names.",
+          "A useful stopping rule is this: if adding one more child of the same kind requires adding one more column, the design is probably not in first normal form for that concept. Reshape the repeated attributes into rows, keep the parent key, and define the child grain before building additional logic on top."
+        ],
+        "bullets": [],
+        "codeExamples": []
+      }
+    ],
+    "takeaways": [
+      "Repeating attributes such as item_1_sku, item_2_sku, and item_3_sku hide child rows inside a parent row.",
+      "A correct 1NF reshape carries the parent key into a child table and defines a child key such as order_id plus line_number.",
+      "Do not split repeated values into an orphan table; without the parent key, the original relationship cannot be reconstructed.",
+      "Absent children should usually be absent child rows, not null-filled numbered slots.",
+      "The purpose of the reshape is semantic clarity: one table grain for the parent and one table grain for the repeated child facts."
+    ],
+    "sources": [
+      {
+        "title": "Chapter 8. Data Normalisation",
+        "url": "https://www.cs.uct.ac.za/mit_notes/database/htmls/chp08.html"
+      },
+      {
+        "title": "PostgreSQL: Documentation: 18: 7.2. Table Expressions",
+        "url": "https://www.postgresql.org/docs/current/queries-table-expressions.html"
+      },
+      {
+        "title": "Null Attributes in Dimensions | Kimball Group",
+        "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/null-dimension-attribute/"
+      }
+    ],
+    "requiresVerification": false,
+    "verificationNotes": []
+  },
+  {
+    "slug": "second-and-third-normal-forms",
+    "title": "Second and third normal forms",
+    "description": "A practitioner guide to separating partial and transitive dependencies in a hypothetical order-line dataset, with counterexamples and an illustrative relational design.",
+    "primaryKeyword": "Second and third normal forms",
+    "relatedKeywords": [
+      "Second and third normal forms"
+    ],
+    "category": "Data Modeling",
+    "level": "Intermediate",
+    "readTime": "8 min read",
+    "datePublished": "2026-10-05",
+    "dateModified": "2026-10-05",
+    "canonicalUrl": "https://jwatterson.com/writing/second-and-third-normal-forms",
+    "status": "published",
+    "sourceHash": "ea1de9e9ca0ef0a9",
+    "lead": "Second and third normal forms are easiest to confuse when a table mixes order facts, customer attributes, and product attributes. The practical distinction is this: second normal form removes facts that depend on only part of a composite key; third normal form removes facts that depend on another non-key fact. This guide works through a small hypothetical retail order dataset and shows how to separate the two problems without turning normalization into a vague table-splitting exercise.",
+    "sections": [
+      {
+        "id": "starting-table-and-assumptions",
+        "heading": "Start with the key, not the column names",
+        "paragraphs": [
+          "Consider a hypothetical retail dataset loaded into a wide order-line table. Each row represents one product on one order. For this example, assume an order cannot contain the same sku twice. Under that business rule, the candidate key is the composite key (order_id, sku). If the business allowed two lines with the same sku on one order, this assumption would fail and a different key, such as (order_id, line_no), would be needed.",
+          "The table below is intentionally not normalized. It is useful because it contains both kinds of dependency that practitioners often mix together: attributes that depend on only order_id or only sku, and attributes that depend on a non-key attribute such as customer_id or category_id.",
+          "The hypothetical relation is wide_order_line(order_id, sku, order_date, customer_id, customer_name, customer_email, customer_tier, product_name, category_id, category_name, quantity, order_unit_price). The whole row is identified by (order_id, sku), but many attributes do not need both columns to be determined.",
+          "The dependency exercise comes before the DDL. Database constraints can enforce primary keys, unique keys, foreign keys, and checks, but they do not discover the business meaning of a column for you. The modeler still has to decide which facts are about an order, a customer, a product, or a line item."
+        ],
+        "bullets": [
+          "Candidate key for this worked example: (order_id, sku).",
+          "Line-level facts: quantity and order_unit_price depend on the full key because the same sku can appear on many orders, and one order can contain many skus.",
+          "Order-level facts: order_date and customer_id depend on order_id, not on the full composite key.",
+          "Product-level facts: product_name and category_id depend on sku, not on the full composite key.",
+          "Customer and category descriptive facts introduce transitive dependencies once order and product facts are separated."
+        ],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "-- Hypothetical unnormalized starting point for discussion only.\n-- Assumption: at most one row per (order_id, sku).\nCREATE TABLE wide_order_line (\n  order_id integer NOT NULL,\n  sku text NOT NULL,\n  order_date date NOT NULL,\n  customer_id integer NOT NULL,\n  customer_name text NOT NULL,\n  customer_email text NOT NULL,\n  customer_tier text NOT NULL,\n  product_name text NOT NULL,\n  category_id integer NOT NULL,\n  category_name text NOT NULL,\n  quantity integer NOT NULL,\n  order_unit_price numeric(10,2) NOT NULL,\n  PRIMARY KEY (order_id, sku)\n);"
+          }
+        ]
+      },
+      {
+        "id": "partial-dependencies-and-second-normal-form",
+        "heading": "Second normal form removes partial dependencies",
+        "paragraphs": [
+          "A partial dependency exists when a non-key attribute depends on a proper subset of a composite candidate key. In the example, the key is (order_id, sku). The attribute order_date depends on order_id alone. The attribute product_name depends on sku alone. Neither needs the complete key.",
+          "That is the specific problem solved by second normal form. A relation is in second normal form when non-key attributes depend on the whole candidate key, not merely part of it. If a table has only single-column candidate keys, partial dependency is not the interesting failure mode, because there is no smaller part of a single-column key to depend on. With composite keys, it becomes a common source of update anomalies.",
+          "The anomaly is easy to see. Suppose order 1001 has three skus. The customer_id and order_date would be repeated three times. If the order date is corrected, every line for that order must be updated consistently. Product attributes have the same problem from the other side: if a product is renamed, every historical row containing that sku repeats a value that may now disagree with the product table or with other rows.",
+          "The second-normal-form decomposition for this example separates the attributes by which part of the key determines them. The order table is keyed by order_id. The product table is keyed by sku. The order_line table keeps the attributes that require both order_id and sku."
+        ],
+        "bullets": [
+          "Partial dependency: order_id determines order_date and customer_id, while order_id is only part of (order_id, sku).",
+          "Partial dependency: sku determines product_name and category_id, while sku is only part of (order_id, sku).",
+          "Not a partial dependency: (order_id, sku) determines quantity because quantity is specific to that product on that order.",
+          "Not a partial dependency: (order_id, sku) determines order_unit_price if the column means the price charged for that order line."
+        ],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "-- Illustrative 2NF-oriented split, before addressing transitive dependencies.\nCREATE TABLE orders_2nf (\n  order_id integer PRIMARY KEY,\n  order_date date NOT NULL,\n  customer_id integer NOT NULL,\n  customer_name text NOT NULL,\n  customer_email text NOT NULL,\n  customer_tier text NOT NULL\n);\n\nCREATE TABLE products_2nf (\n  sku text PRIMARY KEY,\n  product_name text NOT NULL,\n  category_id integer NOT NULL,\n  category_name text NOT NULL\n);\n\nCREATE TABLE order_lines_2nf (\n  order_id integer NOT NULL REFERENCES orders_2nf(order_id),\n  sku text NOT NULL REFERENCES products_2nf(sku),\n  quantity integer NOT NULL,\n  order_unit_price numeric(10,2) NOT NULL,\n  PRIMARY KEY (order_id, sku),\n  CHECK (quantity > 0),\n  CHECK (order_unit_price >= 0)\n);"
+          }
+        ]
+      },
+      {
+        "id": "transitive-dependencies-and-third-normal-form",
+        "heading": "Third normal form removes transitive dependencies",
+        "paragraphs": [
+          "After the partial dependencies are removed, there is still a separate issue. In orders_2nf, order_id determines customer_id, and customer_id determines customer_name, customer_email, and customer_tier. Therefore order_id determines those customer attributes through another non-key attribute. That is a transitive dependency.",
+          "In products_2nf, sku determines category_id, and category_id determines category_name. Therefore sku determines category_name through category_id. That is another transitive dependency. These are not second-normal-form problems anymore, because orders_2nf and products_2nf no longer have the original composite key. They are third-normal-form problems.",
+          "A practical statement of third normal form is: non-key attributes should describe the key, not another non-key attribute. The more formal version is framed in terms of functional dependencies: for each dependency X determines A, either X is a superkey or A is a prime attribute. For everyday modeling, the useful diagnostic is to ask whether a descriptive column can be changed by updating the entity identified by another non-key column.",
+          "The third-normal-form version separates customer and category descriptions into their own relations. The order still records which customer placed the order. The product still records which category it belongs to. But customer_name is stored with the customer, and category_name is stored with the category."
+        ],
+        "bullets": [
+          "Transitive dependency in the order side: order_id determines customer_id, and customer_id determines customer_name and customer_email.",
+          "Transitive dependency in the product side: sku determines category_id, and category_id determines category_name.",
+          "3NF target: each non-key attribute should be about the key of its own relation, not about a different non-key attribute.",
+          "Foreign keys preserve the relationship between the separated facts, while primary keys identify each entity."
+        ],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "-- Illustrative 3NF design for the same hypothetical business rules.\nCREATE TABLE customers (\n  customer_id integer PRIMARY KEY,\n  customer_name text NOT NULL,\n  customer_email text NOT NULL UNIQUE,\n  customer_tier text NOT NULL\n);\n\nCREATE TABLE categories (\n  category_id integer PRIMARY KEY,\n  category_name text NOT NULL UNIQUE\n);\n\nCREATE TABLE products (\n  sku text PRIMARY KEY,\n  product_name text NOT NULL,\n  category_id integer NOT NULL REFERENCES categories(category_id)\n);\n\nCREATE TABLE orders (\n  order_id integer PRIMARY KEY,\n  order_date date NOT NULL,\n  customer_id integer NOT NULL REFERENCES customers(customer_id)\n);\n\nCREATE TABLE order_lines (\n  order_id integer NOT NULL REFERENCES orders(order_id),\n  sku text NOT NULL REFERENCES products(sku),\n  quantity integer NOT NULL,\n  order_unit_price numeric(10,2) NOT NULL,\n  PRIMARY KEY (order_id, sku),\n  CHECK (quantity > 0),\n  CHECK (order_unit_price >= 0)\n);"
+          }
+        ]
+      },
+      {
+        "id": "worked-counterexamples",
+        "heading": "Counterexamples that keep the model honest",
+        "paragraphs": [
+          "Normalization depends on business meaning, not column names. The same column can belong in different places under different semantics. A common mistake is to move every price-like attribute into products because it seems to describe a product. That is wrong if order_unit_price means the actual price charged on the order line. Discounts, promotions, negotiated pricing, tax treatment, or historical price preservation can make the charged price depend on the whole line key. In this example, order_unit_price stays in order_lines.",
+          "A second counterexample is customer_tier. If customer_tier means the customer’s current loyalty tier, then customer_id determines customer_tier and it belongs in customers. If it means the tier used to price the order at checkout, it may be an order fact or even a line-pricing input. Renaming the column to customer_tier_at_order_time would make that semantic choice clearer. Normal forms do not remove the need to define time meaning.",
+          "A third counterexample is the assumed key. The whole 2NF diagnosis above relies on (order_id, sku) being a candidate key. If an order can contain the same sku twice, then (order_id, sku) is not unique and cannot be the candidate key. The designer might introduce line_no and make (order_id, line_no) the key. Under that alternative key, sku is no longer part of the key, so product_name is not a partial dependency on sku; it is a transitive dependency from the line key through sku. The final 3NF design may still have a products table, but the reason changes.",
+          "These counterexamples are not edge cases. They are the difference between modeling a transaction and modeling the current state of a reference entity. Before decomposing a table, define the grain, candidate keys, and time meaning of each attribute."
+        ],
+        "bullets": [
+          "Do not move order_unit_price to products unless it truly means a current product price rather than a charged line price.",
+          "Do not treat customer_tier as a customer attribute until you know whether it is current tier or tier at purchase time.",
+          "Do not diagnose partial dependencies until the candidate key is valid under the business rules."
+        ],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "-- Alternative key shape when duplicate skus are allowed on an order.\n-- In this design, sku is a non-key attribute of the line, not part of the line key.\nCREATE TABLE order_lines_with_line_no (\n  order_id integer NOT NULL,\n  line_no integer NOT NULL,\n  sku text NOT NULL,\n  quantity integer NOT NULL,\n  order_unit_price numeric(10,2) NOT NULL,\n  PRIMARY KEY (order_id, line_no)\n);"
+          }
+        ]
+      },
+      {
+        "id": "diagnostic-for-practitioners",
+        "heading": "A diagnostic sequence for separating 2NF and 3NF issues",
+        "paragraphs": [
+          "When reviewing a wide order dataset, use a short dependency pass before designing tables. First, write the candidate key at the top of the page. Second, mark each non-key attribute with the determinant that actually identifies it. Third, classify dependencies whose determinant is a proper subset of a composite key as second-normal-form problems. Fourth, after removing those, classify dependencies where one non-key attribute determines another non-key attribute as third-normal-form problems.",
+          "For the hypothetical wide_order_line table, the determinant map looks like this: order_id determines order_date and customer_id; sku determines product_name and category_id; customer_id determines customer_name, customer_email, and customer_tier; category_id determines category_name; and the full pair (order_id, sku) determines quantity and order_unit_price. That map is more useful than a debate over whether a column feels like it belongs to an order or a product.",
+          "The normalized design is not automatically the physical design for every analytic workload. Data warehouses often publish denormalized marts for query convenience. That does not invalidate the relational dependency analysis. It means the engineer should know whether a repeated column is deliberate derived data or an accidental source of inconsistent facts.",
+          "Joins are how the separated relations are reassembled for use. For example, an analyst can join order_lines to orders, customers, products, and categories to produce the same descriptive view. The important modeling point is that each fact has one authoritative home before it is projected into a wider result."
+        ],
+        "bullets": [
+          "Step 1: confirm the row grain and candidate key.",
+          "Step 2: list functional dependencies using business rules, not sample coincidences.",
+          "Step 3: remove dependencies on part of a composite key to satisfy 2NF.",
+          "Step 4: remove dependencies between non-key attributes to satisfy 3NF.",
+          "Step 5: keep transaction-specific measures, such as charged price, at the grain where they are true."
+        ],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "-- Illustrative query to reconstruct a wide order view from the 3NF tables.\nSELECT\n  o.order_id,\n  o.order_date,\n  c.customer_id,\n  c.customer_name,\n  c.customer_email,\n  c.customer_tier,\n  ol.sku,\n  p.product_name,\n  cat.category_id,\n  cat.category_name,\n  ol.quantity,\n  ol.order_unit_price\nFROM order_lines AS ol\nJOIN orders AS o\n  ON o.order_id = ol.order_id\nJOIN customers AS c\n  ON c.customer_id = o.customer_id\nJOIN products AS p\n  ON p.sku = ol.sku\nJOIN categories AS cat\n  ON cat.category_id = p.category_id;"
+          }
+        ]
+      }
+    ],
+    "takeaways": [
+      "Second normal form is about removing non-key attributes that depend on only part of a composite candidate key.",
+      "Third normal form is about removing non-key attributes that depend on other non-key attributes.",
+      "The same final table split can have different reasoning depending on the valid candidate key, so confirm the key before diagnosing dependencies.",
+      "Transaction-specific facts, such as the unit price actually charged, should stay at the line grain when they depend on the full line key.",
+      "A normalized source model can still feed denormalized analytic views; normalization defines authoritative homes for facts, not the only shape users may query."
+    ],
+    "sources": [
+      {
+        "title": "Chapter 8. Data Normalisation",
+        "url": "https://www.cs.uct.ac.za/mit_notes/database/htmls/chp08.html"
+      },
+      {
+        "title": "PostgreSQL: Documentation: 18: 5.5. Constraints",
+        "url": "https://www.postgresql.org/docs/current/ddl-constraints.html"
+      },
+      {
+        "title": "PostgreSQL: Documentation: 18: 7.2. Table Expressions",
+        "url": "https://www.postgresql.org/docs/current/queries-table-expressions.html"
+      }
+    ],
+    "requiresVerification": false,
+    "verificationNotes": []
+  },
+  {
+    "slug": "entity-identity-versus-record-identity",
+    "title": "Entity identity versus record identity",
+    "description": "A practical guide to separating a durable business entity from the many records that observe, describe, or reference it, using a small hypothetical retail dataset and counterexamples.",
+    "primaryKeyword": "Entity identity versus record identity",
+    "relatedKeywords": [
+      "Entity identity versus record identity"
+    ],
+    "category": "Data Modeling",
+    "level": "Intermediate",
+    "readTime": "7 min",
+    "datePublished": "2026-10-05",
+    "dateModified": "2026-10-05",
+    "canonicalUrl": "https://jwatterson.com/writing/entity-identity-versus-record-identity",
+    "status": "published",
+    "sourceHash": "8aee83ddad1ec994",
+    "lead": "A row is not always an entity. In operational and analytical systems, the same customer, product, merchant, or account may appear in many records: orders, emails, returns, support tickets, address snapshots, and source-system extracts. Treating every record identifier as the identifier of the business entity creates duplicated entities, unstable metrics, and hard-to-explain joins. The fix is to model entity identity separately from record identity.",
+    "sections": [
+      {
+        "id": "the-core-distinction",
+        "heading": "The core distinction",
+        "paragraphs": [
+          "Entity identity answers the question: which business thing are we talking about? Record identity answers the question: which stored observation, message, event, or row are we talking about?",
+          "Those questions often have different answers. A customer entity may have one durable customer_id in a modeled data layer, while the same customer appears in many order records, profile snapshots, email-change events, loyalty-program records, and source-system rows. Each of those records needs its own identity because each is a distinct observation. But none of those record identifiers should automatically become the identity of the customer.",
+          "This distinction matters most when a table mixes two grains. A customer profile extract, for example, may look like a customer table because it contains name, email, phone, and address. But if the extract is generated daily, the row represents a daily observation of a customer profile, not necessarily the customer itself. If the same customer appears on Monday and Tuesday, the two rows are two records about one entity.",
+          "A useful test is to ask what a key uniquely identifies. If a key identifies a specific load row, message, transaction, or snapshot, it is a record key. If it identifies the business thing across observations, it is an entity key. Candidate keys and alternate keys are still important, but the modeling decision starts by naming the thing being keyed."
+        ],
+        "bullets": [
+          "Entity identity is durable across many observations when the business says the thing is the same thing.",
+          "Record identity is scoped to one stored row, event, snapshot, transaction, or source message.",
+          "A source primary key may be an entity key, a record key, or only unique within one source context. Its name alone does not prove the grain."
+        ],
+        "codeExamples": []
+      },
+      {
+        "id": "hypothetical-retail-fixture",
+        "heading": "A hypothetical retail fixture with two kinds of identity",
+        "paragraphs": [
+          "Consider a hypothetical retailer that receives customer profile snapshots from an ecommerce platform and order events from a point-of-sale system. The example is intentionally small so the identity errors are visible.",
+          "The profile snapshot table has one row per source extraction of a customer profile. The order table has one row per order. Neither table, by itself, proves the final enterprise customer identity. Each table is an observation source.",
+          "Here is the hypothetical data in plain relational form:"
+        ],
+        "bullets": [
+          "customer_profile_snapshot.source_customer_id is stable inside the ecommerce platform, but the table has multiple snapshots per source customer.",
+          "pos_order.pos_buyer_token is a token captured at checkout. It can repeat across orders, but it is not guaranteed to be the enterprise customer identifier.",
+          "email is an observed attribute. It can help match records, but it can change, be shared, or be missing."
+        ],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "-- Hypothetical example data. This is illustrative SQL, not evidence of execution.\n\ncustomer_profile_snapshot\nsnapshot_id | source_system | source_customer_id | observed_at | email              | full_name\n------------+---------------+--------------------+-------------+--------------------+----------\nS1          | ecommerce     | C100               | 2026-01-01  | alex@example.com   | Alex Rao\nS2          | ecommerce     | C100               | 2026-02-01  | alex@example.com   | Alex Rao\nS3          | ecommerce     | C100               | 2026-03-01  | alex.new@example.com | Alex Rao\nS4          | ecommerce     | C200               | 2026-01-15  | sam@example.com    | Sam Lee\nS5          | ecommerce     | C300               | 2026-01-20  | family@example.com | Jordan Kim\nS6          | ecommerce     | C301               | 2026-01-20  | family@example.com | Taylor Kim\n\npos_order\norder_id | source_system | pos_buyer_token | ordered_at  | email_at_checkout  | amount\n---------+---------------+-----------------+-------------+--------------------+-------\nO10      | pos           | T9              | 2026-01-05  | alex@example.com   | 40.00\nO11      | pos           | T9              | 2026-02-10  | alex@example.com   | 35.00\nO12      | pos           | T8              | 2026-03-12  | alex.new@example.com | 25.00\nO13      | pos           | T7              | 2026-01-25  | family@example.com | 60.00"
+          }
+        ]
+      },
+      {
+        "id": "counterexamples-that-break-naive-models",
+        "heading": "Counterexamples that break naive models",
+        "paragraphs": [
+          "A naive design might declare snapshot_id as the customer identifier because it is unique in the profile table. That fails immediately: S1, S2, and S3 are three records about the same source customer C100. If snapshot_id becomes customer_id, Alex is counted as three customers before considering orders at all.",
+          "Another naive design might use email as the customer identifier. That also fails in both directions. Alex changes from alex@example.com to alex.new@example.com, so one person can have two emails over time. Meanwhile, Jordan and Taylor share family@example.com, so one email can refer to more than one person. Email can be a useful observed attribute or matching signal, but the fixture shows why it is unsafe as the sole entity key.",
+          "A third naive design might use the POS buyer token as the customer identifier. In the example, T9 links two orders, but T8 appears when Alex uses a different checkout context. If the model treats token as the durable entity key, order O12 is separated from the earlier Alex orders even though the profile evidence suggests a relationship through the changed email history of C100.",
+          "These are not exotic edge cases. They are ordinary consequences of confusing observations with entities. A record can be true and still not identify the entity. S3 truthfully records that source customer C100 had alex.new@example.com on 2026-03-01. O12 truthfully records that an order used alex.new@example.com at checkout. The modeling question is whether those observations point to an already-known business entity, create a new one, or remain unresolved.",
+          "A clean model does not pretend the answer is inside one column. It gives records their own keys, entities their own keys, and identity assertions a place to live."
+        ],
+        "bullets": [
+          "Unique row does not mean unique entity.",
+          "Repeated attribute does not mean shared entity.",
+          "Changed attribute does not mean changed entity.",
+          "A source identifier may be durable only within the boundary of one system."
+        ],
+        "codeExamples": []
+      },
+      {
+        "id": "separate-records-entities-and-assertions",
+        "heading": "A practical relational pattern",
+        "paragraphs": [
+          "A practical pattern is to separate three concerns: raw observations, durable entities, and the evidence that links observations to entities. This avoids forcing every incoming row to be the customer record.",
+          "In the modeled layer, customer_entity represents the business entity. It gets a surrogate or durable internal identifier whose job is to group observations that the business currently treats as the same customer. The profile snapshot and order records keep their own record identifiers. A bridge or assertion table records which observed identifiers have been associated with which entity, under what rule, and during what period if needed.",
+          "For the hypothetical fixture, one possible modeled result is below. This is not the only valid answer; it depends on business rules. The point is the separation of concerns.",
+          "In this modeled result, E1 is the customer entity for Alex. It is linked to ecommerce source customer C100 and to two POS buyer tokens, T9 and T8, because the hypothetical identity rule accepts the ecommerce email-change history as sufficient evidence to connect the checkout emails. E2 and E3 remain separate customer entities for Jordan and Taylor even though they share an email, because the business rule does not collapse shared household email addresses into one person. O13 can be unresolved, linked to a household entity in a different model, or assigned only after stronger evidence arrives. The example below leaves it unresolved at the person-customer level.",
+          "This pattern also preserves explainability. If someone asks why O12 is attributed to E1, the answer is not hidden in a destructive merge of rows. It is represented as an assertion that can include source, rule, confidence, and dates. If the rule changes, the model can revise the assertion without rewriting the meaning of the original order record."
+        ],
+        "bullets": [
+          "Record tables preserve what was observed.",
+          "Entity tables represent the business thing being modeled.",
+          "Assertion or bridge tables document why a record or source identifier maps to an entity.",
+          "Unresolved records are allowed; they are better than fabricated certainty."
+        ],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "-- Hypothetical modeled layer. Illustrative only.\n\ncustomer_entity\ncustomer_entity_id | entity_type\n-------------------+------------\nE1                 | person_customer\nE2                 | person_customer\nE3                 | person_customer\n\ncustomer_identity_assertion\nassertion_id | customer_entity_id | id_domain                  | observed_id             | rule_name                         | assertion_status\n-------------+--------------------+----------------------------+-------------------------+-----------------------------------+-----------------\nA1           | E1                 | ecommerce.source_customer_id | C100                  | source_customer_id_is_stable       | active\nA2           | E1                 | pos.pos_buyer_token          | T9                    | checkout_email_matches_known_email | active\nA3           | E1                 | pos.pos_buyer_token          | T8                    | checkout_email_matches_email_history | active\nA4           | E2                 | ecommerce.source_customer_id | C300                  | source_customer_id_is_stable       | active\nA5           | E3                 | ecommerce.source_customer_id | C301                  | source_customer_id_is_stable       | active\n\n-- O13 is intentionally not mapped to E2 or E3 by email alone."
+          }
+        ]
+      },
+      {
+        "id": "diagnostic-queries-for-grain-confusion",
+        "heading": "Diagnostic queries for grain confusion",
+        "paragraphs": [
+          "Before designing the final identity model, run diagnostics that show whether a proposed key behaves like an entity key or a record key. These queries do not prove business identity, but they expose contradictions that should prevent premature key selection.",
+          "The first diagnostic checks whether a supposed entity identifier appears in multiple records. Multiple rows are not automatically wrong; they may be expected. The important point is to name the grain. If source_customer_id has multiple snapshots, then a table keyed by snapshot_id is not a customer entity table. It is a profile observation table.",
+          "The second diagnostic checks whether a proposed natural key, such as email, maps to multiple source customers. That result does not mean the data is bad. It means email alone is not a safe customer entity key under this fixture.",
+          "The third diagnostic checks whether an order attribution join would duplicate facts. If a join from orders to profile snapshots on email returns multiple profile rows for one order, the join has crossed from entity logic into observation history without choosing the intended observation. This is a relational modeling issue, not merely a performance issue.",
+          "The expected results for the fixture are straightforward. source_customer_id C100 has three snapshots. family@example.com appears for two ecommerce source customers. Order O10 and O11 would each match both S1 and S2 if joined to snapshots by alex@example.com without a date rule, duplicating order amounts in an aggregate. O13 would match both S5 and S6 by family@example.com, creating ambiguous attribution."
+        ],
+        "bullets": [
+          "Look for repeated records per proposed entity key.",
+          "Look for one observed attribute pointing to multiple proposed entities.",
+          "Look for joins that multiply facts because they join observations instead of resolved entities."
+        ],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "-- Illustrative diagnostics, not evidence of execution.\n\n-- 1. Does a proposed source customer identifier have multiple observation records?\nselect source_customer_id, count(*) as snapshot_count\nfrom customer_profile_snapshot\ngroup by source_customer_id\nhaving count(*) > 1;\n\n-- Expected from the fixture:\n-- C100 | 3\n\n-- 2. Does email behave as a one-to-one customer key?\nselect email, count(distinct source_customer_id) as source_customer_count\nfrom customer_profile_snapshot\nwhere email is not null\ngroup by email\nhaving count(distinct source_customer_id) > 1;\n\n-- Expected from the fixture:\n-- family@example.com | 2\n\n-- 3. Would a direct email join duplicate or ambiguously attribute orders?\nselect o.order_id, count(*) as matching_profile_rows\nfrom pos_order o\njoin customer_profile_snapshot s\n  on s.email = o.email_at_checkout\ngroup by o.order_id\nhaving count(*) > 1;\n\n-- Expected from the fixture:\n-- O10 | 2\n-- O11 | 2\n-- O13 | 2"
+          }
+        ]
+      },
+      {
+        "id": "design-rules-and-tradeoffs",
+        "heading": "Design rules and tradeoffs",
+        "paragraphs": [
+          "The main design rule is simple: do not let the arrival format decide entity identity. Source records arrive at the grain that is convenient for the producing system. A data model should make its own grain explicit.",
+          "A second rule is to preserve the original record identity even after resolution. If a profile snapshot is merged into a customer entity, keep snapshot_id. If an order is attributed to a customer entity, keep order_id. Analysts and engineers still need to audit the observation, reverse an assertion, handle late-arriving data, and explain metric changes.",
+          "A third rule is to model uncertainty rather than hiding it. If the business rule says a shared email is not enough to merge two person customers, then the model should allow an unresolved order or a lower-confidence assertion. Forcing every record into exactly one customer entity may make dashboards look complete while making them less trustworthy.",
+          "There are tradeoffs. A separate identity assertion table adds joins and governance responsibilities. Someone must define rule precedence, survivorship, conflict handling, and whether deleted or superseded assertions remain queryable. The payoff is that entity identity becomes an explicit model concept instead of an accidental side effect of whichever source table was loaded first.",
+          "This article intentionally stays at the relational semantics level. Physical tuning, indexing, and execution plans are separate concerns. The logical requirement comes first: know whether each row represents an entity or an observation about an entity. Once that is clear, performance work has a stable target."
+        ],
+        "bullets": [
+          "Choose the entity grain before choosing the entity key.",
+          "Keep record keys even when records are resolved to entities.",
+          "Represent identity assertions as data when the relationship is inferred rather than inherent.",
+          "Permit unresolved and ambiguous observations when the available evidence is insufficient."
+        ],
+        "codeExamples": []
+      },
+      {
+        "id": "a-short-decision-checklist",
+        "heading": "A short decision checklist",
+        "paragraphs": [
+          "When reviewing a table, ask four questions. First, what real-world thing or event does one row represent? Second, can the same business entity appear in more than one row? Third, can the proposed entity key change, repeat, or be absent? Fourth, what evidence justifies linking this record to that entity?",
+          "If the row is one extraction, event, message, or transaction, give it a record identity. If the business thing persists across those rows, give that thing a separate entity identity. If the connection between them is inferred, store the assertion separately enough that it can be explained and revised.",
+          "That separation is the difference between a model that merely stores records and a model that represents the business entities those records describe."
+        ],
+        "bullets": [],
+        "codeExamples": []
+      }
+    ],
+    "takeaways": [
+      "Entity identity and record identity answer different questions: what business thing is this, versus which stored observation is this?",
+      "A unique row key, source primary key, or repeated attribute should not automatically become the enterprise entity key.",
+      "Use diagnostics to find grain confusion, especially joins that duplicate facts or attributes that map to multiple proposed entities.",
+      "A robust relational design keeps observation records, durable entities, and identity assertions separate enough to audit and revise."
+    ],
+    "sources": [
+      {
+        "title": "Chapter 8. Data Normalisation",
+        "url": "https://www.cs.uct.ac.za/mit_notes/database/htmls/chp08.html"
+      },
+      {
+        "title": "Multiple Units of Measure Facts | Kimball Dimensional Modeling Techniques",
+        "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/multiple-units-of-measure/"
+      },
+      {
+        "title": "PostgreSQL: Documentation: 18: 7.2. Table Expressions",
+        "url": "https://www.postgresql.org/docs/current/queries-table-expressions.html"
+      }
+    ],
+    "requiresVerification": false,
+    "verificationNotes": []
+  },
+  {
+    "slug": "optional-relationships-in-data-models",
+    "title": "Optional relationships in data models",
+    "description": "A practical guide to representing absent relationships in relational models without inventing default customers, employees, stores, or other fake entities.",
+    "primaryKeyword": "Optional relationships in data models",
+    "relatedKeywords": [
+      "Optional relationships in data models"
+    ],
+    "category": "Data Modeling",
+    "level": "Intermediate",
+    "readTime": "7 min",
+    "datePublished": "2026-10-05",
+    "dateModified": "2026-10-05",
+    "canonicalUrl": "https://jwatterson.com/writing/optional-relationships-in-data-models",
+    "status": "published",
+    "sourceHash": "db802d1c42070353",
+    "lead": "Optional relationships are common: an order might not have a sales representative, a support case might not be linked to a known customer, and a shipment might not have a return authorization. The modeling mistake is to hide that absence behind a fabricated default entity such as employee 0, customer -1, or store UNKNOWN. A better model lets the relationship be absent while preserving the integrity of real entities.",
+    "sections": [
+      {
+        "id": "the-problem-with-default-entities",
+        "heading": "The problem with default entities",
+        "paragraphs": [
+          "Practitioners often reach for fabricated rows when a relationship is optional. The employee table gets an employee named Unassigned. The customer table gets a customer named Anonymous. The store table gets a store named Online Unknown. Those rows make foreign key columns non-null, but they also turn absence into a fake business object.",
+          "That tradeoff is usually not worth it. A fabricated entity can be counted, grouped, joined, assigned attributes, and accidentally treated as real. If employee_id 0 means no sales representative, every query that touches employees now needs special handling. If a future analyst forgets the exception, the model answers a different question than intended.",
+          "The issue is not whether a column can contain null in every circumstance. The issue is whether the data model distinguishes two ideas that are different: a real related entity, and no related entity. A foreign key value should identify a real row in the referenced table. If there is no such row because the relationship is absent, do not invent one just to satisfy a shape preference."
+        ],
+        "bullets": [
+          "Use a real foreign key value when a real related entity exists.",
+          "Use absence in the relationship when no related entity exists.",
+          "Do not add fake dimension rows merely to avoid nulls or missing association rows.",
+          "If unknown, not applicable, and not yet collected are materially different states, model those states explicitly rather than overloading a fake entity."
+        ],
+        "codeExamples": []
+      },
+      {
+        "id": "hypothetical-retail-example",
+        "heading": "Hypothetical retail example",
+        "paragraphs": [
+          "Consider a hypothetical retail order model. An order is always placed through a channel. Some orders are helped by a sales associate, but many self-service web orders are not. The relationship between order and sales associate is optional. The sales associate itself is not optional when the relationship exists: any associate_id stored on an order should point to a real associate.",
+          "Here is an illustrative PostgreSQL 18-style schema. The point is relational structure, not engine tuning. PostgreSQL documentation describes primary key, foreign key, check, and other constraints; this example uses those constraint concepts to express the allowed shape of the data."
+        ],
+        "bullets": [],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "-- Illustrative PostgreSQL 18-style DDL for a hypothetical retail dataset.\nCREATE TABLE sales_channel (\n    channel_code text PRIMARY KEY,\n    channel_name text NOT NULL\n);\n\nCREATE TABLE sales_associate (\n    associate_id integer PRIMARY KEY,\n    associate_name text NOT NULL\n);\n\nCREATE TABLE retail_order (\n    order_id integer PRIMARY KEY,\n    order_date date NOT NULL,\n    channel_code text NOT NULL REFERENCES sales_channel(channel_code),\n    associate_id integer NULL REFERENCES sales_associate(associate_id),\n    order_total numeric(10,2) NOT NULL CHECK (order_total >= 0)\n);"
+          },
+          {
+            "language": "sql",
+            "code": "INSERT INTO sales_channel (channel_code, channel_name) VALUES\n    ('WEB', 'Website'),\n    ('STORE', 'Store'),\n    ('PHONE', 'Phone');\n\nINSERT INTO sales_associate (associate_id, associate_name) VALUES\n    (101, 'Rina Shah'),\n    (102, 'Marco Lee');\n\nINSERT INTO retail_order (order_id, order_date, channel_code, associate_id, order_total) VALUES\n    (1, DATE '2026-10-01', 'WEB',   NULL, 45.00),\n    (2, DATE '2026-10-01', 'STORE', 101, 120.00),\n    (3, DATE '2026-10-02', 'PHONE', 102, 80.00),\n    (4, DATE '2026-10-02', 'WEB',   NULL, 35.00),\n    (5, DATE '2026-10-03', 'STORE', NULL, 60.00);"
+          }
+        ]
+      },
+      {
+        "id": "read-the-null-as-relationship-absence",
+        "heading": "Read the null as relationship absence",
+        "paragraphs": [
+          "In this model, retail_order.associate_id is nullable because the relationship from an order to a sales associate is optional. The null does not describe an associate. It says the order row does not currently reference an associate row.",
+          "That distinction matters in queries. If the question is total order value by associate, the self-service orders should not be grouped under a fake person. They should either be excluded from an associate-specific report or shown as a separate absence category created by the query result, not by the entity table.",
+          "The following query is illustrative. It uses a left join so orders without an associate remain visible. PostgreSQL documentation describes joined table behavior, including outer joins, where unmatched rows from the preserved side are still returned with nulls for the other side."
+        ],
+        "bullets": [],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "SELECT\n    o.order_id,\n    o.channel_code,\n    o.order_total,\n    a.associate_name\nFROM retail_order AS o\nLEFT JOIN sales_associate AS a\n    ON a.associate_id = o.associate_id\nORDER BY o.order_id;"
+          }
+        ]
+      },
+      {
+        "id": "worked-results",
+        "heading": "Worked results",
+        "paragraphs": [
+          "For the hypothetical data above, the left join should return five orders. Orders 1 and 4 are web orders with no associate. Order 5 is a store order where no associate was recorded. Those are all absent relationships, but they may not mean the same business state. The model preserves the absence; downstream rules can decide whether to label them self-service, missing attribution, or something else.",
+          "The expected result of the illustrative query is: order 1 has channel WEB, total 45.00, and no associate_name; order 2 has channel STORE, total 120.00, and Rina Shah; order 3 has channel PHONE, total 80.00, and Marco Lee; order 4 has channel WEB, total 35.00, and no associate_name; order 5 has channel STORE, total 60.00, and no associate_name.",
+          "Now compute totals. Overall revenue is 45.00 + 120.00 + 80.00 + 35.00 + 60.00 = 340.00. Revenue attached to a known associate is 120.00 + 80.00 = 200.00. Revenue with no associate relationship is 45.00 + 35.00 + 60.00 = 140.00. Because absence is represented directly, these figures are not polluted by a fabricated employee row."
+        ],
+        "bullets": [],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "SELECT\n    CASE\n        WHEN o.associate_id IS NULL THEN 'no associate relationship'\n        ELSE 'known associate relationship'\n    END AS associate_relationship_state,\n    COUNT(*) AS order_count,\n    SUM(o.order_total) AS order_total\nFROM retail_order AS o\nGROUP BY 1\nORDER BY 1;"
+          }
+        ]
+      },
+      {
+        "id": "counterexample-fabricated-associate",
+        "heading": "Counterexample: the fabricated associate",
+        "paragraphs": [
+          "Now compare the same fixture with a common anti-pattern: add associate_id 0 to sales_associate and use it whenever an order has no associate. This satisfies a non-null foreign key design, but it corrupts the meaning of the associate table. The table now contains both people and a control value.",
+          "The fabricated row causes practical failures. A headcount query can count one extra associate. An assignment workflow can display Unassigned as if it were selectable staff. A data quality rule that checks every order has a valid associate will pass, even though the business relationship is still absent. A slowly changing employee model, territory assignment, payroll export, or quota model may later inherit the fake row and require defensive filters everywhere.",
+          "The deeper problem is dependency. The facts about an order depend on the order. The facts about an associate depend on a real associate. A fake associate row mixes a relationship state into the entity table. Normalization guidance commonly emphasizes organizing attributes around the keys they depend on; putting not applicable or no relationship inside a referenced entity table works against that principle."
+        ],
+        "bullets": [],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "-- Counterexample only: do not use a fake associate to mean absence.\nINSERT INTO sales_associate (associate_id, associate_name)\nVALUES (0, 'Unassigned');\n\n-- This hides absence behind a fake entity.\n-- The order now appears to reference an associate, but it does not.\nUPDATE retail_order\nSET associate_id = 0\nWHERE associate_id IS NULL;"
+          }
+        ]
+      },
+      {
+        "id": "when-to-use-null-versus-an-association-table",
+        "heading": "When to use null versus an association table",
+        "paragraphs": [
+          "A nullable foreign key is usually appropriate when one row may reference zero or one row of another table. In the example, each order can have at most one current sales associate attribution, so retail_order.associate_id works as a nullable foreign key.",
+          "When the relationship itself has attributes, history, multiple participants, or a separate lifecycle, use an association table instead. Absence is then represented by no association row. For example, suppose an order can be reviewed by zero, one, or many fraud reviewers, and each review has a decision timestamp. Do not add reviewer_id_1, reviewer_id_2, or fake reviewer rows to the order. Model the review relationship as its own table.",
+          "The following design represents optional review relationships without default reviewers. An order with no fraud review has no row in order_fraud_review. An order with two reviews has two rows. A reviewer_id, when present, must identify a real reviewer."
+        ],
+        "bullets": [],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "CREATE TABLE fraud_reviewer (\n    reviewer_id integer PRIMARY KEY,\n    reviewer_name text NOT NULL\n);\n\nCREATE TABLE order_fraud_review (\n    order_id integer NOT NULL REFERENCES retail_order(order_id),\n    reviewer_id integer NOT NULL REFERENCES fraud_reviewer(reviewer_id),\n    reviewed_at timestamp NOT NULL,\n    decision text NOT NULL CHECK (decision IN ('approve', 'reject', 'escalate')),\n    PRIMARY KEY (order_id, reviewer_id, reviewed_at)\n);"
+          },
+          {
+            "language": "sql",
+            "code": "-- Orders without reviews are found by the absence of association rows.\nSELECT o.order_id\nFROM retail_order AS o\nLEFT JOIN order_fraud_review AS r\n    ON r.order_id = o.order_id\nWHERE r.order_id IS NULL\nORDER BY o.order_id;"
+          }
+        ]
+      },
+      {
+        "id": "diagnostic-questions",
+        "heading": "Diagnostic questions for optional relationships",
+        "paragraphs": [
+          "When a model contains values like 0, -1, UNKNOWN, N/A, Not Provided, or Unassigned in a referenced entity table, pause before accepting them. Some special values are legitimate domain members, but many are relationship states disguised as entities.",
+          "A useful diagnostic is to ask what would be true if the row were real. Can this customer place a future order? Can this employee transfer departments? Can this store close, move, or have inventory? Can this reviewer sign in? If the answer is no, the row probably does not belong in the entity table.",
+          "Also ask whether absence and unknown should be separated. If the business needs to distinguish no associate needed from associate should have been captured but was missing, add an explicit status or reason near the relationship. Do not solve that with two fake associates named No Associate Needed and Missing Associate. Those labels are not people.",
+          "For the hypothetical retail order, one possible extension is a reason column constrained to a small set of relationship states. This is only appropriate if the states are part of the business process and are maintained consistently."
+        ],
+        "bullets": [
+          "If the related thing is real, store its key and enforce the foreign key.",
+          "If there is no related thing, allow the relationship to be absent.",
+          "If the reason for absence matters, model the reason as an attribute of the relationship or referencing row, not as a fake referenced entity.",
+          "If the relationship can repeat or has its own facts, move it to an association table.",
+          "If reports need a display label such as Unassigned, create that label in the reporting query or semantic layer rather than in the entity table."
+        ],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "-- Optional extension for the hypothetical order table.\n-- This distinguishes selected absence states without inventing associates.\nALTER TABLE retail_order\nADD COLUMN associate_relationship_reason text NULL,\nADD CONSTRAINT retail_order_associate_reason_check\nCHECK (\n    (associate_id IS NOT NULL AND associate_relationship_reason IS NULL)\n    OR\n    (associate_id IS NULL AND associate_relationship_reason IN (\n        'self_service',\n        'not_captured',\n        'not_applicable'\n    ))\n);"
+          }
+        ]
+      },
+      {
+        "id": "practical-modeling-rule",
+        "heading": "A practical modeling rule",
+        "paragraphs": [
+          "Model optional relationships directly. For a zero-or-one relationship, use a nullable foreign key when the relationship is absent and a valid key when it exists. For a zero-or-many relationship, use an association table and let no row mean no relationship. In both cases, keep referenced entity tables reserved for real entities.",
+          "This rule keeps joins honest. Inner joins naturally return rows that have the relationship. Left joins let you keep base rows while showing the optional relationship when it exists. Anti-joins or left joins with a null filter can find rows without a relationship. These query patterns are clearer when absence has not been hidden inside a fabricated default row.",
+          "There are tradeoffs. Nullable foreign keys require query authors to understand outer joins and null-aware filters. Association tables require another join. Explicit reason columns require governance so their values remain meaningful. Those costs are usually smaller than the long-term cost of mixing real entities with placeholders that every downstream system must remember to exclude."
+        ],
+        "bullets": [],
+        "codeExamples": []
+      }
+    ],
+    "takeaways": [
+      "Do not fabricate default entities such as customer 0 or employee Unassigned just to avoid optional foreign keys.",
+      "Use a nullable foreign key for an optional zero-or-one relationship, and use an association table when the optional relationship can repeat or has its own attributes.",
+      "If the reason for absence matters, model that reason explicitly near the relationship instead of encoding it as a fake row in the referenced entity table.",
+      "Outer joins, grouped labels, and anti-join diagnostics are query-time tools for working with absent relationships; they should not be replaced by polluted entity tables."
+    ],
+    "sources": [
+      {
+        "title": "PostgreSQL: Documentation: 18: 5.5. Constraints",
+        "url": "https://www.postgresql.org/docs/current/ddl-constraints.html"
+      },
+      {
+        "title": "PostgreSQL: Documentation: 18: 7.2. Table Expressions",
+        "url": "https://www.postgresql.org/docs/current/queries-table-expressions.html"
+      },
+      {
+        "title": "Chapter 8. Data Normalisation",
+        "url": "https://www.cs.uct.ac.za/mit_notes/database/htmls/chp08.html"
+      }
+    ],
+    "requiresVerification": false,
+    "verificationNotes": []
+  }
+]

@@ -1,16 +1,16 @@
 topic,url,status,audience,update_frequency
-Candidate keys and alternate keys,,ready,practitioners,never
-Functional dependencies in analytical tables,,ready,practitioners,never
-Composite keys in business event data,,ready,practitioners,never
+Candidate keys and alternate keys,https://jwatterson.com/writing/candidate-keys-and-alternate-keys,published,practitioners,never
+Functional dependencies in analytical tables,https://jwatterson.com/writing/functional-dependencies-in-analytical-tables,published,practitioners,never
+Composite keys in business event data,https://jwatterson.com/writing/composite-keys-in-business-event-data,published,practitioners,never
 Natural keys versus surrogate keys,,ready,practitioners,never
 Referential integrity across analytical tables,,ready,practitioners,never
 SQL null and three-valued logic,https://jwatterson.com/writing/sql-null-and-three-valued-logic,published,practitioners,never
-Set semantics versus bag semantics in SQL,,ready,practitioners,never
-First normal form and repeating groups,,ready,practitioners,never
+Set semantics versus bag semantics in SQL,https://jwatterson.com/writing/set-semantics-versus-bag-semantics-in-sql,published,practitioners,never
+First normal form and repeating groups,https://jwatterson.com/writing/first-normal-form-and-repeating-groups,published,practitioners,never
 Second and third normal forms,,ready,practitioners,never
 Lossless decomposition of relational tables,https://jwatterson.com/writing/lossless-decomposition-of-relational-tables,published,practitioners,never
-Entity identity versus record identity,,ready,practitioners,never
-Optional relationships in data models,,ready,practitioners,never
+Entity identity versus record identity,https://jwatterson.com/writing/entity-identity-versus-record-identity,published,practitioners,never
+Optional relationships in data models,https://jwatterson.com/writing/optional-relationships-in-data-models,published,practitioners,never
 Cardinality and participation constraints,https://jwatterson.com/writing/cardinality-and-participation-constraints,published,practitioners,never
 Weak entities and identifying relationships,,ready,practitioners,never
 Associative entities for many-to-many relationships,,ready,practitioners,never

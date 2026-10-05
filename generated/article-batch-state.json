@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "phase": "active",
+  "phase": "finalized",
   "batchId": "batch_6ac426911e8c819085a1ecb7c65dd92f",
   "inputFileId": "file-QPPcRiEgA7NTQd3AoeWpY3",
   "model": "gpt-5.5",
@@ -20,11 +20,32 @@
     "optional-relationships-in-data-models"
   ],
   "submittedAt": "2026-10-05T22:37:05.222Z",
-  "batchStatus": "validating",
-  "outputFileId": null,
+  "batchStatus": "completed",
+  "outputFileId": "file-8MF3YzkDZTuvahWpgXu3CZ",
   "errorFileId": null,
-  "successfulCount": 0,
-  "failedCount": 0,
-  "publishedCount": 0,
-  "failures": []
+  "successfulCount": 10,
+  "failedCount": 3,
+  "publishedCount": 7,
+  "failures": [
+    {
+      "customId": "article-natural-keys-versus-surrogate-keys",
+      "code": "editorial_retry",
+      "message": "Editor cited a source absent from its search evidence"
+    },
+    {
+      "customId": "article-referential-integrity-across-analytical-tables",
+      "code": "editorial_retry",
+      "message": "Editor cited a source absent from its search evidence"
+    },
+    {
+      "customId": "article-second-and-third-normal-forms",
+      "code": "editorial_retry",
+      "message": "Editor cited a source absent from its search evidence"
+    }
+  ],
+  "finalizedAt": "2026-10-05T23:01:43.914Z",
+  "automaticReview": true,
+  "retryCount": 3,
+  "reviewCount": 0,
+  "reviewSlugs": []
 }
