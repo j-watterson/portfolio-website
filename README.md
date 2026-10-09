@@ -19,6 +19,7 @@ as three connected engineering case studies:
 - Reduced-motion support and visible focus states
 - Paginated technical writing, article pages, structured data, and RSS
 - A 764-topic research library and ten-topic weekly OpenAI Batch workflow
+- Google Analytics (`G-FS1JDGT6BS`) in the shared page layout, inherited by all current and future pages
 
 ## Development
 
@@ -38,6 +39,12 @@ Production validation creates the Sites-compatible server artifact in `dist/`:
 ```bash
 npm run build
 ```
+
+The validation, deployment, and article-publication workflows run
+`npm run verify:writing` against the built site. This also checks the Google tag
+on every sitemap page, so future generated articles inherit tracking and a
+missing or duplicate tag fails verification before deployment. Deployment
+workflows repeat these checks against `https://jwatterson.com` after publishing.
 
 ## Content Workflow
 
