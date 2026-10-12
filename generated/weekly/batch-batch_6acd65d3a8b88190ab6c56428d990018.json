@@ -1,0 +1,1085 @@
+[
+  {
+    "slug": "natural-keys-versus-surrogate-keys",
+    "title": "Natural keys versus surrogate keys",
+    "description": "A practical guide to explaining identifier stability when a source-system customer identifier changes, using a small hypothetical retail dataset and relational counterexamples.",
+    "primaryKeyword": "Natural keys versus surrogate keys",
+    "relatedKeywords": [
+      "Natural keys versus surrogate keys",
+      "business key vs surrogate key",
+      "natural key"
+    ],
+    "category": "Data Modeling",
+    "level": "Intermediate",
+    "readTime": "8 min read",
+    "datePublished": "2026-10-12",
+    "dateModified": "2026-10-12",
+    "canonicalUrl": "https://jwatterson.com/writing/natural-keys-versus-surrogate-keys",
+    "status": "published",
+    "sourceHash": "e6500a82b6698b94",
+    "lead": "The hard part of natural keys versus surrogate keys is not naming the two categories. The hard part is explaining what should stay stable when a source system changes its mind. A source customer ID can be useful, unique today, and still be the wrong primary key for a long-lived analytical customer entity.",
+    "sections": [
+      {
+        "id": "the-stability-question",
+        "heading": "The stability question",
+        "paragraphs": [
+          "A natural key is a key made from values that have business meaning. A surrogate key is an assigned identifier with no business meaning, usually created by the data model. The practical decision is not whether business meaning is good or bad. The decision is whether a value is stable for the thing the table claims to represent.",
+          "For practitioners, the most useful test is this: if the source value changes, did the real-world entity change, or did only one identifier for that entity change? If the person, account, product, or store is still the same entity, then the changing source value should not be the only identifier that other tables depend on.",
+          "This article assumes you already know what candidate keys and alternate keys are. The focus here is narrower: how to model a source identifier that changes without losing relational meaning. The example uses a hypothetical retail customer dataset. It is intentionally small so the counterexamples are visible."
+        ],
+        "bullets": [
+          "Use a natural key as a primary key only when it is unique, required, and stable at the grain and time span of the table.",
+          "Use a surrogate key when relationships need an identifier that is independent of source-system value changes.",
+          "Keep important source identifiers as attributes, identifier-history rows, or scoped alternate keys instead of pretending they are irrelevant."
+        ],
+        "codeExamples": []
+      },
+      {
+        "id": "hypothetical-changing-source-id",
+        "heading": "A hypothetical source identifier that changes",
+        "paragraphs": [
+          "Suppose a retailer receives customer data from a CRM. The CRM emits a value called source_customer_id. In January, customer C100 is Ada. Ada places an order. In February, the CRM migrates Ada to a new identifier, C900. In March, the CRM reuses C100 for a different customer, Cara.",
+          "This is not a claim about how any particular CRM behaves. It is a hypothetical fixture designed to expose the modeling problem. The important point is that source_customer_id is unique in each daily extract, but it is not stable over the historical customer entity."
+        ],
+        "bullets": [
+          "January: C100 identifies Ada.",
+          "February onward: C900 identifies the same Ada.",
+          "March onward: C100 identifies Cara, a different customer.",
+          "Orders arrive with the source_customer_id observed at order time."
+        ],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "/* Illustrative relational fixture. Not a claim of execution. */\n\ncreate table crm_customer_snapshot (\n  snapshot_date date not null,\n  source_customer_id varchar(20) not null,\n  customer_name varchar(100) not null,\n  migrated_from_source_customer_id varchar(20),\n  primary key (snapshot_date, source_customer_id)\n);\n\ncreate table source_order (\n  order_id varchar(20) primary key,\n  order_date date not null,\n  source_customer_id varchar(20) not null,\n  order_amount numeric(10,2) not null\n);\n\ninsert into crm_customer_snapshot values\n  (date '2026-01-10', 'C100', 'Ada', null),\n  (date '2026-01-10', 'C200', 'Ben', null),\n  (date '2026-02-10', 'C900', 'Ada', 'C100'),\n  (date '2026-03-10', 'C100', 'Cara', null),\n  (date '2026-03-10', 'C900', 'Ada', 'C100');\n\ninsert into source_order values\n  ('O-1', date '2026-01-15', 'C100', 40.00),\n  ('O-2', date '2026-01-20', 'C200', 25.00),\n  ('O-3', date '2026-02-15', 'C900', 70.00),\n  ('O-4', date '2026-03-15', 'C100', 15.00);"
+          }
+        ]
+      },
+      {
+        "id": "counterexample-natural-primary-key",
+        "heading": "Counterexample: making the changing source ID the primary key",
+        "paragraphs": [
+          "A tempting design is to create a customer table where source_customer_id is the primary key, then point orders at it. That design looks clean when the first extract arrives. C100 identifies Ada, C200 identifies Ben, and orders can reference those values.",
+          "The trouble appears when Ada changes from C100 to C900. If the customer row is updated from C100 to C900, then the January order O-1 still contains C100 as the source value observed at order time. A foreign key from orders to customers is now broken unless the order is also updated or the foreign key is defined with an update action that cascades the changed key. Either way, the model has mixed two ideas: the identifier observed on the event and the current identifier for the customer entity.",
+          "The March reuse makes the failure easier to see. C100 now identifies Cara. If a model joins orders to the latest customer row on source_customer_id, O-1 can be incorrectly attributed to Cara. The join is syntactically simple but semantically wrong. The key did not identify one customer across the whole period being modeled.",
+          "This is the central distinction in natural keys versus surrogate keys: a natural-looking source value can be a valid key for one relation and an invalid key for another. source_customer_id may be a key for one daily CRM extract. It is not a stable key for the long-lived analytical customer entity in this example."
+        ],
+        "bullets": [
+          "The January snapshot can use (snapshot_date, source_customer_id) to identify one row in that extract.",
+          "The long-lived customer entity cannot safely use source_customer_id alone, because C100 refers to Ada in January and Cara in March.",
+          "Updating facts to follow source ID changes can erase the source identifier that was observed when the event occurred."
+        ],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "/* Counterexample: this join is unsafe for historical attribution. */\nselect\n  o.order_id,\n  o.order_date,\n  o.source_customer_id,\n  c.customer_name,\n  o.order_amount\nfrom source_order o\njoin crm_customer_snapshot c\n  on o.source_customer_id = c.source_customer_id\nwhere c.snapshot_date = date '2026-03-10';\n\n/* In the hypothetical data, order O-1 has source_customer_id C100.\n   On the March snapshot, C100 is Cara.\n   A latest-snapshot join can therefore attribute Ada's January order to Cara. */"
+          }
+        ]
+      },
+      {
+        "id": "surrogate-key-with-identifier-history",
+        "heading": "A better pattern: surrogate key plus identifier history",
+        "paragraphs": [
+          "A more durable design separates the customer entity from the identifiers that source systems have used for that entity. The customer table gets a surrogate customer_key. A second table records source identifiers over time. Orders keep the source identifier observed on the event, and the modeled fact can also store the resolved customer_key.",
+          "This does not mean the natural identifier is thrown away. The source identifier remains important for lineage, reconciliation, and source-to-target diagnostics. It simply stops being the only thing that defines customer identity across time.",
+          "In the hypothetical fixture, Ada receives customer_key 101. Her CRM identifiers are C100 from January until the migration and C900 afterward. Cara receives customer_key 103. Cara also has CRM identifier C100, but only starting in March. The same source value can appear more than once in the identifier table when reuse over time is allowed, as long as the model can resolve an event date to one customer.",
+          "The SQL below is illustrative. It shows the relational shape, not a fully portable implementation of temporal uniqueness. A simple primary key, foreign key, unique constraint, and check constraint can express several table rules. Preventing overlapping validity windows for the same source identifier is a cross-row rule, so it needs a diagnostic query, a database-specific constraint, or a pipeline test."
+        ],
+        "bullets": [
+          "customer_key identifies the modeled customer entity.",
+          "source_customer_id records what the CRM called that customer during a validity period.",
+          "Orders preserve observed_source_customer_id because that is part of the event as received.",
+          "Resolution uses the order date and the identifier validity window, not just the latest source value."
+        ],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "/* Illustrative design for the hypothetical dataset. */\n\ncreate table customer (\n  customer_key integer primary key,\n  customer_display_name varchar(100) not null\n);\n\ncreate table customer_source_identifier (\n  customer_key integer not null references customer(customer_key),\n  id_system varchar(30) not null,\n  source_customer_id varchar(20) not null,\n  valid_from date not null,\n  valid_to date,\n  primary key (customer_key, id_system, source_customer_id, valid_from),\n  unique (id_system, source_customer_id, valid_from),\n  check (valid_to is null or valid_to > valid_from)\n);\n\ncreate table modeled_order (\n  order_id varchar(20) primary key,\n  order_date date not null,\n  customer_key integer not null references customer(customer_key),\n  observed_source_customer_id varchar(20) not null,\n  order_amount numeric(10,2) not null\n);\n\ninsert into customer values\n  (101, 'Ada'),\n  (102, 'Ben'),\n  (103, 'Cara');\n\ninsert into customer_source_identifier values\n  (101, 'CRM', 'C100', date '2026-01-01', date '2026-02-01'),\n  (101, 'CRM', 'C900', date '2026-02-01', null),\n  (102, 'CRM', 'C200', date '2026-01-01', null),\n  (103, 'CRM', 'C100', date '2026-03-01', null);\n\ninsert into modeled_order values\n  ('O-1', date '2026-01-15', 101, 'C100', 40.00),\n  ('O-2', date '2026-01-20', 102, 'C200', 25.00),\n  ('O-3', date '2026-02-15', 101, 'C900', 70.00),\n  ('O-4', date '2026-03-15', 103, 'C100', 15.00);"
+          }
+        ]
+      },
+      {
+        "id": "worked-result-and-diagnostic",
+        "heading": "Worked result and diagnostic query",
+        "paragraphs": [
+          "With the surrogate-key design, the expected customer totals are straightforward. Ada has O-1 for 40.00 and O-3 for 70.00, totaling 110.00. Ben has O-2 for 25.00. Cara has O-4 for 15.00. The fact that Ada and Cara both used C100 at different times does not collapse them into one customer.",
+          "The model also supports a useful diagnostic: detect overlapping validity windows for the same source identifier. Reuse over time may be allowed, depending on the business rules. Overlap is different. If C100 maps to Ada and Cara during the same date range in the same source system, an order on an overlapping date cannot be resolved deterministically without more information.",
+          "The following queries are illustrative SQL. They express the relational check and the intended resolution logic. Production implementations may use database-specific range types, exclusion constraints, temporal constraints, or pipeline tests."
+        ],
+        "bullets": [
+          "Ada: 40.00 plus 70.00 equals 110.00.",
+          "Ben: 25.00.",
+          "Cara: 15.00.",
+          "C100 is not globally stable, but the combination of source system, source identifier, and validity period is usable for event-time resolution."
+        ],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "/* Resolve source orders through identifier history. */\nselect\n  o.order_id,\n  o.order_date,\n  h.customer_key,\n  o.source_customer_id as observed_source_customer_id,\n  o.order_amount\nfrom source_order o\njoin customer_source_identifier h\n  on h.id_system = 'CRM'\n and h.source_customer_id = o.source_customer_id\n and o.order_date >= h.valid_from\n and o.order_date < coalesce(h.valid_to, date '9999-12-31')\norder by o.order_id;\n\n/* Expected resolution for the hypothetical data:\n   O-1  2026-01-15  101  C100  40.00\n   O-2  2026-01-20  102  C200  25.00\n   O-3  2026-02-15  101  C900  70.00\n   O-4  2026-03-15  103  C100  15.00\n*/\n\n/* Customer totals after stable resolution. */\nselect\n  c.customer_display_name,\n  sum(o.order_amount) as total_order_amount\nfrom modeled_order o\njoin customer c\n  on o.customer_key = c.customer_key\ngroup by c.customer_display_name\norder by c.customer_display_name;\n\n/* Expected result for the hypothetical data:\n   Ada   110.00\n   Ben    25.00\n   Cara   15.00\n*/\n\n/* Diagnostic: find overlapping mappings for the same source identifier. */\nselect\n  a.id_system,\n  a.source_customer_id,\n  a.customer_key as customer_key_a,\n  b.customer_key as customer_key_b,\n  a.valid_from as a_valid_from,\n  a.valid_to as a_valid_to,\n  b.valid_from as b_valid_from,\n  b.valid_to as b_valid_to\nfrom customer_source_identifier a\njoin customer_source_identifier b\n  on a.id_system = b.id_system\n and a.source_customer_id = b.source_customer_id\n and a.customer_key < b.customer_key\n and a.valid_from < coalesce(b.valid_to, date '9999-12-31')\n and b.valid_from < coalesce(a.valid_to, date '9999-12-31');\n\n/* Expected result for the hypothetical data: no rows.\n   C100 maps to Ada until 2026-02-01 and to Cara starting 2026-03-01,\n   so the validity windows do not overlap. */"
+          }
+        ]
+      },
+      {
+        "id": "decision-rules-for-practitioners",
+        "heading": "Decision rules for practitioners",
+        "paragraphs": [
+          "The clean explanation to stakeholders is this: a source identifier is evidence, not automatically identity. It may be the best available identifier in the source system, but the analytical model has to decide what entity remains the same when source values change.",
+          "When the source value is stable, mandatory, and unique for the full history you need, it can be a natural primary key. When it can change for the same entity, be reused for another entity, be merged, be split, or arrive late, it is usually safer as an identifier-history value. The modeled entity then needs its own stable key.",
+          "Dimensional modeling literature commonly distinguishes natural keys from surrogate keys and also discusses durable keys for tying together changed identifiers. Relational database documentation describes primary keys, unique constraints, foreign keys, check constraints, and exclusion constraints as mechanisms for enforcing table rules. Those mechanisms are valuable, but they do not choose the business semantics for you. The modeler still has to decide what the key means.",
+          "A useful naming convention is to reserve customer_key for the internal surrogate key and source_customer_id for the value supplied by the source. If the organization also assigns a durable business identity, name it separately, such as durable_customer_id. Avoid using a column name like customer_id when it is unclear whether the value is internal, source-provided, durable, or event-observed."
+        ],
+        "bullets": [
+          "Ask: Can this value ever change while the entity stays the same?",
+          "Ask: Can this value ever be reused for a different entity?",
+          "Ask: Do facts need to preserve the identifier observed at event time?",
+          "Ask: Can two source systems issue the same value with different meanings?",
+          "If any answer is yes, separate entity identity from source identifier history."
+        ],
+        "codeExamples": []
+      }
+    ],
+    "takeaways": [
+      "A source identifier can be unique in a snapshot and still be unstable for a long-lived analytical entity.",
+      "Surrogate keys are useful when relationships need to survive source identifier changes, reuse, merges, or migrations.",
+      "Do not discard natural identifiers; keep them as source identifier history, scoped alternate keys, or event-observed attributes.",
+      "The modeling question is not whether natural keys or surrogate keys are universally better. It is what value remains stable at the grain of the table."
+    ],
+    "sources": [
+      {
+        "title": "Dimension Surrogate Keys | Kimball Dimensional Modeling Techniques",
+        "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/dimension-surrogate-key/"
+      },
+      {
+        "title": "Natural, Durable, and Supernatural Keys | KImball Group",
+        "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/natural-durable-supernatural-key/"
+      },
+      {
+        "title": "PostgreSQL: Documentation: 18: 5.5. Constraints",
+        "url": "https://www.postgresql.org/docs/18/ddl-constraints.html"
+      }
+    ],
+    "requiresVerification": false,
+    "verificationNotes": []
+  },
+  {
+    "slug": "referential-integrity-across-analytical-tables",
+    "title": "Referential integrity across analytical tables",
+    "description": "A practical guide to finding orphaned facts in analytical tables while allowing legitimate late-arriving dimensions to settle.",
+    "primaryKeyword": "Referential integrity across analytical tables",
+    "relatedKeywords": [
+      "Referential integrity across analytical tables"
+    ],
+    "category": "Data Modeling",
+    "level": "Intermediate",
+    "readTime": "7 min read",
+    "datePublished": "2026-10-12",
+    "dateModified": "2026-10-12",
+    "canonicalUrl": "https://jwatterson.com/writing/referential-integrity-across-analytical-tables",
+    "status": "published",
+    "sourceHash": "328008b66a4d121b",
+    "lead": "Analytical tables often need referential integrity even when the warehouse does not enforce every relationship as a physical constraint. The hard part is not simply finding facts that do not join to a dimension right now. The hard part is separating true orphaned facts from facts that are merely waiting for a legitimate late-arriving dimension.",
+    "sections": [
+      {
+        "id": "the-practical-problem",
+        "heading": "The practical problem",
+        "paragraphs": [
+          "A fact table row is orphaned when it cannot be related to the dimension row it claims to reference under the model’s relationship rules. In a transactional database, a declared foreign key may prevent some invalid references from being written. In an analytical warehouse, the semantic requirement still exists even when a load process allows unresolved rows to land first: an order fact should resolve to the valid customer, product, store, account, or other dimension row required by the model.",
+          "The false positive to avoid is the legitimate late-arriving dimension. Kimball’s dimensional modeling material describes the case where facts from an operational process arrive before the associated dimension context. It also describes late-arriving facts, where the dimension keys must be found as of the time the delayed measurement event occurred. Those patterns mean the operational question should be narrower than “do all facts join to dimensions at this instant?” A better question is “which unresolved facts are still inside the allowed late-arrival window, and which are old enough to investigate?”",
+          "The diagnostic below uses a small hypothetical retail dataset. It assumes the reader already understands candidate keys and alternate keys. It does not depend on a specific warehouse engine, and the SQL is illustrative rather than executed here; adapt interval syntax, date literals, and common table expression syntax to the platform in use."
+        ],
+        "bullets": [],
+        "codeExamples": []
+      },
+      {
+        "id": "model-the-relationship-not-just-the-column",
+        "heading": "Model the relationship, not just the column",
+        "paragraphs": [
+          "A common mistake is checking only whether fact.customer_key appears somewhere in dim_customer.customer_key. That is not always enough. In many analytical models, the valid relationship includes both an identifier and time. A fact from October 6 may need the customer dimension version that was valid on October 6, not merely any row for the same customer.",
+          "For this example, the dimension has a warehouse key and a source customer identifier. The source customer identifier is the business-side value used to match incoming facts before the final dimension key is known. The dimension is effective-dated, with one row valid for each source customer over a period of time. The fact table stores the order date, load date, source customer identifier, and, when resolved, the dimension key.",
+          "The audit rule is: an order fact is referentially valid when there is a customer dimension row with the same source_customer_id and the order date is within that dimension row’s effective period. If the stored customer_key is populated, it should equal that valid dimension row. If the dimension row is missing but the fact was loaded recently, classify it as pending rather than orphaned. If it is missing and older than the grace period, classify it as an orphan candidate.",
+          "This is a semantic check. It is not a performance prescription. In a large warehouse, the same logic may be implemented with persisted audit tables, incremental checks, partition filters, or data quality tooling. Those choices do not change the relational rule being tested."
+        ],
+        "bullets": [
+          "Define the join predicate that represents a valid relationship, including effective dates when history matters.",
+          "Confirm that the dimension’s effective-date ranges are non-overlapping for the identifier being audited, or add a separate check for overlapping dimension versions.",
+          "Define a grace period based on the expected arrival pattern of the dimension feed and the risk of publishing unresolved facts.",
+          "Classify unresolved facts instead of immediately deleting, rejecting, or silently ignoring them."
+        ],
+        "codeExamples": []
+      },
+      {
+        "id": "hypothetical-retail-fixture",
+        "heading": "A hypothetical retail fixture with counterexamples",
+        "paragraphs": [
+          "The following illustrative fixture creates six order facts and four customer dimension rows. It includes a clean match, a legitimate pending late dimension, a likely orphan, a fact pointing at the wrong historical dimension version, a fact whose key exists but is not valid for the order date, and another clean historical match.",
+          "The audit date is 2026-10-12. The allowed late-dimension window is three days from fact load time. That means a fact loaded on or after 2026-10-09 can be unresolved without being called an orphan yet. This is a simple policy for the example; a real policy should be based on source-system delivery expectations and downstream risk."
+        ],
+        "bullets": [],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "WITH\nparams AS (\n  SELECT DATE '2026-10-12' AS as_of_date,\n         INTERVAL '3 days' AS late_dimension_grace\n),\ndim_customer AS (\n  SELECT *\n  FROM (VALUES\n    (1, 'C001', DATE '2026-01-01', DATE '9999-12-31'),\n    (2, 'C002', DATE '2026-10-05', DATE '9999-12-31'),\n    (3, 'C004', DATE '2026-01-01', DATE '2026-10-07'),\n    (4, 'C004', DATE '2026-10-07', DATE '9999-12-31')\n  ) AS d(customer_key, source_customer_id, effective_from, effective_to)\n),\nfact_order AS (\n  SELECT *\n  FROM (VALUES\n    (1001, 'C001', 1,    DATE '2026-10-06', DATE '2026-10-06', 42.00),\n    (1002, 'C003', NULL, DATE '2026-10-10', DATE '2026-10-11', 18.50),\n    (1003, 'C005', NULL, DATE '2026-10-01', DATE '2026-10-02', 71.25),\n    (1004, 'C004', 3,    DATE '2026-10-08', DATE '2026-10-08', 30.00),\n    (1005, 'C002', 2,    DATE '2026-10-03', DATE '2026-10-04', 55.00),\n    (1006, 'C004', 3,    DATE '2026-10-06', DATE '2026-10-06', 11.00)\n  ) AS f(order_id, source_customer_id, customer_key, order_date, loaded_at, order_amount)\n),\nmatched AS (\n  SELECT\n    f.order_id,\n    f.source_customer_id,\n    f.customer_key AS stored_customer_key,\n    d.customer_key AS valid_customer_key,\n    f.order_date,\n    f.loaded_at,\n    f.order_amount,\n    p.as_of_date,\n    p.late_dimension_grace\n  FROM fact_order f\n  CROSS JOIN params p\n  LEFT JOIN dim_customer d\n    ON d.source_customer_id = f.source_customer_id\n   AND f.order_date >= d.effective_from\n   AND f.order_date <  d.effective_to\n)\nSELECT\n  order_id,\n  source_customer_id,\n  stored_customer_key,\n  valid_customer_key,\n  order_date,\n  loaded_at,\n  CASE\n    WHEN valid_customer_key IS NOT NULL\n     AND stored_customer_key = valid_customer_key\n      THEN 'ok'\n    WHEN valid_customer_key IS NOT NULL\n     AND stored_customer_key IS NULL\n      THEN 'dimension_exists_but_fact_key_unresolved'\n    WHEN valid_customer_key IS NOT NULL\n     AND stored_customer_key <> valid_customer_key\n      THEN 'wrong_dimension_version'\n    WHEN valid_customer_key IS NULL\n     AND stored_customer_key IS NOT NULL\n      THEN 'no_valid_dimension_for_fact_date'\n    WHEN valid_customer_key IS NULL\n     AND stored_customer_key IS NULL\n     AND loaded_at >= as_of_date - late_dimension_grace\n      THEN 'pending_late_dimension'\n    WHEN valid_customer_key IS NULL\n     AND stored_customer_key IS NULL\n      THEN 'orphan_candidate'\n    ELSE 'unclassified'\n  END AS referential_status\nFROM matched\nORDER BY order_id;"
+          }
+        ]
+      },
+      {
+        "id": "read-the-results",
+        "heading": "Read the results as decisions, not just failures",
+        "paragraphs": [
+          "The expected classifications are straightforward when the relationship rule is explicit. Order 1001 is ok because customer C001 has a valid dimension row for 2026-10-06 and the stored key is 1. Order 1006 is also ok: customer C004 has a dimension version with key 3 that is valid before 2026-10-07, and the order date is 2026-10-06.",
+          "Order 1002 is not an orphan yet. It references source customer C003, no dimension row exists, and the stored customer key is not populated. However, it was loaded on 2026-10-11. With an audit date of 2026-10-12 and a three-day grace period, this row is still pending_late_dimension. The appropriate action is usually to keep the fact visible as unresolved, then recheck after the dimension feed has had time to arrive.",
+          "Order 1003 is the likely orphan. It references C005, has no resolved customer key, and was loaded on 2026-10-02. By the 2026-10-12 audit, it is ten days old, outside the three-day grace period. It should be routed to investigation, remediation, or a controlled unknown-member or placeholder policy if the dimensional model uses one. The important point is that the rule did not discard order 1002 while still finding order 1003.",
+          "Order 1004 shows why existence checks are weak. The stored customer_key 3 exists in the dimension table, but it is the C004 version valid before 2026-10-07. The order date is 2026-10-08, so the valid row is key 4. A check that only asks whether key 3 exists would pass a historically incorrect relationship. The better classification is wrong_dimension_version.",
+          "Order 1005 shows another counterexample. The stored customer_key 2 exists, and it belongs to C002, but that row is valid from 2026-10-05 onward. The order date is 2026-10-03. Under this model’s effective-date rule, there is no valid dimension for the fact date. This is not the same as a new dimension arriving late; the fact already carries a key, but the key does not satisfy the modeled relationship."
+        ],
+        "bullets": [],
+        "codeExamples": []
+      },
+      {
+        "id": "turn-the-check-into-an-operational-contract",
+        "heading": "Turn the check into an operational contract",
+        "paragraphs": [
+          "The diagnostic becomes useful when each status has an owner and an action. Treat ok rows as publishable. Treat pending_late_dimension rows as incomplete but expected; they should age out of that state or resolve when the dimension arrives. Treat orphan_candidate rows as defects that need triage. Treat wrong_dimension_version and no_valid_dimension_for_fact_date as modeling or processing defects, because a populated key can still be semantically wrong.",
+          "Avoid making the grace period a permanent hiding place. A row that is pending today should become either resolved or orphan_candidate after the allowed interval. That state transition is what prevents legitimate late dimensions from being discarded while also preventing old defects from accumulating invisibly.",
+          "Also avoid mixing unrelated questions into the referential check. The check should not decide whether the source identifier design is good, whether a surrogate key should have been used, or whether a nullable column has the correct semantics. Those are important design topics, but the audit here is narrower: given the model’s current identifiers and validity rules, can each fact be related to the dimension row it requires?",
+          "A practical implementation usually stores the results in an audit table with columns such as audit_date, table_name, relationship_name, referential_status, row_count, and sample_keys. Counts show whether the problem is isolated or systemic. Samples give operators a starting point without forcing them to scan the entire fact table. The example’s row-level query can be aggregated into those operational counts once the classifications are trusted."
+        ],
+        "bullets": [
+          "Do not delete unresolved facts solely because the dimension is absent at first load.",
+          "Do not call a row valid merely because its stored dimension key exists somewhere in the dimension table.",
+          "Do age pending rows into orphan candidates when they exceed the agreed late-arrival window.",
+          "Do keep late-arriving fact handling separate from late-arriving dimension handling: delayed measurement events still need the dimension context that was effective when the event occurred."
+        ],
+        "codeExamples": []
+      },
+      {
+        "id": "a-compact-decision-framework",
+        "heading": "A compact decision framework",
+        "paragraphs": [
+          "Use this sequence when designing referential integrity checks across analytical tables. First, state the relationship predicate in business terms: for example, an order belongs to the customer row with the same source_customer_id that was effective on the order date. Second, identify the observation point: the audit date and the timestamp that starts the grace-period clock. Loaded_at is often more useful than event time for this purpose, because an old event can be newly ingested as a legitimate late-arriving fact. Third, define the grace period for unresolved dimensions. Fourth, classify rather than filter: ok, pending, orphan candidate, wrong version, or no valid dimension for the fact date.",
+          "The classification approach protects both sides of the problem. It protects data completeness by allowing legitimate late dimensions to arrive. It protects analytical correctness by refusing to treat stale unresolved facts, wrong historical keys, or invalid effective-date matches as acceptable. That is the core of referential integrity across analytical tables: not a physical constraint alone, but a testable relationship contract between facts and dimensions."
+        ],
+        "bullets": [],
+        "codeExamples": []
+      }
+    ],
+    "takeaways": [
+      "Referential integrity in analytical models should test the full relationship predicate, including effective dates when dimensions are historized.",
+      "A missing dimension row is not automatically an orphan; use a defined late-arrival grace period to distinguish pending facts from orphan candidates.",
+      "A populated dimension key can still be wrong if it points to the wrong historical version or to a dimension row that is not valid for the fact date.",
+      "Late-arriving dimensions and late-arriving facts are related but distinct cases: one concerns missing dimension context at fact arrival, while the other concerns delayed facts that must be matched to the context effective at the event time."
+    ],
+    "sources": [
+      {
+        "title": "Late Arriving Dimension | Kimball Dimensional Modeling Techniques",
+        "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/late-arriving-dimension/"
+      },
+      {
+        "title": "Late Arriving Fact | Kimball Dimensional Modeling Techniques",
+        "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/late-arriving-fact/"
+      },
+      {
+        "title": "Dimensional Modeling Techniques - Kimball Group",
+        "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/?trk=public_post_comment-text"
+      },
+      {
+        "title": "Dimension Table Structure | Kimball Dimensional Modeling Techniques",
+        "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/dimension-table-structure/"
+      },
+      {
+        "title": "Star Schema OLAP Cube | Kimball Dimensional Modeling Techniques",
+        "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/star-schema-olap-cube/"
+      }
+    ],
+    "requiresVerification": false,
+    "verificationNotes": []
+  },
+  {
+    "slug": "weak-entities-and-identifying-relationships",
+    "title": "Weak entities and identifying relationships",
+    "description": "A practical guide to modeling records whose identity only makes sense inside a parent record, using a hypothetical retail order-line example and common counterexamples.",
+    "primaryKeyword": "Weak entities and identifying relationships",
+    "relatedKeywords": [
+      "Weak entities and identifying relationships"
+    ],
+    "category": "Data Modeling",
+    "level": "Intermediate",
+    "readTime": "8 min",
+    "datePublished": "2026-10-12",
+    "dateModified": "2026-10-12",
+    "canonicalUrl": "https://jwatterson.com/writing/weak-entities-and-identifying-relationships",
+    "status": "published",
+    "sourceHash": "781b532df2b77115",
+    "lead": "Some records are not independently identifiable. An order line numbered 1 is not a real-world thing by itself; it is line 1 of order O-1007. Weak entities and identifying relationships give you a precise way to model that dependency instead of hiding it behind an accidental surrogate key or a vague child table.",
+    "sections": [
+      {
+        "id": "the-modeling-problem",
+        "heading": "The modeling problem: local identity is not global identity",
+        "paragraphs": [
+          "A weak entity is an entity whose identity depends on another entity. It may have a local discriminator, sometimes called a partial key, but that discriminator is only unique within the parent. The parent’s key must be combined with the local discriminator to identify one child record.",
+          "An identifying relationship is the relationship that supplies the missing identity. In a relational design, this usually appears as a child table whose primary key includes the parent table’s primary key. The child’s foreign key to the parent is not just a reference; it is part of the child’s own identifier.",
+          "This is different from saying every child table is weak. A shipment may reference an order, but if the shipment has a carrier-assigned tracking number that uniquely identifies it, the shipment can be a strong entity. It depends on an order for business context, but not necessarily for identity. Weakness is about identification, not importance, ownership, or whether a row appears below another row in an application screen.",
+          "The practical question is: can a row be named unambiguously without the parent key? If the answer is no, the parent key belongs in the child’s candidate key. Normalization material frames related design choices in terms of dependencies: when a key is composite, non-key attributes should depend on the whole key rather than only part of it."
+        ],
+        "bullets": [
+          "Use a weak entity when the child has a meaningful identity only within one parent.",
+          "Use an identifying relationship when the parent’s key is part of the child’s key, not merely a nullable reference.",
+          "Do not classify a table as weak just because it has a foreign key; many ordinary strong entities also reference other tables."
+        ],
+        "codeExamples": []
+      },
+      {
+        "id": "hypothetical-retail-example",
+        "heading": "Worked example: hypothetical retail order lines",
+        "paragraphs": [
+          "Consider a hypothetical retail order system. The business creates order numbers such as O-1001 and O-1002. Inside each order, lines are numbered 1, 2, 3, and so on. Line number 1 can appear on every order, so line_number alone is not a candidate key. The pair order_id and line_number is the stable business identifier for an order line.",
+          "Here is a small fixture. The dataset is hypothetical and intentionally tiny so the dependency is visible.",
+          "Order O-1001 has line 1 for SKU A-RED with quantity 2 and line 2 for SKU B-BLUE with quantity 1. Order O-1002 also has line 1, this time for SKU C-GREEN with quantity 4. There is no conflict because O-1001 line 1 and O-1002 line 1 are different order lines.",
+          "The parent is order_header. The weak entity is order_line. The identifying relationship is order_header to order_line because order_id participates in the primary key of order_line. If someone says “line 1 shipped late,” the model should force the next question: line 1 of which order?",
+          "A relational implementation can express this directly. The following SQL is illustrative and PostgreSQL-flavored; it is included to show the constraints, not to claim execution results."
+        ],
+        "bullets": [],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "CREATE TABLE order_header (\n    order_id text PRIMARY KEY,\n    customer_id text NOT NULL,\n    order_date date NOT NULL\n);\n\nCREATE TABLE order_line (\n    order_id text NOT NULL,\n    line_number integer NOT NULL,\n    sku text NOT NULL,\n    quantity integer NOT NULL CHECK (quantity > 0),\n    unit_price numeric(10, 2) NOT NULL CHECK (unit_price >= 0),\n    PRIMARY KEY (order_id, line_number),\n    FOREIGN KEY (order_id) REFERENCES order_header (order_id)\n);\n\nINSERT INTO order_header (order_id, customer_id, order_date) VALUES\n    ('O-1001', 'C-501', DATE '2026-10-01'),\n    ('O-1002', 'C-502', DATE '2026-10-01');\n\nINSERT INTO order_line (order_id, line_number, sku, quantity, unit_price) VALUES\n    ('O-1001', 1, 'A-RED', 2, 12.00),\n    ('O-1001', 2, 'B-BLUE', 1, 20.00),\n    ('O-1002', 1, 'C-GREEN', 4, 5.50);"
+          }
+        ]
+      },
+      {
+        "id": "why-the-composite-key-matters",
+        "heading": "Why the composite key matters",
+        "paragraphs": [
+          "The composite key states a business rule that a surrogate key alone does not state: within one order, a line number identifies at most one line. Across orders, the same line number may be reused. This is the core shape of a weak entity.",
+          "The primary key on order_line does two jobs. First, it prevents two rows from claiming to be the same line of the same order. Second, because order_id is also a foreign key, it requires every order line in the curated table to reference an existing order. PostgreSQL 18 documents the relevant mechanisms behind this pattern: primary keys, foreign keys, not-null constraints, unique constraints, and check constraints. Other relational systems expose similar concepts, though syntax and enforcement details vary.",
+          "The model also gives joins a clear semantic basis. If a revenue query aggregates order lines by order, the join from order_line to order_header is not optional decoration. It is the relationship that completes the child identity. That is why weak entities are often a better conceptual explanation than “a table with a composite key.” The composite key is the implementation; the weak entity is the meaning.",
+          "The expected totals from the sample data are straightforward. O-1001 has 2 times 12.00 plus 1 times 20.00, for an order total of 44.00. O-1002 has 4 times 5.50, for an order total of 22.00. The query below follows the identifying relationship from line to order and groups by the parent key."
+        ],
+        "bullets": [
+          "The child key is not line_number; it is order_id plus line_number.",
+          "The foreign key is not merely descriptive; it contributes to the child row’s identity.",
+          "The design allows line_number 1 to appear many times overall, but only once per order."
+        ],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "SELECT\n    h.order_id,\n    SUM(l.quantity * l.unit_price) AS order_total\nFROM order_header AS h\nJOIN order_line AS l\n    ON l.order_id = h.order_id\nGROUP BY h.order_id\nORDER BY h.order_id;\n\n-- Expected result for the hypothetical fixture:\n-- O-1001 | 44.00\n-- O-1002 | 22.00"
+          }
+        ]
+      },
+      {
+        "id": "counterexamples-that-look-plausible",
+        "heading": "Counterexamples that look plausible but lose the rule",
+        "paragraphs": [
+          "The most common counterexample is to add a generated order_line_id primary key and stop there. That design may be convenient for application references, but by itself it does not preserve the order-line identity rule. Without a unique constraint on order_id and line_number, the table can contain two different rows both labeled line 1 of order O-1001.",
+          "A surrogate key is not wrong. It becomes risky when it replaces the business identifier instead of supplementing it. If downstream systems need a single-column technical identifier, you can add one while still declaring the identifying candidate key. The important part is that the database and the data model both know that order_id and line_number must be unique together.",
+          "A second counterexample is to make line_number globally unique. That solves uniqueness by changing the business meaning. If the source system numbers lines starting at 1 inside each order, forcing global line numbers invents a new identifier that users cannot reconcile with the operational record. You may still create a technical sequence, but it should not masquerade as the natural order-line identity.",
+          "A third counterexample is to model SKU as part of the order-line key. That fails when the same SKU appears twice on one order for legitimate reasons, such as separate fulfillment rules, promotional pricing, or manual entry behavior. SKU is an attribute of the line in this example, not the line’s identifier. If the business actually says one SKU can appear only once per order, that is a separate uniqueness rule on order_id and sku, not a replacement for the line identity unless the business also identifies lines that way.",
+          "The following table definition is a useful anti-pattern. It has a primary key, and it has a foreign key, but it does not enforce the identifying relationship’s local uniqueness rule."
+        ],
+        "bullets": [],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "CREATE TABLE order_line_bad (\n    order_line_id bigint PRIMARY KEY,\n    order_id text NOT NULL REFERENCES order_header (order_id),\n    line_number integer NOT NULL,\n    sku text NOT NULL,\n    quantity integer NOT NULL\n);\n\n-- These two rows should not both be allowed if line_number identifies a line within an order.\nINSERT INTO order_line_bad (order_line_id, order_id, line_number, sku, quantity) VALUES\n    (10, 'O-1001', 1, 'A-RED', 2),\n    (11, 'O-1001', 1, 'D-YELLOW', 1);\n\n-- If a surrogate key is needed, keep the identifying rule as a unique constraint.\nCREATE TABLE order_line_with_surrogate (\n    order_line_id bigint PRIMARY KEY,\n    order_id text NOT NULL REFERENCES order_header (order_id),\n    line_number integer NOT NULL,\n    sku text NOT NULL,\n    quantity integer NOT NULL CHECK (quantity > 0),\n    UNIQUE (order_id, line_number)\n);"
+          }
+        ]
+      },
+      {
+        "id": "diagnostic-for-existing-tables",
+        "heading": "Diagnostic for existing tables",
+        "paragraphs": [
+          "When reviewing an existing model, do not start by asking whether a table has a composite primary key. Start by asking how users, source systems, or contracts identify one record. A table can have a surrogate primary key and still represent a weak entity if its real-world identifier depends on a parent.",
+          "Use this diagnostic sequence. First, name the parent entity. Second, name the child record using business language. Third, try to identify the child without the parent. Fourth, test whether the apparent child identifier repeats across parents. Fifth, check whether the database enforces the parent-plus-local-identifier rule.",
+          "For a staging table, the checks below can reveal whether the data behaves like a weak entity before constraints are added to a curated table. The queries are illustrative; adapt column names, null handling, and source-system rules before using the pattern in a real pipeline.",
+          "The duplicate check should return no rows after curation if order_id and line_number define the order-line identity. In raw ingestion it may return rows because of file replays, late corrections, or source defects. That does not change the conceptual model; it tells you the pipeline needs deduplication or exception handling before loading the constrained table.",
+          "The orphan check should also return no rows in the curated model. If an order line arrives before its order header, that is an ingestion timing problem. The relational model should still represent the rule that a line belongs to an order. You may stage the child temporarily, but the final table should not silently accept an order line whose parent never exists."
+        ],
+        "bullets": [
+          "Can the child be identified without naming the parent? If not, suspect a weak entity.",
+          "Does the same local identifier repeat under different parents? If yes, the local identifier is not globally unique.",
+          "Does the database enforce the parent-plus-local-identifier candidate key? If not, the model may depend on undocumented application behavior.",
+          "Would deleting or correcting the parent change the validity of the child? If yes, define the referential action intentionally rather than leaving it accidental."
+        ],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "-- Duplicate local identifiers within the same parent.\nSELECT\n    order_id,\n    line_number,\n    COUNT(*) AS row_count\nFROM raw_order_line\nGROUP BY order_id, line_number\nHAVING COUNT(*) > 1;\n\n-- Local identifiers that repeat across parents. This is expected for a weak entity.\nSELECT\n    line_number,\n    COUNT(DISTINCT order_id) AS parent_count\nFROM raw_order_line\nGROUP BY line_number\nHAVING COUNT(DISTINCT order_id) > 1;\n\n-- Child rows without a parent in the curated relationship.\nSELECT l.*\nFROM raw_order_line AS l\nLEFT JOIN order_header AS h\n    ON h.order_id = l.order_id\nWHERE h.order_id IS NULL;"
+          }
+        ]
+      },
+      {
+        "id": "tradeoffs-and-boundaries",
+        "heading": "Tradeoffs and boundaries",
+        "paragraphs": [
+          "Composite keys make the identifying relationship explicit, but they also propagate more columns into referencing tables. That can be awkward in wide schemas, event payloads, or tools that assume single-column identifiers. The usual compromise is to keep the composite candidate key and add a surrogate technical key when needed. The surrogate supports convenience; the composite unique constraint preserves meaning.",
+          "Referential actions also require a policy decision. If an order is deleted, should its lines be deleted automatically, deletion blocked, or the order retained with a status change instead of physical deletion? Identifying relationships often suggest existence dependency, but they do not by themselves choose a deletion policy. In many analytical systems, immutable facts and audit requirements lead teams to avoid physical deletion and instead model cancellation, reversal, or invalidation states.",
+          "Weak entities are also not the same thing as hierarchies. A store department, category, and subcategory hierarchy may have parent-child relationships, but each node might still have its own durable identifier. Kimball’s dimensional modeling material discusses ragged or variable-depth hierarchies as uneven tree structures that can be represented with bridge tables or path strings for analysis. That is a hierarchy modeling problem, not automatically a weak-entity identity problem. The test remains the same: does the child’s identifier require the parent’s key?",
+          "Finally, keep this topic separate from general relationship multiplicity. A weak entity commonly has one owner and many sibling records under that owner, but the identifying question is narrower: what columns are required to identify one child record correctly?"
+        ],
+        "bullets": [],
+        "codeExamples": []
+      },
+      {
+        "id": "practical-rule",
+        "heading": "A practical rule for practitioners",
+        "paragraphs": [
+          "Model a record as a weak entity when its natural name is incomplete without its parent. In the retail example, “order line 1” is incomplete; “order O-1001, line 1” is complete. That wording maps directly to the relational key: order_id plus line_number.",
+          "Then decide whether you also need a surrogate key. If you do, add it without deleting the identifying constraint. This avoids the false choice between operational convenience and relational correctness. A single-column technical key can coexist with the composite candidate key that expresses the business rule.",
+          "The best outcome is a model where invalid data is hard to insert and valid data is easy to explain. Weak entities and identifying relationships are useful because they turn a common ambiguity into a concrete design: the parent key is part of the child’s identity."
+        ],
+        "bullets": [],
+        "codeExamples": []
+      }
+    ],
+    "takeaways": [
+      "A weak entity is identified by combining a parent key with a local discriminator; the local discriminator is not globally unique on its own.",
+      "An identifying relationship is usually implemented by including the parent key in the child table’s primary key or in a declared candidate key enforced by a unique constraint.",
+      "Surrogate keys can be useful, but they should not replace the parent-plus-local-identifier rule when that rule defines the real-world identity.",
+      "Use diagnostics on existing tables to find duplicate child identifiers within a parent, expected reuse across parents, and child rows with no valid parent."
+    ],
+    "sources": [
+      {
+        "title": "Designing a Good Database | Guide to Database Systems | OpenALG",
+        "url": "https://alg.manifoldapp.org/read/guide-to-database-systems/section/8a20249d-25a1-42bc-848b-9b0ba7d4ac5d"
+      },
+      {
+        "title": "Chapter 8. Data Normalisation",
+        "url": "https://www.cs.uct.ac.za/mit_notes/database/htmls/chp08.html"
+      },
+      {
+        "title": "PostgreSQL: Documentation: 18: 5.5. Constraints",
+        "url": "https://www.postgresql.org/docs/18/ddl-constraints.html"
+      },
+      {
+        "title": "Ragged/Variable Depth Hierarchies | Kimball Dimensional Modeling Techniques",
+        "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/ragged-variable-depth-hierarchy/"
+      }
+    ],
+    "requiresVerification": false,
+    "verificationNotes": []
+  },
+  {
+    "slug": "associative-entities-for-many-to-many-relationships",
+    "title": "Associative entities for many-to-many relationships",
+    "description": "A practical guide to modeling many-to-many relationships without losing attributes that belong to the relationship itself.",
+    "primaryKeyword": "Associative entities for many-to-many relationships",
+    "relatedKeywords": [
+      "Associative entities for many-to-many relationships"
+    ],
+    "category": "Data Modeling",
+    "level": "Intermediate",
+    "readTime": "7 min read",
+    "datePublished": "2026-10-12",
+    "dateModified": "2026-10-12",
+    "canonicalUrl": "https://jwatterson.com/writing/associative-entities-for-many-to-many-relationships",
+    "status": "published",
+    "sourceHash": "c38fd4ee418e3cc8",
+    "lead": "When two entity tables have a many-to-many relationship, the important data often lives between them. A product can appear in many campaigns, and a campaign can contain many products. The product name belongs to the product. The campaign name belongs to the campaign. But the promotional price, display placement, and quantity cap belong to the specific product-in-campaign relationship. An associative entity preserves those facts at the correct grain instead of forcing them into either side.",
+    "sections": [
+      {
+        "id": "the-flattening-mistake",
+        "heading": "The flattening mistake",
+        "paragraphs": [
+          "Consider a hypothetical retail dataset with products and marketing campaigns. Products are stable sellable items. Campaigns are planned merchandising events. The business question is not only which products exist or which campaigns exist. Analysts also need to know which product was selected for which campaign, at what promotional price, in which placement, and with what unit cap.",
+          "A tempting shortcut is to add campaign columns to the product table. That seems convenient while each product appears in only one campaign. It breaks as soon as the same product appears in two campaigns with different relationship attributes.",
+          "In this hypothetical data, product P100 is a notebook. It appears in a Back to School campaign at 3.99 and in a Clearance campaign at 2.99. If campaign_id, campaign_name, promo_price, and placement are placed directly on product, there is no single correct value for P100. Repeating product rows then corrupts the product grain: one product becomes two rows because of campaign participation, not because there are two products.",
+          "The opposite flattening fails too. Adding product_1_id, product_2_id, product_3_id, and matching price columns to campaign preserves one row per campaign only by imposing an arbitrary maximum number of products. It also makes every product-specific attribute position-dependent. A query for all products priced below 3.00 must scan multiple column sets, and adding a fourth product changes the table design rather than adding a row.",
+          "The modeling error is not merely aesthetic. It puts facts at the wrong grain. Product_name depends on product_id. Campaign_name depends on campaign_id. Promo_price in this example depends on the pair campaign_id and product_id. The pair is the candidate key for the relationship when each product appears at most once in a campaign. Normalization material commonly describes this reasoning in terms of determinants and functional dependencies: attributes should be grouped with the key that determines them."
+        ],
+        "bullets": [],
+        "codeExamples": []
+      },
+      {
+        "id": "relationship-grain",
+        "heading": "Model the relationship as its own entity",
+        "paragraphs": [
+          "An associative entity is a table whose rows represent instances of a relationship between two or more entities. For this example, the associative entity is campaign_product. Its grain is one product selected for one campaign. The table has foreign keys to campaign and product, plus attributes that describe that particular selection.",
+          "This is different from treating the table as a purely technical join table. A pure join table may only contain two foreign keys. An associative entity has business meaning: it can have its own attributes, rules, timestamps, and lifecycle. In naming and documentation, that distinction matters because practitioners need to know where relationship facts belong.",
+          "Entity-relationship design material commonly resolves a many-to-many relationship by decomposing it into two one-to-many relationships through a new entity. The important practical step is to name the new entity by its row grain, not merely by the two tables it connects.",
+          "The following SQL is illustrative and was not executed as part of this article. It uses conventional relational constraints to show the key and dependency structure; it is not intended as engine tuning guidance."
+        ],
+        "bullets": [],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "CREATE TABLE product (\n  product_id   VARCHAR(20) PRIMARY KEY,\n  sku          VARCHAR(40) NOT NULL UNIQUE,\n  product_name VARCHAR(100) NOT NULL\n);\n\nCREATE TABLE campaign (\n  campaign_id   VARCHAR(20) PRIMARY KEY,\n  campaign_name VARCHAR(100) NOT NULL,\n  campaign_type VARCHAR(40) NOT NULL\n);\n\nCREATE TABLE campaign_product (\n  campaign_id  VARCHAR(20) NOT NULL,\n  product_id   VARCHAR(20) NOT NULL,\n  promo_price  DECIMAL(10, 2) NOT NULL,\n  placement    VARCHAR(40) NOT NULL,\n  unit_cap     INTEGER NOT NULL,\n  selected_at  DATE NOT NULL,\n\n  PRIMARY KEY (campaign_id, product_id),\n  FOREIGN KEY (campaign_id) REFERENCES campaign (campaign_id),\n  FOREIGN KEY (product_id) REFERENCES product (product_id),\n  CHECK (promo_price >= 0),\n  CHECK (unit_cap > 0)\n);"
+          }
+        ]
+      },
+      {
+        "id": "worked-hypothetical-example",
+        "heading": "Worked hypothetical example",
+        "paragraphs": [
+          "The following small fixture is hypothetical. It is designed to show the dependency problem, not to represent a real retailer. The SQL remains illustrative; the expected results below are worked from the inserted rows rather than from an executed database session.",
+          "There are three products and two campaigns. Four relationship rows describe which products participate in which campaigns. Notice that P100 appears in both campaigns with different promotional attributes. That is valid because the relationship rows are distinct even though the product row is shared.",
+          "With this design, the product table answers product questions, the campaign table answers campaign questions, and campaign_product answers participation questions. No product attribute must be duplicated to record multiple campaigns. No campaign row needs repeating columns for an unknown number of products."
+        ],
+        "bullets": [],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "INSERT INTO product (product_id, sku, product_name) VALUES\n  ('P100', 'NB-100', 'Spiral notebook'),\n  ('P200', 'PN-200', 'Blue pen pack'),\n  ('P300', 'BP-300', 'Canvas backpack');\n\nINSERT INTO campaign (campaign_id, campaign_name, campaign_type) VALUES\n  ('C10', 'Back to School', 'seasonal'),\n  ('C20', 'Clearance', 'markdown');\n\nINSERT INTO campaign_product\n  (campaign_id, product_id, promo_price, placement, unit_cap, selected_at)\nVALUES\n  ('C10', 'P100', 3.99, 'hero',      500,  DATE '2026-08-01'),\n  ('C10', 'P200', 0.99, 'secondary', 1000, DATE '2026-08-01'),\n  ('C10', 'P300', 24.99, 'email',    200,  DATE '2026-08-03'),\n  ('C20', 'P100', 2.99, 'email',     150,  DATE '2026-09-15');\n\nSELECT\n  c.campaign_name,\n  p.product_name,\n  cp.promo_price,\n  cp.placement,\n  cp.unit_cap\nFROM campaign_product cp\nJOIN campaign c ON c.campaign_id = cp.campaign_id\nJOIN product p ON p.product_id = cp.product_id\nORDER BY c.campaign_id, p.product_id;"
+          }
+        ]
+      },
+      {
+        "id": "expected-results-and-counterexample",
+        "heading": "What the model preserves",
+        "paragraphs": [
+          "The first query returns four relationship rows from the fixture: Back to School with Spiral notebook at 3.99 in hero placement and cap 500; Back to School with Blue pen pack at 0.99 in secondary placement and cap 1000; Back to School with Canvas backpack at 24.99 in email placement and cap 200; and Clearance with Spiral notebook at 2.99 in email placement and cap 150.",
+          "Those results are simple, but they demonstrate the point. The same product can participate in two campaigns without duplicating the product. The same campaign can include multiple products without adding product_1, product_2, and product_3 columns. The relationship attributes are queryable because they are regular columns at the relationship grain.",
+          "Now compare a flattened product table. If product has campaign_id and promo_price columns, product P100 must either store C10 and 3.99 or C20 and 2.99. Storing both requires repeating the product row or inventing multiple campaign columns. Repeating the row means sku is no longer unique in the product table unless the model weakens a real-world product identity rule. Multiple campaign columns encode the same kind of fact in several places, which makes constraints and queries harder to reason about.",
+          "The aggregate query below works from the same relationship grain. In the fixture, it would return P100 with campaign_count 2, lowest_promo_price 2.99, and highest_promo_price 3.99; P200 with campaign_count 1 and both price values 0.99; and P300 with campaign_count 1 and both price values 24.99.",
+          "The associative entity also gives constraints a natural home. The primary key prevents the same product from being selected twice for the same campaign under the stated rule. The foreign keys prevent a campaign_product row from referring to a nonexistent campaign or product. The check constraints express local rules for relationship attributes. PostgreSQL 18 documentation describes primary keys, unique constraints, foreign keys, and check constraints as database mechanisms for enforcing table-level rules; the modeling point here is to place each rule on the table whose grain makes it meaningful."
+        ],
+        "bullets": [],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "SELECT\n  p.product_id,\n  p.product_name,\n  COUNT(*) AS campaign_count,\n  MIN(cp.promo_price) AS lowest_promo_price,\n  MAX(cp.promo_price) AS highest_promo_price\nFROM product p\nJOIN campaign_product cp ON cp.product_id = p.product_id\nGROUP BY p.product_id, p.product_name\nORDER BY p.product_id;"
+          }
+        ]
+      },
+      {
+        "id": "choosing-the-key",
+        "heading": "Choose the key that matches the business rule",
+        "paragraphs": [
+          "The composite primary key campaign_id, product_id is correct only if a product can appear at most once in a campaign. That rule is plausible for a simple campaign selection list, but it is not universal.",
+          "If the business allows multiple offers for the same product in the same campaign, then campaign_id and product_id are not enough to identify a row. For example, a product might have separate online and in-store offers, or separate member and non-member prices. In that case, add the distinguishing attribute to the key or introduce a surrogate key while preserving a unique constraint that describes the business rule.",
+          "The key decision should be made before loading data. A surrogate key such as campaign_product_offer_id can be useful when downstream systems need a single-column identifier or when relationship rows have their own lifecycle. But a surrogate key alone does not protect the intended grain. If the intended grain is one row per campaign, product, and channel, then a unique constraint on campaign_id, product_id, and channel is still needed. Otherwise the table permits accidental duplicates that look different only because they received different surrogate identifiers.",
+          "The SQL below is illustrative and was not executed. It shows the separate concerns: one column identifies the row for references, while the unique constraint protects the business grain."
+        ],
+        "bullets": [
+          "Use a composite key when the natural relationship grain is stable and compact.",
+          "Use a surrogate key when the relationship row needs a separate identifier, but keep a unique constraint for the real business grain.",
+          "Change the key when the business rule changes; do not hide a many-row relationship inside repeated columns."
+        ],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "CREATE TABLE campaign_product_offer (\n  campaign_product_offer_id BIGINT PRIMARY KEY,\n  campaign_id  VARCHAR(20) NOT NULL,\n  product_id   VARCHAR(20) NOT NULL,\n  channel      VARCHAR(20) NOT NULL,\n  promo_price  DECIMAL(10, 2) NOT NULL,\n\n  UNIQUE (campaign_id, product_id, channel),\n  FOREIGN KEY (campaign_id) REFERENCES campaign (campaign_id),\n  FOREIGN KEY (product_id) REFERENCES product (product_id),\n  CHECK (promo_price >= 0)\n);"
+          }
+        ]
+      },
+      {
+        "id": "diagnostic-for-practitioners",
+        "heading": "Diagnostic for practitioners",
+        "paragraphs": [
+          "Use this diagnostic when reviewing an existing model with many-to-many relationships. The goal is to find facts that were flattened into the wrong entity table.",
+          "First, name the two entities independently. If each can exist without the other, they deserve separate tables. A product can exist before it appears in a campaign. A campaign can be planned before every product is selected. Their relationship is not the same thing as either entity.",
+          "Second, write a sentence for each questionable attribute. If the sentence needs both entity names, the attribute probably belongs on the associative entity. Product name belongs to product. Campaign type belongs to campaign. Promotional price for a product in a campaign belongs to campaign_product.",
+          "Third, test whether the same entity row can participate in the relationship more than once over time or across contexts. If yes, verify that the associative key includes the additional context. Otherwise the model may look normalized but still reject valid business data.",
+          "Finally, check whether downstream analytics will need to filter, group, or audit the relationship attributes. If those attributes are embedded in arrays, delimited strings, or numbered columns, normal SQL operations become awkward and constraints become weaker. The associative entity keeps the relationship visible as data rather than hiding it in column names or encoded values."
+        ],
+        "bullets": [
+          "Ask whether the attribute describes an entity or a specific pairing of entities.",
+          "Reject product_1/product_2 style columns when the number of related rows is not fixed by the business.",
+          "Reject comma-separated identifiers when the relationship needs attributes, constraints, or auditability.",
+          "Document the row grain of the associative entity in one sentence before choosing keys."
+        ],
+        "codeExamples": []
+      }
+    ],
+    "takeaways": [
+      "Many-to-many relationships often have their own attributes; those attributes belong on an associative entity, not arbitrarily on either parent table.",
+      "The key of the associative entity should express the relationship grain, such as one row per campaign and product, or one row per campaign, product, and channel.",
+      "Flattening a many-to-many relationship into repeated columns, delimited strings, or duplicated entity rows loses constraints and makes ordinary questions harder to answer.",
+      "A surrogate key can identify relationship rows, but it should not replace a uniqueness rule that protects the real business grain."
+    ],
+    "sources": [
+      {
+        "title": "Chapter 6. Entity-Relationship Modelling",
+        "url": "https://www.cs.uct.ac.za/mit_notes/database/htmls/chp06.html"
+      },
+      {
+        "title": "Chapter 8. Data Normalisation",
+        "url": "https://www.cs.uct.ac.za/mit_notes/database/htmls/chp08.html"
+      },
+      {
+        "title": "PostgreSQL: Documentation: 18: 5.5. Constraints",
+        "url": "https://www.postgresql.org/docs/18/ddl-constraints.html"
+      }
+    ],
+    "requiresVerification": false,
+    "verificationNotes": []
+  },
+  {
+    "slug": "uniqueness-with-nullable-business-identifiers",
+    "title": "Uniqueness with nullable business identifiers",
+    "description": "A practical guide to defining duplicate rules when an external business identifier is sometimes missing, using a small hypothetical customer dataset with counterexamples.",
+    "primaryKeyword": "Uniqueness with nullable business identifiers",
+    "relatedKeywords": [
+      "Uniqueness with nullable business identifiers"
+    ],
+    "category": "Data Modeling",
+    "level": "Intermediate",
+    "readTime": "8 min",
+    "datePublished": "2026-10-12",
+    "dateModified": "2026-10-12",
+    "canonicalUrl": "https://jwatterson.com/writing/uniqueness-with-nullable-business-identifiers",
+    "status": "published",
+    "sourceHash": "38132dff565152af",
+    "lead": "Nullable business identifiers create a modeling trap: the rows with IDs and the rows without IDs do not deserve the same duplicate rule. Treat the identifier as one piece of evidence, define a separate fallback rule for missing identifiers, and keep the counterexamples visible so the rule does not silently collapse distinct customers into one record.",
+    "sections": [
+      {
+        "id": "the-modeling-problem",
+        "heading": "The modeling problem",
+        "paragraphs": [
+          "A business identifier is an identifier assigned by a source system or business process: customer number, account number, loyalty ID, vendor code, order number, claim number, or similar. When it is present and scoped correctly, it is often the best evidence for identifying repeated observations of the same business entity. The hard case is not the identifier itself. The hard case is the nullable identifier: some rows have it, some rows do not, and the pipeline still needs a defensible duplicate rule.",
+          "The common mistake is to write one uniqueness rule for the whole table, such as “external_customer_id must be unique,” and then discover that many incoming records have no external_customer_id. Another mistake is to replace the missing identifier with a sentinel value like UNKNOWN and then enforce uniqueness on that value. That does not represent the business reality. It says all customers without an external ID are the same customer, which is almost certainly false.",
+          "PostgreSQL 18 documents that, by default, two null values are not considered equal for unique constraints, so a unique constraint can still allow multiple rows where at least one constrained column is null. PostgreSQL also documents NULLS NOT DISTINCT for designs that intentionally want nulls to compare as not distinct. That distinction matters here because duplicate detection is not only a physical database feature. It is a semantic rule about whether two rows describe the same entity.",
+          "A practical design separates two questions. First: when the identifier is present, what scope makes it unique? Second: when the identifier is missing, what alternate evidence is acceptable, and what evidence is only a possible match? This article uses a small hypothetical customer dataset to make those decisions concrete."
+        ],
+        "bullets": [],
+        "codeExamples": []
+      },
+      {
+        "id": "hypothetical-customer-observations",
+        "heading": "A hypothetical customer observation table",
+        "paragraphs": [
+          "Assume a retailer receives customer observations from a web storefront and a store point-of-sale system. The target analytical model wants one customer entity, but the incoming observations are messy. The source_system column scopes identifiers because the same external_customer_id value can appear in different systems with different meanings. The example is hypothetical; it is designed to show rule behavior, not to represent actual customer data.",
+          "The proposed duplicate policy is intentionally modest. If external_customer_id is present, the duplicate key is source_system plus external_customer_id. If external_customer_id is missing, the fallback duplicate key is normalized email plus birth_date, but only when both are present. Name and postal code are not enough for automatic deduplication in this example; they are review evidence, not a unique key.",
+          "That policy is not universal. A bank, hospital, subscription business, marketplace, and retailer may all choose different fallback evidence. The important point is that the policy is explicit. It does not let NULL decide the rule accidentally."
+        ],
+        "bullets": [
+          "Rule 1: Rows with a non-null external_customer_id are duplicates when they share the same source_system and external_customer_id.",
+          "Rule 2: Rows with a missing external_customer_id are duplicates when they share the same normalized email and birth_date, and both values are present.",
+          "Rule 3: Same name, same postal code, or same email alone is not enough for automatic deduplication in this hypothetical model.",
+          "Rule 4: The same external_customer_id value from two different source systems is not automatically the same customer unless the source systems share an identifier namespace."
+        ],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "-- Illustrative PostgreSQL-style fixture for a hypothetical dataset.\n-- This article verifies the expected groups by inspection; the code is not presented as executed test output.\nWITH observations(obs_id, source_system, external_customer_id, email, birth_date, full_name, postal_code) AS (\n  VALUES\n    (1,  'web',   'W100', 'ada@example.com',     DATE '1985-04-12', 'Ada Gray',       '02139'),\n    (2,  'web',   'W100', 'ada.new@example.com', DATE '1985-04-12', 'Ada Gray',       '02139'),\n    (3,  'web',   NULL,   'ben@example.com',     DATE '1990-08-03', 'Ben Ito',        '94107'),\n    (4,  'web',   NULL,   'BEN@example.com',     DATE '1990-08-03', 'Benjamin Ito',   '94107'),\n    (5,  'web',   NULL,   NULL,                  DATE '1990-08-03', 'Ben Ito',        '94107'),\n    (6,  'store', NULL,   'ben@example.com',     DATE '1990-08-03', 'Ben Ito',        '94107'),\n    (7,  'web',   NULL,   'chris@example.com',   DATE '1988-11-20', 'Chris Lee',      '10001'),\n    (8,  'web',   NULL,   'chris@example.com',   DATE '1977-02-14', 'Christine Lee',  '10001'),\n    (9,  'web',   'C300', 'dana@example.com',    DATE '1995-06-01', 'Dana Park',      '60601'),\n    (10, 'store', 'C300', 'erik@example.com',    DATE '1982-09-09', 'Erik Stone',     '60601')\n)\nSELECT *\nFROM observations\nORDER BY obs_id;"
+          }
+        ]
+      },
+      {
+        "id": "derive-two-duplicate-sets",
+        "heading": "Derive two duplicate sets, not one",
+        "paragraphs": [
+          "The duplicate query should reflect the two-rule design. The first branch handles rows where the source supplied an identifier. The second branch handles rows where the identifier is missing and the approved fallback evidence is complete. Keeping those branches separate prevents the common bug where rows with NULL identifiers are grouped together as if NULL were a real customer number.",
+          "The following query is illustrative PostgreSQL-style SQL. It uses a common table expression, VALUES rows, grouping, HAVING, array_agg with an explicit order, and UNION ALL. PostgreSQL 18 documentation supports those SQL constructs, but this example is still an explanatory fixture, not executed output from a production system.",
+          "The expected duplicate groups are easy to verify from the fixture. Observations 1 and 2 share web:W100, so they are duplicates under the external ID rule even though their email values differ. Observations 3, 4, and 6 have no external ID and share ben@example.com plus 1990-08-03 after email normalization, so they are duplicates under the fallback rule. Observation 5 looks similar to Ben Ito but lacks email, so it does not meet the fallback key. Observations 7 and 8 share email but have different birth dates, so email alone is not sufficient. Observations 9 and 10 share the literal value C300, but their source systems differ, so they are not duplicates under the external ID rule."
+        ],
+        "bullets": [],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "-- Illustrative PostgreSQL-style duplicate diagnostic.\n-- Expected groups are derived by inspection from the fixture below.\nWITH observations(obs_id, source_system, external_customer_id, email, birth_date, full_name, postal_code) AS (\n  VALUES\n    (1,  'web',   'W100', 'ada@example.com',     DATE '1985-04-12', 'Ada Gray',       '02139'),\n    (2,  'web',   'W100', 'ada.new@example.com', DATE '1985-04-12', 'Ada Gray',       '02139'),\n    (3,  'web',   NULL,   'ben@example.com',     DATE '1990-08-03', 'Ben Ito',        '94107'),\n    (4,  'web',   NULL,   'BEN@example.com',     DATE '1990-08-03', 'Benjamin Ito',   '94107'),\n    (5,  'web',   NULL,   NULL,                  DATE '1990-08-03', 'Ben Ito',        '94107'),\n    (6,  'store', NULL,   'ben@example.com',     DATE '1990-08-03', 'Ben Ito',        '94107'),\n    (7,  'web',   NULL,   'chris@example.com',   DATE '1988-11-20', 'Chris Lee',      '10001'),\n    (8,  'web',   NULL,   'chris@example.com',   DATE '1977-02-14', 'Christine Lee',  '10001'),\n    (9,  'web',   'C300', 'dana@example.com',    DATE '1995-06-01', 'Dana Park',      '60601'),\n    (10, 'store', 'C300', 'erik@example.com',    DATE '1982-09-09', 'Erik Stone',     '60601')\n),\nnormalized AS (\n  SELECT\n    obs_id,\n    source_system,\n    NULLIF(TRIM(external_customer_id), '') AS ext_id,\n    LOWER(NULLIF(TRIM(email), '')) AS email_norm,\n    birth_date,\n    full_name,\n    postal_code\n  FROM observations\n),\nexternal_id_duplicates AS (\n  SELECT\n    'external_id_present' AS rule_name,\n    source_system || ':' || ext_id AS duplicate_key,\n    ARRAY_AGG(obs_id ORDER BY obs_id) AS observation_ids\n  FROM normalized\n  WHERE ext_id IS NOT NULL\n  GROUP BY source_system, ext_id\n  HAVING COUNT(*) > 1\n),\nmissing_id_fallback_duplicates AS (\n  SELECT\n    'missing_external_fallback' AS rule_name,\n    email_norm || '|' || birth_date::text AS duplicate_key,\n    ARRAY_AGG(obs_id ORDER BY obs_id) AS observation_ids\n  FROM normalized\n  WHERE ext_id IS NULL\n    AND email_norm IS NOT NULL\n    AND birth_date IS NOT NULL\n  GROUP BY email_norm, birth_date\n  HAVING COUNT(*) > 1\n)\nSELECT * FROM external_id_duplicates\nUNION ALL\nSELECT * FROM missing_id_fallback_duplicates\nORDER BY rule_name, duplicate_key;"
+          }
+        ]
+      },
+      {
+        "id": "expected-result-and-counterexamples",
+        "heading": "Expected result and counterexamples",
+        "paragraphs": [
+          "By inspection, the diagnostic has two expected groups: external_id_present with key web:W100 and observation IDs 1 and 2, and missing_external_fallback with key ben@example.com|1990-08-03 and observation IDs 3, 4, and 6. Those are the only automatic duplicate groups under the stated policy.",
+          "The counterexamples are as important as the matches. Observation 5 has the same name, birth date, and postal code as Ben Ito, but it has no email and no external ID. If the model automatically merged it into the Ben group, it would be using name and postal code as part of the actual duplicate rule despite saying otherwise. That may be a valid business decision in some domains, but it should not happen by accident.",
+          "Observations 7 and 8 show why a fallback key should not be weakened silently. They share chris@example.com, but their birth dates differ. This could be a shared inbox, a recycled address, a typo, a household account, or two records that need manual review. The point is not that they can never be the same person. The point is that they do not meet the automatic duplicate rule.",
+          "Observations 9 and 10 show the identifier-scope problem. Both contain external_customer_id C300, but one came from web and one came from store. If identifiers are source-scoped, then C300 is not a complete key by itself. The duplicate key must include source_system. If the business later establishes that web and store share a global customer namespace, the rule can change, but the model should not assume that from the raw value alone."
+        ],
+        "bullets": [
+          "Automatic duplicate: rows 1 and 2, because source_system plus external_customer_id is web:W100.",
+          "Automatic duplicate: rows 3, 4, and 6, because external_customer_id is missing and normalized email plus birth_date matches.",
+          "Not automatic duplicate: row 5 with rows 3, 4, or 6, because the fallback key is incomplete.",
+          "Not automatic duplicate: rows 7 and 8, because email matches but birth_date does not.",
+          "Not automatic duplicate: rows 9 and 10, because the external identifier value is the same but the source scope differs."
+        ],
+        "codeExamples": []
+      },
+      {
+        "id": "choosing-the-fallback-key",
+        "heading": "Choosing the fallback key",
+        "paragraphs": [
+          "A fallback key is not a consolation prize for a missing ID. It is an alternate candidate for identifying the entity under clearly stated assumptions. The assumptions should be written down next to the rule because future maintainers will otherwise reinterpret the rule from the SQL alone.",
+          "For the hypothetical retailer, email plus birth_date is treated as strong enough for automatic deduplication only when both values are present. That choice assumes email is collected reliably enough, birth date is not usually fabricated, and the cost of failing to merge some true duplicates is lower than the cost of merging distinct people. In another domain, email may be weak evidence. In a business-to-business model, a shared billing email may represent an organization rather than a person. In a family retail account, multiple people may share one address. The fallback key should match the entity being modeled.",
+          "A good fallback rule also states what to do with partial evidence. Missing email does not mean “use name instead” unless the policy says so. Different birth dates do not mean “ignore birth date because email matches” unless the policy says so. If the team wants possible-match review queues, define them separately from automatic duplicate groups.",
+          "One useful pattern is a three-tier outcome: match, possible match, and no match. Match rules are safe enough for automatic consolidation. Possible-match rules create review candidates or downstream quality metrics. No-match cases remain separate. This pattern keeps the customer dimension from being over-merged while still surfacing records that deserve attention."
+        ],
+        "bullets": [
+          "State the entity: customer, account, household, organization, device, order, or event.",
+          "State the identifier namespace: global, source-scoped, tenant-scoped, region-scoped, or time-scoped.",
+          "State the present-ID rule separately from the missing-ID rule.",
+          "Require complete fallback evidence for automatic deduplication.",
+          "Keep weaker evidence in a possible-match rule rather than pretending it is a key."
+        ],
+        "codeExamples": []
+      },
+      {
+        "id": "a-decision-template",
+        "heading": "A decision template for nullable identifiers",
+        "paragraphs": [
+          "When a source identifier is nullable, define the duplicate policy before writing the constraint, merge, or validation query. The policy can be short, but it should answer the questions that determine whether two rows describe the same entity.",
+          "The template below is intentionally relational rather than tool-specific. It can inform a database constraint, a dbt test, an ingestion validation, a reconciliation query, or a stewardship workflow. The implementation choice is separate from the semantic decision.",
+          "The key discipline is to avoid mixing rows with identifiers and rows without identifiers into a single vague rule. Rows with identifiers can usually be matched on the identifier’s declared scope. Rows without identifiers need a fallback candidate key. Rows with weak or incomplete evidence need a review category, not a hidden merge."
+        ],
+        "bullets": [
+          "Entity: What real-world thing does one row attempt to describe?",
+          "Grain: Is each row an observation, the current state of an entity, or a historical version?",
+          "Identifier scope: Is the external identifier unique globally or only within a source, tenant, region, or time period?",
+          "Present-ID rule: Which columns form the duplicate key when the external identifier is present?",
+          "Missing-ID rule: Which alternate columns form the duplicate key when the external identifier is missing?",
+          "Completeness requirement: Which fallback columns must be non-null before the fallback rule can fire?",
+          "Conflict handling: Which attributes may differ inside a duplicate group without breaking identity?",
+          "Possible-match rule: Which weaker similarities should be reviewed but not automatically merged?",
+          "Counterexamples: Which plausible-looking pairs are explicitly not duplicates?"
+        ],
+        "codeExamples": []
+      },
+      {
+        "id": "what-not-to-do",
+        "heading": "What not to do",
+        "paragraphs": [
+          "Do not coalesce missing identifiers to a single value such as UNKNOWN and then treat that expression as a unique business key. That makes every missing identifier collide with every other missing identifier. It is useful only if the business truly believes all missing-ID rows are the same entity, which is rarely the case.",
+          "Do not rely on a database’s default NULL behavior as the whole duplicate policy. Multiple NULLs may be allowed by a unique constraint, but “allowed to coexist” is not the same as “known to be distinct.” Conversely, forcing nulls to compare as not distinct can be valid for some constraints but is usually wrong for external customer IDs because it treats absence of evidence as a shared identifier.",
+          "Do not let the fallback rule grow informally. If the first version says email plus birth date, then a later change to email plus name is not a harmless refactor; it changes which people can be merged. Treat that as a data modeling decision, with new counterexamples and expected results.",
+          "Finally, do not erase the distinction between automatic matches and review candidates. A possible match can be extremely useful for data quality work, but it is not the same thing as a duplicate key. The model should preserve that difference."
+        ],
+        "bullets": [],
+        "codeExamples": []
+      }
+    ],
+    "takeaways": [
+      "Rows with a present external identifier and rows with a missing external identifier need separate duplicate rules.",
+      "NULL should not be converted into a fake shared business identifier; missing evidence is not identity evidence.",
+      "A fallback key must state its required columns, its assumptions, and its counterexamples.",
+      "Identifier scope matters: the same external ID value may or may not be unique across source systems.",
+      "Keep possible matches separate from automatic duplicate groups so weak evidence does not silently merge distinct entities."
+    ],
+    "sources": [
+      {
+        "title": "PostgreSQL: Documentation: 18: 5.5. Constraints",
+        "url": "https://www.postgresql.org/docs/18/ddl-constraints.html"
+      },
+      {
+        "title": "PostgreSQL: Documentation: 18: SELECT",
+        "url": "https://www.postgresql.org/docs/18/sql-select.html"
+      },
+      {
+        "title": "PostgreSQL: Documentation: 18: 9.21. Aggregate Functions",
+        "url": "https://www.postgresql.org/docs/current/functions-aggregate.html"
+      }
+    ],
+    "requiresVerification": false,
+    "verificationNotes": []
+  },
+  {
+    "slug": "domain-constraints-for-categorical-data",
+    "title": "Domain constraints for categorical data",
+    "description": "A practical guide to choosing controlled vocabularies for categorical data while keeping unknown, invalid, and not-applicable values separate.",
+    "primaryKeyword": "Domain constraints for categorical data",
+    "relatedKeywords": [
+      "Domain constraints for categorical data"
+    ],
+    "category": "Data Modeling",
+    "level": "Intermediate",
+    "readTime": "7 min read",
+    "datePublished": "2026-10-12",
+    "dateModified": "2026-10-12",
+    "canonicalUrl": "https://jwatterson.com/writing/domain-constraints-for-categorical-data",
+    "status": "published",
+    "sourceHash": "a40a7f70651b5a5b",
+    "lead": "Domain constraints for categorical data are not just a way to reject misspellings. They are a way to state what an attribute is allowed to mean. The hard part is choosing a controlled vocabulary without turning missing evidence into a fake category or accepting invalid source values because they are convenient to store.",
+    "sections": [
+      {
+        "id": "the-modeling-problem",
+        "heading": "The modeling problem",
+        "paragraphs": [
+          "A categorical column looks simple until the source system sends values that do not fit the intended meaning. A retail order status might arrive as paid, CANCELLED, null, shippped, or BACKORDERED. Only some of those are valid order statuses. One is missing. One is a typo. One may describe inventory availability rather than the order lifecycle.",
+          "The common mistake is to add every observed string to the controlled vocabulary. That keeps the load green, but it makes the model worse. Reports can no longer tell whether BACKORDERED means an order status, a fulfillment state, or an exception that needs mapping. A second mistake is to add unknown to the domain of order statuses. Unknown is usually not a business state of the order. It is a statement about the warehouse's current knowledge.",
+          "A better design separates four concepts. Valid values are members of the domain for the attribute. Unknown means the attribute may have a valid value, but it was not provided or not yet derived. Invalid means an observed value does not belong to the domain as defined. Not applicable means the attribute does not apply to this entity at this grain. These distinctions should be visible in the schema and in the load diagnostics."
+        ],
+        "bullets": [],
+        "codeExamples": []
+      },
+      {
+        "id": "hypothetical-order-fixture",
+        "heading": "A hypothetical order fixture with counterexamples",
+        "paragraphs": [
+          "Consider a hypothetical retail order feed. The analytical table needs an order_status_code at the order grain. The business question is narrow: where is the order in its commercial lifecycle? For this example, the approved status domain is placed, paid, fulfilled, or cancelled.",
+          "The source feed contains five rows. Order 201 sends PAID, which can map to paid. Order 202 sends no status. Order 203 sends shippped, which is not a member of the domain and is probably a source typo. Order 204 sends BACKORDERED, which is a real operational condition but not an order lifecycle status in this model. Order 205 sends CANCELLED, which can map to cancelled.",
+          "The expected result is three accepted canonical rows and two exception rows. Orders 201 and 205 are known. Order 202 is accepted with no status code and a knowledge state of unknown_from_source. Orders 203 and 204 are not silently converted into domain values. They are exceptions: one because the raw value is invalid, the other because it appears to answer a different attribute question.",
+          "This is the key modeling move: the controlled vocabulary is chosen from the meaning of the attribute, not from the union of strings observed in a source column."
+        ],
+        "bullets": [
+          "Valid domain for order_status_code: placed, paid, fulfilled, cancelled.",
+          "Unknown example: order 202 has no source value, so the warehouse does not know the status yet.",
+          "Invalid example: shippped is an observed value but not a valid domain member.",
+          "Wrong-attribute example: BACKORDERED may belong to inventory_commitment_status, not order_status_code."
+        ],
+        "codeExamples": []
+      },
+      {
+        "id": "illustrative-relational-design",
+        "heading": "An illustrative relational design",
+        "paragraphs": [
+          "The following SQL is illustrative for PostgreSQL 18 syntax. It is not presented as executed benchmark or deployment evidence. The important relational idea is portable: use a domain table or constraint to define valid values, and use a separate column or exception table to describe knowledge about the value.",
+          "PostgreSQL supports check constraints that refer to columns in the row being inserted or updated, not-null constraints for required columns, primary keys, and foreign keys that require non-null referencing values to match values in a referenced table. It also notes that a foreign key referencing column normally need not satisfy the foreign key when the referencing column is null, unless the design prevents nulls or uses stricter matching. That behavior is useful here: null can represent an unknown status code, while a separate check constraint controls when null is allowed.",
+          "The status domain table contains only valid order statuses. The canonical order table permits a null status only when the knowledge state says the value is unknown from the source. It does not permit a known row without a status code, and it does not permit a status code on an unknown row. Invalid raw values belong in a staging or exception structure, not in the trusted domain."
+        ],
+        "bullets": [],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "CREATE TABLE order_status_domain (\n    status_code text PRIMARY KEY,\n    status_label text NOT NULL\n);\n\nINSERT INTO order_status_domain (status_code, status_label) VALUES\n    ('placed', 'Placed'),\n    ('paid', 'Paid'),\n    ('fulfilled', 'Fulfilled'),\n    ('cancelled', 'Cancelled');\n\nCREATE TABLE customer_order (\n    order_id integer PRIMARY KEY,\n    order_status_code text NULL REFERENCES order_status_domain (status_code),\n    status_knowledge text NOT NULL CHECK (\n        status_knowledge IN ('known', 'unknown_from_source')\n    ),\n    CHECK (\n        (status_knowledge = 'known' AND order_status_code IS NOT NULL)\n        OR\n        (status_knowledge = 'unknown_from_source' AND order_status_code IS NULL)\n    )\n);\n\nCREATE TABLE order_status_exception (\n    order_id integer PRIMARY KEY,\n    raw_order_status text NULL,\n    exception_reason text NOT NULL CHECK (\n        exception_reason IN ('invalid_raw_value', 'wrong_attribute_question')\n    )\n);"
+          }
+        ]
+      },
+      {
+        "id": "worked-load-classification",
+        "heading": "Worked load classification",
+        "paragraphs": [
+          "A load step needs to classify the staged values before they reach the canonical table. The raw-to-canonical mapping is deliberately smaller than the set of observed raw strings. PAID and CANCELLED are recognized aliases. A null raw value is unknown. shippped is not recognized. BACKORDERED is treated as a counterexample: it should not be added to order_status_code merely because it appears in the same source field.",
+          "The classification below has five input rows. The expected counts are: known equals 2, unknown_from_source equals 1, invalid_raw_value equals 1, and wrong_attribute_question equals 1. If invalid_raw_value and wrong_attribute_question are both routed to the exception table, exception rows equal 2. The reconciliation is 2 known plus 1 unknown plus 2 exceptions, which equals the five staged rows."
+        ],
+        "bullets": [],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "WITH staged_order(order_id, raw_order_status) AS (\n    VALUES\n        (201, 'PAID'),\n        (202, NULL),\n        (203, 'shippped'),\n        (204, 'BACKORDERED'),\n        (205, 'CANCELLED')\n),\nraw_status_alias(raw_value, status_code) AS (\n    VALUES\n        ('PAID', 'paid'),\n        ('CANCELLED', 'cancelled')\n),\nclassified AS (\n    SELECT\n        s.order_id,\n        s.raw_order_status,\n        a.status_code,\n        CASE\n            WHEN s.raw_order_status IS NULL THEN 'unknown_from_source'\n            WHEN a.status_code IS NOT NULL THEN 'known'\n            WHEN s.raw_order_status = 'BACKORDERED' THEN 'wrong_attribute_question'\n            ELSE 'invalid_raw_value'\n        END AS classification\n    FROM staged_order s\n    LEFT JOIN raw_status_alias a\n        ON s.raw_order_status = a.raw_value\n)\nSELECT classification, count(*) AS row_count\nFROM classified\nGROUP BY classification\nORDER BY classification;"
+          }
+        ]
+      },
+      {
+        "id": "choosing-the-vocabulary",
+        "heading": "How to choose the controlled vocabulary",
+        "paragraphs": [
+          "Start by writing the attribute question in one sentence. For the example, the question is: what is the order's commercial lifecycle status? That sentence excludes values that answer adjacent questions, such as whether inventory is backordered, whether a package is damaged, or whether payment is at risk. Those may be valid attributes, but they are not values of this attribute.",
+          "Next, decide whether a proposed value is a real business state or a data state. paid is a business state. unknown_from_source is a data state. Treating unknown as an order status would let analysts count unknown orders as if the orders had intentionally entered an unknown lifecycle state. That is rarely what the business means.",
+          "Then decide how the model should behave when the value arrives late. Dimensional modeling has a related late-arriving-dimension pattern: operational facts can arrive before their descriptive dimensional context, and placeholder dimension rows may be updated when the missing context arrives. The same general distinction applies here. A missing status can be represented as unknown knowledge temporarily, then updated when a valid status is obtained. That is different from promoting unknown into the status domain.",
+          "Finally, define where invalid observations go. A strict relational design can reject them from the trusted table and store them in an exception table with the raw value. A more permissive landing layer can store every raw value, but the curated layer should still prevent invalid values from masquerading as members of the controlled vocabulary."
+        ],
+        "bullets": [
+          "If the value describes the entity's real state, consider it for the domain.",
+          "If the value describes what the warehouse does not know, model it as knowledge or quality metadata.",
+          "If the value is observed but outside the definition, route it to an exception path.",
+          "If the value answers another question, create or use the correct attribute instead of overloading this one."
+        ],
+        "codeExamples": []
+      },
+      {
+        "id": "controlled-vocabularies-across-models",
+        "heading": "Controlled vocabularies across models",
+        "paragraphs": [
+          "If the same categorical attribute is reused across multiple facts, datasets, or marts, the domain should be governed as a shared contract rather than rediscovered independently in each pipeline. Kimball's conformed-dimension guidance describes conformity in terms of shared column names and domain contents so that separate fact tables can be aligned in reports. The same idea applies to a small categorical domain table: the value set and meaning should be consistent wherever the attribute is intended to mean the same thing.",
+          "This does not mean every source column with a similar name must use the same domain. It means the modeling question must match. If order_status_code means commercial lifecycle in one model and fulfillment_status_code means warehouse processing state in another, forcing them into one vocabulary would create false conformity. Shared vocabularies help only when the attribute meaning is genuinely shared."
+        ],
+        "bullets": [],
+        "codeExamples": []
+      },
+      {
+        "id": "diagnostics-that-protect-semantics",
+        "heading": "Diagnostics that protect semantics",
+        "paragraphs": [
+          "A domain constraint is incomplete without a diagnostic that tells operators what happened to source values. The minimum diagnostic should reconcile staged rows to accepted known rows, accepted unknown rows, and exception rows. If those categories do not add back to the staged count, the load logic has lost or duplicated records.",
+          "Another useful diagnostic is the raw-value frequency report for exceptions. If shippped appears once, it may be a source typo. If it appears thousands of times, it may indicate a new source-system code or a mapping gap. Either way, the response is not to blindly add shippped to the domain. The response is to decide whether it maps to an existing valid status, represents a new valid status, or belongs to another attribute.",
+          "The model should also make downstream filtering explicit. An analyst asking for paid orders should filter order_status_code = paid. An analyst measuring data completeness should filter status_knowledge = unknown_from_source or inspect the exception table. Those are different questions, and the schema should not force both questions through the same categorical column."
+        ],
+        "bullets": [],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "-- Illustrative reconciliation expectation for the hypothetical fixture:\n-- staged rows: 5\n-- accepted known rows: 2\n-- accepted unknown rows: 1\n-- exception rows: 2\n-- 2 + 1 + 2 = 5\n\nSELECT raw_order_status, count(*) AS exception_count\nFROM order_status_exception\nGROUP BY raw_order_status\nORDER BY exception_count DESC, raw_order_status;"
+          }
+        ]
+      },
+      {
+        "id": "practical-rule",
+        "heading": "The practical rule",
+        "paragraphs": [
+          "A controlled vocabulary should contain the valid answers to one attribute question. It should not contain every string the source has emitted, and it should not contain placeholders for the warehouse's lack of knowledge unless the business truly has such a state.",
+          "Use constraints to make the intended meaning hard to violate. A foreign key to a domain table or a check constraint can enforce membership in the valid set. A separate knowledge-state column, staging table, or exception table can preserve the difference between unknown and invalid. This keeps the model honest: valid values support analysis, unknown values measure incompleteness, and invalid values drive remediation.",
+          "The payoff is semantic stability. When the vocabulary is chosen this way, adding a new value becomes a modeling decision rather than an ingestion reflex. The team can ask: is this a valid state of the attribute, a missing value, a bad value, or a value for a different attribute? That question is the center of domain constraints for categorical data."
+        ],
+        "bullets": [],
+        "codeExamples": []
+      }
+    ],
+    "takeaways": [
+      "Choose categorical domain values from the meaning of the attribute, not from every raw string observed in a source feed.",
+      "Model unknown as a knowledge state when the value is missing or late; do not turn it into a fake business category.",
+      "Route invalid or wrong-attribute values to an exception path so they can be corrected, mapped, or modeled separately.",
+      "Use relational constraints to protect the curated layer, and use diagnostics to reconcile known, unknown, and exception counts."
+    ],
+    "sources": [
+      {
+        "title": "PostgreSQL: Documentation: 18: 5.5. Constraints",
+        "url": "https://www.postgresql.org/docs/18/ddl-constraints.html"
+      },
+      {
+        "title": "Late Arriving Dimension | Kimball Dimensional Modeling Techniques",
+        "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/late-arriving-dimension/"
+      },
+      {
+        "title": "Conformed Dimensions | Kimball Dimensional Modeling Techniques",
+        "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/conformed-dimension/"
+      }
+    ],
+    "requiresVerification": false,
+    "verificationNotes": []
+  },
+  {
+    "slug": "temporal-uniqueness-constraints",
+    "title": "Temporal uniqueness constraints",
+    "description": "A practical guide to deciding when two records may share the same identifier across time, using a hypothetical customer loyalty dataset with counterexamples.",
+    "primaryKeyword": "Temporal uniqueness constraints",
+    "relatedKeywords": [
+      "Temporal uniqueness constraints"
+    ],
+    "category": "Data Modeling",
+    "level": "Intermediate",
+    "readTime": "8 min",
+    "datePublished": "2026-10-12",
+    "dateModified": "2026-10-12",
+    "canonicalUrl": "https://jwatterson.com/writing/temporal-uniqueness-constraints",
+    "status": "published",
+    "sourceHash": "e78e61f71d4a182c",
+    "lead": "A conventional uniqueness constraint answers a static question: can two rows in this table have the same value? A temporal uniqueness constraint answers a time-aware question: can two rows use the same identifier during overlapping periods of validity? That distinction matters when identifiers are reassigned, corrected, scoped by market, or represented as history rather than only as current state.",
+    "sections": [
+      {
+        "id": "the-question-temporal-uniqueness-answers",
+        "heading": "The question temporal uniqueness answers",
+        "paragraphs": [
+          "In this article, temporal uniqueness means this modeling rule: within a chosen scope, two distinct records may share an identifier only when their validity intervals do not overlap.",
+          "A candidate key identifies a row in a relation. For a current-state table, that may be enough. If a loyalty number identifies one currently active customer, a conventional uniqueness rule over loyalty_number, or over a scoped combination such as market plus loyalty_number, may be correct.",
+          "History changes the meaning of uniqueness. Suppose a retailer allows a loyalty number to be retired and later reassigned. A rule that says loyalty_number must be unique forever is too strict. A rule that says market, loyalty_number, and valid_from must be unique is too weak, because it allows two assignments with different start dates to be true at the same time. The missing concept is overlap.",
+          "The important modeling terms are scope, identifier, and validity interval. If any of those are vague, the rule will either reject legitimate history or allow ambiguous facts."
+        ],
+        "bullets": [
+          "Scope: the attributes that define the namespace of the identifier, such as market, tenant, brand, or source system.",
+          "Identifier: the value being constrained, such as loyalty number, subscription ID, device ID, badge number, or contract number.",
+          "Validity interval: the period during which the row claims the identifier is assigned to the entity.",
+          "Overlap rule: the test that decides whether two validity intervals can both be true for the same instant."
+        ],
+        "codeExamples": []
+      },
+      {
+        "id": "valid-time-not-correction-time",
+        "heading": "Separate valid time from correction history",
+        "paragraphs": [
+          "This guide uses valid time: the period when the modeled fact is true in the business domain. That is different from transaction time, which records when the database stored, learned, or superseded a fact.",
+          "For example, if customer C101 held loyalty number L100 from January through February, that business fact has a valid-time interval. If an analyst later discovers that the end date was loaded incorrectly and fixes it, that repair is correction history. Combining those two meanings into one pair of date columns makes temporal uniqueness hard to reason about, because duplicate-looking rows may represent either a real overlap or a later revision of an earlier assertion.",
+          "A practical rule is to make the assignment table say one thing. If it represents valid business assignments, then overlapping rows with the same scoped identifier are suspect. If the organization also needs to audit corrections, use transaction-time columns, version metadata, or an audit table instead of letting correction rows masquerade as simultaneous valid assignments."
+        ],
+        "bullets": [],
+        "codeExamples": []
+      },
+      {
+        "id": "a-hypothetical-loyalty-example",
+        "heading": "A hypothetical loyalty example with counterexamples",
+        "paragraphs": [
+          "Assume a hypothetical retail company assigns loyalty numbers to customers. The business rule is: within one market, a loyalty number can have at most one valid assignment record at any instant. The same loyalty number can be reused after the previous assignment ends. The same printed number may also exist in different markets, so market is part of the identifier scope.",
+          "Use half-open intervals: valid_from is inclusive and valid_to is exclusive. In plain language, the interval from 2026-01-01 to 2026-03-01 covers the start of January 1 through just before March 1. This convention makes back-to-back assignments unambiguous, because one row can end at the same instant another begins without overlap.",
+          "The following fixture is hypothetical. It is small enough to evaluate by inspection, but it contains the cases that usually expose an incomplete temporal uniqueness rule."
+        ],
+        "bullets": [
+          "Rows 1 and 2 share loyalty number L100 in the US, but row 1 ends exactly when row 2 begins. Under the half-open convention, they do not overlap, so they are allowed.",
+          "Rows 3 and 4 share loyalty number L200 in the US and overlap from 2026-02-01 through just before 2026-02-15. They violate the rule.",
+          "Rows 5 and 6 share loyalty number L300 in the US for the same customer. They still overlap. If this table represents valid assignment facts, the duplicate is ambiguous and should be rejected or represented as correction history elsewhere.",
+          "Rows 1 and 7 share loyalty number L100 during February, but row 7 is in CA. If market is truly part of the namespace, they are allowed. If loyalty numbers are global, they are not allowed."
+        ],
+        "codeExamples": [
+          {
+            "language": "text",
+            "code": "assignment_id | market | customer_id | loyalty_number | valid_from | valid_to\n1             | US     | C101        | L100           | 2026-01-01 | 2026-03-01\n2             | US     | C202        | L100           | 2026-03-01 | null\n3             | US     | C303        | L200           | 2026-01-10 | 2026-02-15\n4             | US     | C404        | L200           | 2026-02-01 | 2026-04-01\n5             | US     | C505        | L300           | 2026-05-01 | 2026-06-01\n6             | US     | C505        | L300           | 2026-05-15 | 2026-07-01\n7             | CA     | C606        | L100           | 2026-02-01 | null"
+          }
+        ]
+      },
+      {
+        "id": "why-ordinary-keys-are-not-enough",
+        "heading": "Why ordinary keys are not enough",
+        "paragraphs": [
+          "A static key chooses one of two bad answers for this example. A unique constraint on market and loyalty_number prevents reassignment, so it rejects rows 1 and 2 even though the business allows reuse after termination. A unique constraint on market, loyalty_number, and valid_from accepts rows 3 and 4, because their start dates differ, even though both records claim the same scoped loyalty number at the same time.",
+          "The temporal rule is not about whether a single column repeats. It is about whether two assignment facts can both be true for the same instant. That makes temporal uniqueness closer to a mutual-exclusion rule than to a conventional candidate key.",
+          "For half-open intervals, interval A overlaps interval B when A starts before B ends and B starts before A ends. Open-ended current rows need a declared meaning. In this article, null valid_to means the assignment continues indefinitely. A production model might instead use a non-null high date or a database range type, but the semantic rule is the same.",
+          "Be careful with null identifiers. If the identifier value is unknown, it is usually not an identifier yet. Allowing many null loyalty numbers may be acceptable, but it is not evidence that several records share the same identifier. Unknown, not applicable, and invalid are separate modeling cases; do not rely on accidental database behavior around nulls to express those distinctions."
+        ],
+        "bullets": [],
+        "codeExamples": []
+      },
+      {
+        "id": "diagnostic-query-for-overlap",
+        "heading": "A diagnostic query for existing data",
+        "paragraphs": [
+          "The following SQL is illustrative and has not been executed here. It is a diagnostic pattern for finding pairs of rows that violate the stated rule in the hypothetical fixture. It treats null valid_to as an open-ended interval by substituting a high date for comparison.",
+          "For the fixture above, the expected violating pairs are assignment 3 with 4, and assignment 5 with 6. Pair 1 with 2 is not returned because the intervals only touch at the boundary. Pair 1 with 7 is not returned because market is part of the scope.",
+          "The diagnostic is useful before choosing an enforcement mechanism. If it returns rows, the team must decide whether the data is wrong, the scope is wrong, or the table is mixing valid history with correction history. Do not add a constraint until that decision is explicit; otherwise the constraint may formalize the wrong rule."
+        ],
+        "bullets": [],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "select\n    a.assignment_id as left_assignment_id,\n    b.assignment_id as right_assignment_id,\n    a.market,\n    a.loyalty_number,\n    greatest(a.valid_from, b.valid_from) as overlap_starts_at,\n    least(\n        coalesce(a.valid_to, date '9999-12-31'),\n        coalesce(b.valid_to, date '9999-12-31')\n    ) as overlap_ends_before\nfrom loyalty_assignment a\njoin loyalty_assignment b\n  on a.assignment_id < b.assignment_id\n and a.market = b.market\n and a.loyalty_number = b.loyalty_number\n and a.valid_from < coalesce(b.valid_to, date '9999-12-31')\n and b.valid_from < coalesce(a.valid_to, date '9999-12-31')\norder by a.assignment_id, b.assignment_id;"
+          }
+        ]
+      },
+      {
+        "id": "turning-the-rule-into-a-modeling-decision",
+        "heading": "Turning the rule into a modeling decision",
+        "paragraphs": [
+          "Write the constraint as a business sentence before writing DDL: within market, loyalty_number has at most one valid assignment record at any instant of valid time. That sentence is compact, but it contains several decisions.",
+          "First, choose the namespace. In the example, market is part of the scope. If the same loyalty number cannot exist in two countries at the same time, remove market from the scope. If each tenant, brand, or source system owns its own numbering scheme, include that attribute. Many temporal uniqueness bugs come from leaving the namespace implicit.",
+          "Second, choose the interval convention. Half-open intervals are often easier to maintain than closed intervals because adjacency is unambiguous. With closed intervals, a row ending on March 1 and another starting on March 1 overlap at March 1. That may or may not be intended. The data model should not leave that question to interpretation.",
+          "Third, choose the time basis. If assignments are recorded as instants rather than dates, define the clock and time zone rules. For analytics, dimensional modeling guidance often preserves useful local-time context while also storing a standard time representation for comparison. A temporal uniqueness rule still needs one comparable timeline for overlap checks.",
+          "Fourth, decide whether same-entity overlap is allowed. In the hypothetical fixture, rows 5 and 6 overlap for the same customer. Some teams are tempted to allow that because no second customer is involved. But if both rows represent the same valid assignment, the overlap is still a duplicate assertion in this table. If one row is a superseded correction, model correction history separately."
+        ],
+        "bullets": [
+          "If the business says an identifier is never reused, use ordinary uniqueness over the identifier scope instead of temporal uniqueness.",
+          "If the business says an identifier can be reused only after expiration, use temporal uniqueness over the identifier scope and validity interval.",
+          "If the business says simultaneous sharing is legitimate, the value is not a unique identifier for that entity at that time; model it as a contact value, label, grouping, or relationship instead.",
+          "If the business needs both valid-time history and correction history, do not overload one interval to mean both."
+        ],
+        "codeExamples": []
+      },
+      {
+        "id": "enforcement-options-and-tradeoffs",
+        "heading": "Enforcement options and tradeoffs",
+        "paragraphs": [
+          "Relational databases differ in how directly they can enforce temporal uniqueness. PostgreSQL 18 documentation describes ordinary unique constraints, exclusion constraints, and the WITHOUT OVERLAPS option for unique and primary key constraints when the last constrained column is a range or multirange. PostgreSQL documents that WITHOUT OVERLAPS checks the final column for overlap rather than equality, while the other key columns provide the equality scope. It is implemented with exclusion-constraint behavior rather than as an ordinary btree-only uniqueness check.",
+          "That PostgreSQL detail is useful because it shows the shape of the rule, but the modeling decision is engine-independent. The rule is still: equal scope, equal identifier, non-overlapping validity period.",
+          "There are three common enforcement patterns. The first is a native database constraint, when the engine can express equality on the scope and non-overlap on the period. This keeps bad data out at write time. The second is a transactionally safe application or stored-procedure check. This can work, but it must handle concurrent writes or two overlapping assignments may be inserted at the same time. The third is a batch data quality diagnostic, which is useful in warehouses and lakehouses but detects violations after they arrive.",
+          "The tradeoff is not only performance. It is also where the organization wants the rule to live. If downstream reporting assumes one customer per loyalty number per instant, the rule belongs as close to the authoritative assignment table as the platform allows. If the source is a raw event log, temporal uniqueness may belong in a curated table that interprets events as assignment intervals.",
+          "The modeling test is simple: ask whether two rows with the same scoped identifier can both be true for the same instant. If yes, the identifier is not unique for that entity at that time. If no, write the non-overlap rule explicitly and make every exception name a different scope, a different interval convention, or a different kind of history."
+        ],
+        "bullets": [],
+        "codeExamples": []
+      }
+    ],
+    "takeaways": [
+      "Temporal uniqueness means a scoped identifier may repeat across rows only when the rows' validity intervals do not overlap.",
+      "A static unique key can be too strict for reassignment or too weak for overlapping history; the overlap rule is the essential part.",
+      "Define scope, interval convention, open-ended intervals, and correction history before choosing an enforcement mechanism.",
+      "A small counterexample dataset can reveal whether the intended rule allows boundary-touching, cross-scope reuse, same-entity duplicates, and open-ended current records.",
+      "When a database provides native temporal or exclusion constraints, use them to enforce the already-defined business rule; do not let the syntax define the rule for you."
+    ],
+    "sources": [
+      {
+        "title": "PostgreSQL: Documentation: 18: 5.5. Constraints",
+        "url": "https://www.postgresql.org/docs/18/ddl-constraints.html"
+      },
+      {
+        "title": "PostgreSQL: Documentation: 18: CREATE TABLE",
+        "url": "https://www.postgresql.org/docs/18/sql-createtable.html"
+      },
+      {
+        "title": "PostgreSQL: Documentation: 13: 9.9. Date/Time Functions and Operators",
+        "url": "https://www.postgresql.org/docs/13/functions-datetime.html"
+      },
+      {
+        "title": "Chapter 8. Data Normalisation",
+        "url": "https://www.cs.uct.ac.za/mit_notes/database/htmls/chp08.html"
+      },
+      {
+        "title": "Multiple Time Zones | Kimball Dimensional Modeling Techniques",
+        "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/multiple-time-zones/"
+      },
+      {
+        "title": "SQL2011Temporal",
+        "url": "https://wiki.postgresql.org/wiki/SQL2011Temporal"
+      }
+    ],
+    "requiresVerification": false,
+    "verificationNotes": []
+  }
+]
