@@ -1,51 +1,30 @@
 {
   "version": 1,
-  "phase": "finalized",
-  "batchId": "batch_6ac426911e8c819085a1ecb7c65dd92f",
-  "inputFileId": "file-QPPcRiEgA7NTQd3AoeWpY3",
+  "phase": "active",
+  "batchId": "batch_6acd65d3a8b88190ab6c56428d990018",
+  "inputFileId": "file-4GGE1xH5PtiaCZwCydH7uF",
   "model": "gpt-5.5",
   "topicCount": 10,
-  "submissionWeek": "2026-10-05",
+  "submissionWeek": "2026-10-12",
   "submittedThisWeek": 10,
   "topicSlugs": [
-    "candidate-keys-and-alternate-keys",
-    "functional-dependencies-in-analytical-tables",
-    "composite-keys-in-business-event-data",
     "natural-keys-versus-surrogate-keys",
     "referential-integrity-across-analytical-tables",
-    "set-semantics-versus-bag-semantics-in-sql",
-    "first-normal-form-and-repeating-groups",
     "second-and-third-normal-forms",
-    "entity-identity-versus-record-identity",
-    "optional-relationships-in-data-models"
+    "weak-entities-and-identifying-relationships",
+    "associative-entities-for-many-to-many-relationships",
+    "uniqueness-with-nullable-business-identifiers",
+    "domain-constraints-for-categorical-data",
+    "relational-division-for-analytical-questions",
+    "temporal-uniqueness-constraints",
+    "floating-point-error-in-financial-analytics"
   ],
-  "submittedAt": "2026-10-05T22:37:05.222Z",
-  "batchStatus": "completed",
-  "outputFileId": "file-8MF3YzkDZTuvahWpgXu3CZ",
+  "submittedAt": "2026-10-12T22:57:23.787Z",
+  "batchStatus": "validating",
+  "outputFileId": null,
   "errorFileId": null,
-  "successfulCount": 10,
-  "failedCount": 3,
-  "publishedCount": 7,
-  "failures": [
-    {
-      "customId": "article-natural-keys-versus-surrogate-keys",
-      "code": "editorial_retry",
-      "message": "Editor cited a source absent from its search evidence"
-    },
-    {
-      "customId": "article-referential-integrity-across-analytical-tables",
-      "code": "editorial_retry",
-      "message": "Editor cited a source absent from its search evidence"
-    },
-    {
-      "customId": "article-second-and-third-normal-forms",
-      "code": "editorial_retry",
-      "message": "Editor cited a source absent from its search evidence"
-    }
-  ],
-  "finalizedAt": "2026-10-05T23:01:43.914Z",
-  "automaticReview": true,
-  "retryCount": 3,
-  "reviewCount": 0,
-  "reviewSlugs": []
+  "successfulCount": 0,
+  "failedCount": 0,
+  "publishedCount": 0,
+  "failures": []
 }
