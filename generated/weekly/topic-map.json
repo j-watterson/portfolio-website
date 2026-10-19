@@ -1,319 +1,5 @@
 [
   {
-    "slug": "natural-keys-versus-surrogate-keys",
-    "title": "Natural keys versus surrogate keys",
-    "primaryKeyword": "Natural keys versus surrogate keys",
-    "relatedKeywords": [
-      "Natural keys versus surrogate keys",
-      "business key vs surrogate key",
-      "natural key"
-    ],
-    "audience": "practitioners",
-    "updateFrequency": "never",
-    "intent": "How can practitioners explain identifier stability using a source identifier that changes?",
-    "format": "Guide",
-    "category": "Data Modeling",
-    "editorialBrief": {
-      "topic": "Natural keys versus surrogate keys",
-      "audience": "practitioners",
-      "update_frequency": "never",
-      "content_type": "durable",
-      "category": "Data Modeling",
-      "track": "Data Foundations",
-      "cluster": "relational-foundations",
-      "primary_question": "How can practitioners explain identifier stability using a source identifier that changes?",
-      "scope": [
-        "Explain identifier stability using a source identifier that changes.",
-        "Relational semantics; leave engine tuning to the performance clusters."
-      ],
-      "exclusions": [
-        "Do not expand this into a general introduction to the entire category.",
-        "Do not repeat the Coldstart coverage listed in coldstart_coverage; link their background where useful.",
-        "Leave Composite keys in business event data to /writing/composite-keys-in-business-event-data/; its separate outcome is: Decide when multiple columns together identify one event.",
-        "Leave Referential integrity across analytical tables to /writing/referential-integrity-across-analytical-tables/; its separate outcome is: Detect orphaned facts without discarding legitimate late dimensions.",
-        "Do not replace or retell the three existing in-progress portfolio notes.",
-        "Do not invent employment history, client stories, measurements, expert review, or first-person hands-on experience."
-      ],
-      "original_contribution": "Create a small relational dataset with counterexamples. Use it to explain identifier stability using a source identifier that changes.",
-      "prerequisites": [
-        "candidate-keys-and-alternate-keys"
-      ],
-      "secondary_keywords": [
-        "business key vs surrogate key",
-        "natural key"
-      ],
-      "source_urls": [
-        "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/natural-durable-supernatural-key/",
-        "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/dimension-surrogate-key/",
-        "https://www.postgresql.org/docs/current/ddl-constraints.html"
-      ],
-      "sources": [
-        {
-          "source_id": "kimball-22",
-          "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/natural-durable-supernatural-key/",
-          "title": "Natural, Durable, and Supernatural Keys | KImball Group",
-          "accessed_at": "2026-09-22T16:39:18.671946+00:00"
-        },
-        {
-          "source_id": "kimball-21",
-          "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/dimension-surrogate-key/",
-          "title": "Dimension Surrogate Keys | Kimball Dimensional Modeling Techniques",
-          "accessed_at": "2026-09-22T16:39:18.473737+00:00"
-        },
-        {
-          "source_id": "pg-ddl-5",
-          "url": "https://www.postgresql.org/docs/current/ddl-constraints.html",
-          "title": "PostgreSQL: Documentation: 18: 5.5. Constraints",
-          "accessed_at": "2026-09-22T16:34:32.958740+00:00"
-        }
-      ],
-      "evidence_requirements": [
-        "Check the cited primary sources and the original scope before writing; a research lead is not proof of a new claim.",
-        "Use a clearly labeled hypothetical example. Do not invent customer results, personal experience, expert review, or test execution.",
-        "Work through the proposed example or decision framework and verify its assumptions and conclusions before publication."
-      ],
-      "distinctness_rationale": "The article is limited to this deliverable: Explain identifier stability using a source identifier that changes. Nearest legacy coverage is retained as background, not rewritten.",
-      "publication_order": 4,
-      "reviewed_distinctions": {},
-      "coldstart_coverage": [
-        {
-          "slug": "data-modeling-migration-playbook",
-          "title": "Data Modeling: Migration Playbook",
-          "score": 0.101,
-          "files": [
-            "src/_data/articles.json",
-            "generated/review/generated-articles.json"
-          ],
-          "section_headings": [
-            "Why Migration Is a Data Modeling Problem, Not Just a Moving Problem",
-            "Start With the Business Process and Grain",
-            "Inventory Legacy Tables, Reports, and Hidden Logic",
-            "Decide What to Migrate, Redesign, Retire, or Bridge",
-            "Create a Source-to-Target Mapping Before Writing Final Models",
-            "Use Layered Models to Control Complexity",
-            "Model for Pipeline Reliability, Not Just Query Convenience",
-            "Use Automation After the Rules Are Clear",
-            "Validate With Reconciliation, Not Vibes",
-            "Roll Out Models With Ownership and a Cutover Plan",
-            "Beginner Checklist for a Modeling Migration"
-          ],
-          "has_article_body": true
-        },
-        {
-          "slug": "data-modeling-operator-checklist",
-          "title": "Data Modeling: Operator Checklist",
-          "score": 0.097,
-          "files": [
-            "src/_data/articles.json",
-            "generated/review/generated-articles.json"
-          ],
-          "section_headings": [
-            "What data modeling means in an operating data stack",
-            "The operator checklist for data modeling",
-            "Start with grain before columns",
-            "Model business concepts, not just source systems",
-            "Use simple layers before complex architecture",
-            "Keep metric definitions out of one-off dashboards",
-            "Test assumptions, not just pipelines",
-            "Common data modeling failure modes",
-            "Questions to ask before trusting a model",
-            "A practical implementation sequence"
-          ],
-          "has_article_body": true
-        },
-        {
-          "slug": "customer-data-modeling-plain-english-guide",
-          "title": "Customer Data Modeling: Plain-English Guide",
-          "score": 0.091,
-          "files": [
-            "src/_data/articles.json"
-          ],
-          "section_headings": [
-            "What customer data modeling means",
-            "Why customer data modeling matters for AI-ready data",
-            "The core building blocks of a customer data model",
-            "Start by choosing the customer grain",
-            "Model the customer lifecycle, not just the current profile",
-            "Common customer data model patterns",
-            "Identity resolution is usually the hard part",
-            "Common failure modes in customer data modeling",
-            "How to evaluate your current customer data model",
-            "A practical blueprint for building a customer data model",
-            "How to build Customer 360 without creating a dumping ground",
-            "Governance rules for AI-ready customer data",
-            "What good customer data modeling looks like"
-          ],
-          "has_article_body": true
-        }
-      ],
-      "portfolio_context": "Technical education for practicing and aspiring data engineers. Use small, explicitly hypothetical retail-order or customer-event fixtures where useful. Do not claim Jon implemented or tested anything without supplied evidence.",
-      "cross_brand_boundary": "Coldstart and this portfolio share seed concepts, not article prose. Create a fresh example, explanation, and diagnostic outcome. Do not copy or lightly rewrite Coldstart articles.",
-      "seed_origin": {
-        "brand": "Coldstart",
-        "slug": "natural-keys-versus-surrogate-keys",
-        "snapshot_sha256": "07ea360d63d3b74952b290ee982fd3c3bec11622cdf1bdf932106a7823ea0020",
-        "adapted_on": "2026-09-23"
-      }
-    },
-    "sourceHash": "e6500a82b6698b94"
-  },
-  {
-    "slug": "referential-integrity-across-analytical-tables",
-    "title": "Referential integrity across analytical tables",
-    "primaryKeyword": "Referential integrity across analytical tables",
-    "relatedKeywords": [
-      "Referential integrity across analytical tables"
-    ],
-    "audience": "practitioners",
-    "updateFrequency": "never",
-    "intent": "How can practitioners detect orphaned facts without discarding legitimate late dimensions?",
-    "format": "Guide",
-    "category": "Data Modeling",
-    "editorialBrief": {
-      "topic": "Referential integrity across analytical tables",
-      "audience": "practitioners",
-      "update_frequency": "never",
-      "content_type": "durable",
-      "category": "Data Modeling",
-      "track": "Data Foundations",
-      "cluster": "relational-foundations",
-      "primary_question": "How can practitioners detect orphaned facts without discarding legitimate late dimensions?",
-      "scope": [
-        "Detect orphaned facts without discarding legitimate late dimensions.",
-        "Relational semantics; leave engine tuning to the performance clusters."
-      ],
-      "exclusions": [
-        "Do not expand this into a general introduction to the entire category.",
-        "Do not repeat the Coldstart coverage listed in coldstart_coverage; link their background where useful.",
-        "Leave Natural keys versus surrogate keys to /writing/natural-keys-versus-surrogate-keys/; its separate outcome is: Explain identifier stability using a source identifier that changes.",
-        "Leave SQL null and three-valued logic to /writing/sql-null-and-three-valued-logic/; its separate outcome is: Show why unknown comparisons change filters and predicates.",
-        "Do not replace or retell the three existing in-progress portfolio notes.",
-        "Do not invent employment history, client stories, measurements, expert review, or first-person hands-on experience."
-      ],
-      "original_contribution": "Create a small relational dataset with counterexamples. Use it to detect orphaned facts without discarding legitimate late dimensions.",
-      "prerequisites": [
-        "candidate-keys-and-alternate-keys"
-      ],
-      "secondary_keywords": [],
-      "source_urls": [
-        "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/late-arriving-dimension/",
-        "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/",
-        "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/late-arriving-fact/"
-      ],
-      "sources": [
-        {
-          "source_id": "kimball-late-arriving-dimension",
-          "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/late-arriving-dimension/",
-          "title": "Late Arriving Dimension | Kimball Dimensional Modeling Techniques",
-          "accessed_at": "2026-09-22T20:36:59.361657+00:00"
-        },
-        {
-          "source_id": "kimball",
-          "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/",
-          "title": "Dimensional Modeling Techniques - Kimball Group",
-          "accessed_at": "2026-09-22T16:34:26.363014+00:00"
-        },
-        {
-          "source_id": "kimball-late-arriving-fact",
-          "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/late-arriving-fact/",
-          "title": "Late Arriving Fact | Kimball Dimensional Modeling Techniques",
-          "accessed_at": "2026-09-22T20:36:55.801192+00:00"
-        }
-      ],
-      "evidence_requirements": [
-        "Check the cited primary sources and the original scope before writing; a research lead is not proof of a new claim.",
-        "Use a clearly labeled hypothetical example. Do not invent customer results, personal experience, expert review, or test execution.",
-        "Work through the proposed example or decision framework and verify its assumptions and conclusions before publication."
-      ],
-      "distinctness_rationale": "The article is limited to this deliverable: Detect orphaned facts without discarding legitimate late dimensions. Nearest legacy coverage is retained as background, not rewritten.",
-      "publication_order": 5,
-      "reviewed_distinctions": {},
-      "coldstart_coverage": [
-        {
-          "slug": "ai-ready-data-operator-checklist",
-          "title": "AI-Ready Data: Operator Checklist",
-          "score": 0.059,
-          "files": [
-            "src/_data/articles.json",
-            "generated/review/generated-articles.json"
-          ],
-          "section_headings": [
-            "What AI-ready data means in practice",
-            "The AI-ready data checklist",
-            "Start with a real AI use case, not a platform decision",
-            "Model the core business entities before adding AI",
-            "Make grain and history explicit",
-            "Fix identifiers before trusting generated answers",
-            "Define quality thresholds by risk",
-            "Document business meaning where AI will rely on it",
-            "Control sensitive data before it enters AI workflows",
-            "Prepare documents and unstructured data for retrieval",
-            "Evaluate outputs against known examples",
-            "Monitor data and workflow drift after launch",
-            "Common failure modes that make data not AI-ready",
-            "A practical first 30 days for AI-ready data"
-          ],
-          "has_article_body": true
-        },
-        {
-          "slug": "backfills-reliability-field-note",
-          "title": "Backfills: Reliability Field Note",
-          "score": 0.056,
-          "files": [
-            "src/_data/articles.json",
-            "generated/review/generated-articles.json"
-          ],
-          "section_headings": [
-            "What a backfill is",
-            "Why backfills create reliability risk",
-            "When a backfill is justified",
-            "Field note example: the safe backfill is smaller than the tempting one",
-            "Plan the backfill before running it",
-            "Make the run idempotent where possible",
-            "Validate before publishing rebuilt data",
-            "Communicate when historical numbers will change",
-            "Common backfill failure modes",
-            "Operator checklist for a reliable backfill",
-            "A beginner mental model"
-          ],
-          "has_article_body": true
-        },
-        {
-          "slug": "data-quality-checks-migration-playbook",
-          "title": "Data Quality Checks: Migration Playbook",
-          "score": 0.053,
-          "files": [
-            "src/_data/articles.json",
-            "generated/review/generated-articles.json"
-          ],
-          "section_headings": [
-            "What data quality checks mean in a migration",
-            "Why migrations create quality risk",
-            "The migration playbook: test in layers",
-            "Choose checks by business risk, not by test count",
-            "Baseline checks to run before cutover",
-            "Where to place checks in the pipeline",
-            "Reconcile old and new systems without chasing false precision",
-            "How to triage failed checks",
-            "Common migration failure modes to watch for",
-            "Keep checks operational after migration",
-            "Minimum viable checklist for a small team"
-          ],
-          "has_article_body": true
-        }
-      ],
-      "portfolio_context": "Technical education for practicing and aspiring data engineers. Use small, explicitly hypothetical retail-order or customer-event fixtures where useful. Do not claim Jon implemented or tested anything without supplied evidence.",
-      "cross_brand_boundary": "Coldstart and this portfolio share seed concepts, not article prose. Create a fresh example, explanation, and diagnostic outcome. Do not copy or lightly rewrite Coldstart articles.",
-      "seed_origin": {
-        "brand": "Coldstart",
-        "slug": "referential-integrity-across-analytical-tables",
-        "snapshot_sha256": "07ea360d63d3b74952b290ee982fd3c3bec11622cdf1bdf932106a7823ea0020",
-        "adapted_on": "2026-09-23"
-      }
-    },
-    "sourceHash": "328008b66a4d121b"
-  },
-  {
     "slug": "second-and-third-normal-forms",
     "title": "Second and third normal forms",
     "primaryKeyword": "Second and third normal forms",
@@ -463,626 +149,6 @@
       }
     },
     "sourceHash": "ea1de9e9ca0ef0a9"
-  },
-  {
-    "slug": "weak-entities-and-identifying-relationships",
-    "title": "Weak entities and identifying relationships",
-    "primaryKeyword": "Weak entities and identifying relationships",
-    "relatedKeywords": [
-      "Weak entities and identifying relationships"
-    ],
-    "audience": "practitioners",
-    "updateFrequency": "never",
-    "intent": "How can practitioners model records whose identity depends on a parent entity?",
-    "format": "Guide",
-    "category": "Data Modeling",
-    "editorialBrief": {
-      "topic": "Weak entities and identifying relationships",
-      "audience": "practitioners",
-      "update_frequency": "never",
-      "content_type": "durable",
-      "category": "Data Modeling",
-      "track": "Data Foundations",
-      "cluster": "relational-foundations",
-      "primary_question": "How can practitioners model records whose identity depends on a parent entity?",
-      "scope": [
-        "Model records whose identity depends on a parent entity.",
-        "Relational semantics; leave engine tuning to the performance clusters."
-      ],
-      "exclusions": [
-        "Do not expand this into a general introduction to the entire category.",
-        "Do not repeat the Coldstart coverage listed in coldstart_coverage; link their background where useful.",
-        "Leave Cardinality and participation constraints to /writing/cardinality-and-participation-constraints/; its separate outcome is: Specify both relationship multiplicity and mandatory participation.",
-        "Leave Associative entities for many-to-many relationships to /writing/associative-entities-for-many-to-many-relationships/; its separate outcome is: Preserve relationship attributes rather than flattening both entity tables.",
-        "Do not replace or retell the three existing in-progress portfolio notes.",
-        "Do not invent employment history, client stories, measurements, expert review, or first-person hands-on experience."
-      ],
-      "original_contribution": "Create a small relational dataset with counterexamples. Use it to model records whose identity depends on a parent entity.",
-      "prerequisites": [
-        "candidate-keys-and-alternate-keys"
-      ],
-      "secondary_keywords": [],
-      "source_urls": [
-        "https://www.cs.uct.ac.za/mit_notes/database/htmls/chp08.html",
-        "https://www.postgresql.org/docs/current/ddl-constraints.html",
-        "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/ragged-variable-depth-hierarchy/"
-      ],
-      "sources": [
-        {
-          "source_id": "database-dependencies",
-          "url": "https://www.cs.uct.ac.za/mit_notes/database/htmls/chp08.html",
-          "title": "Chapter 8. Data Normalisation",
-          "accessed_at": "2026-09-22T20:47:50.052497+00:00"
-        },
-        {
-          "source_id": "pg-ddl-5",
-          "url": "https://www.postgresql.org/docs/current/ddl-constraints.html",
-          "title": "PostgreSQL: Documentation: 18: 5.5. Constraints",
-          "accessed_at": "2026-09-22T16:34:32.958740+00:00"
-        },
-        {
-          "source_id": "kimball-ragged-variable-depth-hierarchy",
-          "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/ragged-variable-depth-hierarchy/",
-          "title": "Ragged/Variable Depth Hierarchies | Kimball Dimensional Modeling Techniques",
-          "accessed_at": "2026-09-22T20:31:47.524330+00:00"
-        }
-      ],
-      "evidence_requirements": [
-        "Check the cited primary sources and the original scope before writing; a research lead is not proof of a new claim.",
-        "Use a clearly labeled hypothetical example. Do not invent customer results, personal experience, expert review, or test execution.",
-        "Work through the proposed example or decision framework and verify its assumptions and conclusions before publication."
-      ],
-      "distinctness_rationale": "The article is limited to this deliverable: Model records whose identity depends on a parent entity. Nearest legacy coverage is retained as background, not rewritten.",
-      "publication_order": 14,
-      "reviewed_distinctions": {},
-      "coldstart_coverage": [
-        {
-          "slug": "customer-data-modeling-common-mistake",
-          "title": "Customer Data Modeling: Common Mistake",
-          "score": 0.117,
-          "files": [
-            "src/_data/articles.json",
-            "generated/review/generated-articles.json"
-          ],
-          "section_headings": [
-            "Why customer is not one thing",
-            "The common mistake: building one universal customer table",
-            "Start with grain before columns",
-            "Example: the SaaS customer count that keeps changing",
-            "Separate customer entities from customer states",
-            "Identity resolution is a business rule, not just a matching problem",
-            "A better pattern: model customer concepts separately, then connect them",
-            "How to diagnose your current customer model",
-            "Common failure modes in customer data modeling",
-            "What a good beginner customer model looks like"
-          ],
-          "has_article_body": true
-        },
-        {
-          "slug": "customer-data-modeling-plain-english-guide",
-          "title": "Customer Data Modeling: Plain-English Guide",
-          "score": 0.101,
-          "files": [
-            "src/_data/articles.json"
-          ],
-          "section_headings": [
-            "What customer data modeling means",
-            "Why customer data modeling matters for AI-ready data",
-            "The core building blocks of a customer data model",
-            "Start by choosing the customer grain",
-            "Model the customer lifecycle, not just the current profile",
-            "Common customer data model patterns",
-            "Identity resolution is usually the hard part",
-            "Common failure modes in customer data modeling",
-            "How to evaluate your current customer data model",
-            "A practical blueprint for building a customer data model",
-            "How to build Customer 360 without creating a dumping ground",
-            "Governance rules for AI-ready customer data",
-            "What good customer data modeling looks like"
-          ],
-          "has_article_body": true
-        },
-        {
-          "slug": "customer-data-modeling-operator-checklist",
-          "title": "Customer Data Modeling: Operator Checklist",
-          "score": 0.095,
-          "files": [
-            "src/_data/articles.json",
-            "generated/review/generated-articles.json"
-          ],
-          "section_headings": [
-            "Why Customer Data Models Fail",
-            "Checklist 1: Define the Customer Grain",
-            "Checklist 2: Map Each Source System to the Customer Model",
-            "Checklist 3: Separate Identity Rules from Customer Attributes",
-            "Checklist 4: Model the Customer Lifecycle Explicitly",
-            "Checklist 5: Choose the Core Customer Tables",
-            "Checklist 6: Migration Readiness for Customer Data",
-            "Checklist 7: Add Quality Checks That Match Business Risk",
-            "Checklist 8: Assign Ownership and Change Control",
-            "Checklist 9: Define Acceptance Tests Before Launch"
-          ],
-          "has_article_body": true
-        }
-      ],
-      "portfolio_context": "Technical education for practicing and aspiring data engineers. Use small, explicitly hypothetical retail-order or customer-event fixtures where useful. Do not claim Jon implemented or tested anything without supplied evidence.",
-      "cross_brand_boundary": "Coldstart and this portfolio share seed concepts, not article prose. Create a fresh example, explanation, and diagnostic outcome. Do not copy or lightly rewrite Coldstart articles.",
-      "seed_origin": {
-        "brand": "Coldstart",
-        "slug": "weak-entities-and-identifying-relationships",
-        "snapshot_sha256": "07ea360d63d3b74952b290ee982fd3c3bec11622cdf1bdf932106a7823ea0020",
-        "adapted_on": "2026-09-23"
-      }
-    },
-    "sourceHash": "781b532df2b77115"
-  },
-  {
-    "slug": "associative-entities-for-many-to-many-relationships",
-    "title": "Associative entities for many-to-many relationships",
-    "primaryKeyword": "Associative entities for many-to-many relationships",
-    "relatedKeywords": [
-      "Associative entities for many-to-many relationships"
-    ],
-    "audience": "practitioners",
-    "updateFrequency": "never",
-    "intent": "How can practitioners preserve relationship attributes rather than flattening both entity tables?",
-    "format": "Guide",
-    "category": "Data Modeling",
-    "editorialBrief": {
-      "topic": "Associative entities for many-to-many relationships",
-      "audience": "practitioners",
-      "update_frequency": "never",
-      "content_type": "durable",
-      "category": "Data Modeling",
-      "track": "Data Foundations",
-      "cluster": "relational-foundations",
-      "primary_question": "How can practitioners preserve relationship attributes rather than flattening both entity tables?",
-      "scope": [
-        "Preserve relationship attributes rather than flattening both entity tables.",
-        "Relational semantics; leave engine tuning to the performance clusters."
-      ],
-      "exclusions": [
-        "Do not expand this into a general introduction to the entire category.",
-        "Do not repeat the Coldstart coverage listed in coldstart_coverage; link their background where useful.",
-        "Leave Weak entities and identifying relationships to /writing/weak-entities-and-identifying-relationships/; its separate outcome is: Model records whose identity depends on a parent entity.",
-        "Leave Database constraints versus validation queries to /writing/database-constraints-versus-validation-queries/; its separate outcome is: Separate enforced invariants from asynchronously observed violations.",
-        "Do not replace or retell the three existing in-progress portfolio notes.",
-        "Do not invent employment history, client stories, measurements, expert review, or first-person hands-on experience."
-      ],
-      "original_contribution": "Create a small relational dataset with counterexamples. Use it to preserve relationship attributes rather than flattening both entity tables.",
-      "prerequisites": [
-        "candidate-keys-and-alternate-keys"
-      ],
-      "secondary_keywords": [],
-      "source_urls": [
-        "https://www.cs.uct.ac.za/mit_notes/database/htmls/chp08.html",
-        "https://www.postgresql.org/docs/current/ddl-constraints.html",
-        "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/type-6/"
-      ],
-      "sources": [
-        {
-          "source_id": "database-dependencies",
-          "url": "https://www.cs.uct.ac.za/mit_notes/database/htmls/chp08.html",
-          "title": "Chapter 8. Data Normalisation",
-          "accessed_at": "2026-09-22T20:47:50.052497+00:00"
-        },
-        {
-          "source_id": "pg-ddl-5",
-          "url": "https://www.postgresql.org/docs/current/ddl-constraints.html",
-          "title": "PostgreSQL: Documentation: 18: 5.5. Constraints",
-          "accessed_at": "2026-09-22T16:34:32.958740+00:00"
-        },
-        {
-          "source_id": "kimball-type-6",
-          "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/type-6/",
-          "title": "Type 6: Add Type 1 Attributes to Type 2 Dimension | Kimball Dimensional Modeling Techniques",
-          "accessed_at": "2026-09-22T20:31:47.056331+00:00"
-        }
-      ],
-      "evidence_requirements": [
-        "Check the cited primary sources and the original scope before writing; a research lead is not proof of a new claim.",
-        "Use a clearly labeled hypothetical example. Do not invent customer results, personal experience, expert review, or test execution.",
-        "Work through the proposed example or decision framework and verify its assumptions and conclusions before publication."
-      ],
-      "distinctness_rationale": "The article is limited to this deliverable: Preserve relationship attributes rather than flattening both entity tables. Nearest legacy coverage is retained as background, not rewritten.",
-      "publication_order": 15,
-      "reviewed_distinctions": {},
-      "coldstart_coverage": [
-        {
-          "slug": "customer-data-modeling-founder-framework",
-          "title": "Customer Data Modeling: Founder Framework",
-          "score": 0.112,
-          "files": [
-            "src/_data/articles.json",
-            "generated/review/generated-articles.json"
-          ],
-          "section_headings": [
-            "Why customer data modeling becomes a founder problem",
-            "The founder framework: five questions before tables",
-            "The core entities in a customer data model",
-            "Do not confuse accounts, users, and customers",
-            "Model the customer lifecycle as explicit states",
-            "Separate events from attributes",
-            "Identity resolution is a modeling decision, not a cleanup task",
-            "What makes customer data AI-ready",
-            "A minimum viable customer data model",
-            "Common customer data modeling failure modes",
-            "A practical implementation order",
-            "Diagnostic questions for your current model"
-          ],
-          "has_article_body": true
-        },
-        {
-          "slug": "customer-data-modeling-plain-english-guide",
-          "title": "Customer Data Modeling: Plain-English Guide",
-          "score": 0.108,
-          "files": [
-            "src/_data/articles.json"
-          ],
-          "section_headings": [
-            "What customer data modeling means",
-            "Why customer data modeling matters for AI-ready data",
-            "The core building blocks of a customer data model",
-            "Start by choosing the customer grain",
-            "Model the customer lifecycle, not just the current profile",
-            "Common customer data model patterns",
-            "Identity resolution is usually the hard part",
-            "Common failure modes in customer data modeling",
-            "How to evaluate your current customer data model",
-            "A practical blueprint for building a customer data model",
-            "How to build Customer 360 without creating a dumping ground",
-            "Governance rules for AI-ready customer data",
-            "What good customer data modeling looks like"
-          ],
-          "has_article_body": true
-        },
-        {
-          "slug": "customer-data-modeling-operator-checklist",
-          "title": "Customer Data Modeling: Operator Checklist",
-          "score": 0.107,
-          "files": [
-            "src/_data/articles.json",
-            "generated/review/generated-articles.json"
-          ],
-          "section_headings": [
-            "Why Customer Data Models Fail",
-            "Checklist 1: Define the Customer Grain",
-            "Checklist 2: Map Each Source System to the Customer Model",
-            "Checklist 3: Separate Identity Rules from Customer Attributes",
-            "Checklist 4: Model the Customer Lifecycle Explicitly",
-            "Checklist 5: Choose the Core Customer Tables",
-            "Checklist 6: Migration Readiness for Customer Data",
-            "Checklist 7: Add Quality Checks That Match Business Risk",
-            "Checklist 8: Assign Ownership and Change Control",
-            "Checklist 9: Define Acceptance Tests Before Launch"
-          ],
-          "has_article_body": true
-        }
-      ],
-      "portfolio_context": "Technical education for practicing and aspiring data engineers. Use small, explicitly hypothetical retail-order or customer-event fixtures where useful. Do not claim Jon implemented or tested anything without supplied evidence.",
-      "cross_brand_boundary": "Coldstart and this portfolio share seed concepts, not article prose. Create a fresh example, explanation, and diagnostic outcome. Do not copy or lightly rewrite Coldstart articles.",
-      "seed_origin": {
-        "brand": "Coldstart",
-        "slug": "associative-entities-for-many-to-many-relationships",
-        "snapshot_sha256": "07ea360d63d3b74952b290ee982fd3c3bec11622cdf1bdf932106a7823ea0020",
-        "adapted_on": "2026-09-23"
-      }
-    },
-    "sourceHash": "c38fd4ee418e3cc8"
-  },
-  {
-    "slug": "uniqueness-with-nullable-business-identifiers",
-    "title": "Uniqueness with nullable business identifiers",
-    "primaryKeyword": "Uniqueness with nullable business identifiers",
-    "relatedKeywords": [
-      "Uniqueness with nullable business identifiers"
-    ],
-    "audience": "practitioners",
-    "updateFrequency": "never",
-    "intent": "How can practitioners define duplicate rules when an external identifier is missing?",
-    "format": "Guide",
-    "category": "Data Modeling",
-    "editorialBrief": {
-      "topic": "Uniqueness with nullable business identifiers",
-      "audience": "practitioners",
-      "update_frequency": "never",
-      "content_type": "durable",
-      "category": "Data Modeling",
-      "track": "Data Foundations",
-      "cluster": "relational-foundations",
-      "primary_question": "How can practitioners define duplicate rules when an external identifier is missing?",
-      "scope": [
-        "Define duplicate rules when an external identifier is missing.",
-        "Relational semantics; leave engine tuning to the performance clusters."
-      ],
-      "exclusions": [
-        "Do not expand this into a general introduction to the entire category.",
-        "Do not repeat the Coldstart coverage listed in coldstart_coverage; link their background where useful.",
-        "Leave Database constraints versus validation queries to /writing/database-constraints-versus-validation-queries/; its separate outcome is: Separate enforced invariants from asynchronously observed violations.",
-        "Leave Domain constraints for categorical data to /writing/domain-constraints-for-categorical-data/; its separate outcome is: Choose a controlled vocabulary without confusing unknown and invalid values.",
-        "Do not replace or retell the three existing in-progress portfolio notes.",
-        "Do not invent employment history, client stories, measurements, expert review, or first-person hands-on experience."
-      ],
-      "original_contribution": "Create a small relational dataset with counterexamples. Use it to define duplicate rules when an external identifier is missing.",
-      "prerequisites": [
-        "candidate-keys-and-alternate-keys"
-      ],
-      "secondary_keywords": [],
-      "source_urls": [
-        "https://www.postgresql.org/docs/current/ddl-constraints.html",
-        "https://www.postgresql.org/docs/current/queries-table-expressions.html",
-        "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/lag-duration-fact/"
-      ],
-      "sources": [
-        {
-          "source_id": "pg-ddl-5",
-          "url": "https://www.postgresql.org/docs/current/ddl-constraints.html",
-          "title": "PostgreSQL: Documentation: 18: 5.5. Constraints",
-          "accessed_at": "2026-09-22T16:34:32.958740+00:00"
-        },
-        {
-          "source_id": "pg-joins",
-          "url": "https://www.postgresql.org/docs/current/queries-table-expressions.html",
-          "title": "PostgreSQL: Documentation: 18: 7.2. Table Expressions",
-          "accessed_at": "2026-09-22T16:34:29.167087+00:00"
-        },
-        {
-          "source_id": "kimball-lag-duration-fact",
-          "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/lag-duration-fact/",
-          "title": "Lag/Duration Facts - Kimball Group",
-          "accessed_at": "2026-09-22T20:31:48.608304+00:00"
-        }
-      ],
-      "evidence_requirements": [
-        "Check the cited primary sources and the original scope before writing; a research lead is not proof of a new claim.",
-        "Use a clearly labeled hypothetical example. Do not invent customer results, personal experience, expert review, or test execution.",
-        "Work through the proposed example or decision framework and verify its assumptions and conclusions before publication."
-      ],
-      "distinctness_rationale": "The article is limited to this deliverable: Define duplicate rules when an external identifier is missing. Nearest legacy coverage is retained as background, not rewritten.",
-      "publication_order": 17,
-      "reviewed_distinctions": {},
-      "coldstart_coverage": [
-        {
-          "slug": "data-quality-checks-migration-playbook",
-          "title": "Data Quality Checks: Migration Playbook",
-          "score": 0.089,
-          "files": [
-            "src/_data/articles.json",
-            "generated/review/generated-articles.json"
-          ],
-          "section_headings": [
-            "What data quality checks mean in a migration",
-            "Why migrations create quality risk",
-            "The migration playbook: test in layers",
-            "Choose checks by business risk, not by test count",
-            "Baseline checks to run before cutover",
-            "Where to place checks in the pipeline",
-            "Reconcile old and new systems without chasing false precision",
-            "How to triage failed checks",
-            "Common migration failure modes to watch for",
-            "Keep checks operational after migration",
-            "Minimum viable checklist for a small team"
-          ],
-          "has_article_body": true
-        },
-        {
-          "slug": "ai-ready-data-operator-checklist",
-          "title": "AI-Ready Data: Operator Checklist",
-          "score": 0.085,
-          "files": [
-            "src/_data/articles.json",
-            "generated/review/generated-articles.json"
-          ],
-          "section_headings": [
-            "What AI-ready data means in practice",
-            "The AI-ready data checklist",
-            "Start with a real AI use case, not a platform decision",
-            "Model the core business entities before adding AI",
-            "Make grain and history explicit",
-            "Fix identifiers before trusting generated answers",
-            "Define quality thresholds by risk",
-            "Document business meaning where AI will rely on it",
-            "Control sensitive data before it enters AI workflows",
-            "Prepare documents and unstructured data for retrieval",
-            "Evaluate outputs against known examples",
-            "Monitor data and workflow drift after launch",
-            "Common failure modes that make data not AI-ready",
-            "A practical first 30 days for AI-ready data"
-          ],
-          "has_article_body": true
-        },
-        {
-          "slug": "data-quality-checks-plain-english-guide",
-          "title": "Data Quality Checks: Plain-English Guide",
-          "score": 0.084,
-          "files": [
-            "src/_data/articles.json",
-            "generated/review/generated-articles.json"
-          ],
-          "section_headings": [
-            "What data quality checks are",
-            "Why data quality checks matter",
-            "The main types of data quality checks",
-            "Where checks belong in the data pipeline",
-            "Practical examples of data quality checks",
-            "How to prioritize checks without overbuilding",
-            "Common failure modes data quality checks catch",
-            "What makes a data quality check useful",
-            "A simple implementation approach",
-            "How data quality checks improve dashboard trust",
-            "What not to check at the beginning"
-          ],
-          "has_article_body": true
-        }
-      ],
-      "portfolio_context": "Technical education for practicing and aspiring data engineers. Use small, explicitly hypothetical retail-order or customer-event fixtures where useful. Do not claim Jon implemented or tested anything without supplied evidence.",
-      "cross_brand_boundary": "Coldstart and this portfolio share seed concepts, not article prose. Create a fresh example, explanation, and diagnostic outcome. Do not copy or lightly rewrite Coldstart articles.",
-      "seed_origin": {
-        "brand": "Coldstart",
-        "slug": "uniqueness-with-nullable-business-identifiers",
-        "snapshot_sha256": "07ea360d63d3b74952b290ee982fd3c3bec11622cdf1bdf932106a7823ea0020",
-        "adapted_on": "2026-09-23"
-      }
-    },
-    "sourceHash": "38132dff565152af"
-  },
-  {
-    "slug": "domain-constraints-for-categorical-data",
-    "title": "Domain constraints for categorical data",
-    "primaryKeyword": "Domain constraints for categorical data",
-    "relatedKeywords": [
-      "Domain constraints for categorical data"
-    ],
-    "audience": "practitioners",
-    "updateFrequency": "never",
-    "intent": "How can practitioners choose a controlled vocabulary without confusing unknown and invalid values?",
-    "format": "Guide",
-    "category": "Data Modeling",
-    "editorialBrief": {
-      "topic": "Domain constraints for categorical data",
-      "audience": "practitioners",
-      "update_frequency": "never",
-      "content_type": "durable",
-      "category": "Data Modeling",
-      "track": "Data Foundations",
-      "cluster": "relational-foundations",
-      "primary_question": "How can practitioners choose a controlled vocabulary without confusing unknown and invalid values?",
-      "scope": [
-        "Choose a controlled vocabulary without confusing unknown and invalid values.",
-        "Relational semantics; leave engine tuning to the performance clusters."
-      ],
-      "exclusions": [
-        "Do not expand this into a general introduction to the entire category.",
-        "Do not repeat the Coldstart coverage listed in coldstart_coverage; link their background where useful.",
-        "Leave Uniqueness with nullable business identifiers to /writing/uniqueness-with-nullable-business-identifiers/; its separate outcome is: Define duplicate rules when an external identifier is missing.",
-        "Leave Relational division for analytical questions to /writing/relational-division-for-analytical-questions/; its separate outcome is: Identify entities satisfying every requirement in a reference set.",
-        "Do not replace or retell the three existing in-progress portfolio notes.",
-        "Do not invent employment history, client stories, measurements, expert review, or first-person hands-on experience."
-      ],
-      "original_contribution": "Create a small relational dataset with counterexamples. Use it to choose a controlled vocabulary without confusing unknown and invalid values.",
-      "prerequisites": [
-        "candidate-keys-and-alternate-keys"
-      ],
-      "secondary_keywords": [],
-      "source_urls": [
-        "https://www.postgresql.org/docs/current/ddl-constraints.html",
-        "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/late-arriving-dimension/",
-        "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/conformed-dimension/"
-      ],
-      "sources": [
-        {
-          "source_id": "pg-ddl-5",
-          "url": "https://www.postgresql.org/docs/current/ddl-constraints.html",
-          "title": "PostgreSQL: Documentation: 18: 5.5. Constraints",
-          "accessed_at": "2026-09-22T16:34:32.958740+00:00"
-        },
-        {
-          "source_id": "kimball-late-arriving-dimension",
-          "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/late-arriving-dimension/",
-          "title": "Late Arriving Dimension | Kimball Dimensional Modeling Techniques",
-          "accessed_at": "2026-09-22T20:36:59.361657+00:00"
-        },
-        {
-          "source_id": "kimball-conformed-dimension",
-          "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/conformed-dimension/",
-          "title": "Conformed Dimensions | Kimball Dimensional Modeling Techniques",
-          "accessed_at": "2026-09-22T20:31:45.517037+00:00"
-        }
-      ],
-      "evidence_requirements": [
-        "Check the cited primary sources and the original scope before writing; a research lead is not proof of a new claim.",
-        "Use a clearly labeled hypothetical example. Do not invent customer results, personal experience, expert review, or test execution.",
-        "Work through the proposed example or decision framework and verify its assumptions and conclusions before publication."
-      ],
-      "distinctness_rationale": "The article is limited to this deliverable: Choose a controlled vocabulary without confusing unknown and invalid values. Nearest legacy coverage is retained as background, not rewritten.",
-      "publication_order": 18,
-      "reviewed_distinctions": {},
-      "coldstart_coverage": [
-        {
-          "slug": "semantic-layers-migration-playbook",
-          "title": "Semantic Layers: Migration Playbook",
-          "score": 0.074,
-          "files": [
-            "src/_data/articles.json",
-            "generated/review/generated-articles.json"
-          ],
-          "section_headings": [
-            "What semantic layers solve",
-            "What belongs in a semantic layer",
-            "Migration principles before tool selection",
-            "Phase 1: Inventory metric conflicts",
-            "Phase 2: Choose the first migration slice",
-            "Phase 3: Write metric contracts",
-            "Phase 4: Model entities and grain before metrics",
-            "Phase 5: Build in parallel and reconcile",
-            "Phase 6: Cut over with observability",
-            "Phase 7: Operate definitions like production assets",
-            "Common semantic layer failure modes",
-            "How to evaluate semantic layer tools",
-            "Semantic layers and AI-ready data",
-            "A practical 30-60-90 migration plan"
-          ],
-          "has_article_body": true
-        },
-        {
-          "slug": "source-system-drift-operator-checklist",
-          "title": "Source System Drift: Operator Checklist",
-          "score": 0.059,
-          "files": [
-            "src/_data/articles.json",
-            "generated/review/generated-articles.json"
-          ],
-          "section_headings": [
-            "What source system drift means",
-            "Why source system drift breaks data trust",
-            "Checklist step 1: Map your critical source systems",
-            "Checklist step 2: Document the assumptions your models depend on",
-            "Checklist step 3: Watch for schema drift",
-            "Checklist step 4: Watch for meaning drift",
-            "Checklist step 5: Watch for workflow drift",
-            "Checklist step 6: Triage drift by business impact",
-            "Checklist step 7: Update models deliberately",
-            "Checklist step 8: Communicate what changed and who is affected",
-            "Source system drift operator checklist",
-            "Common failure modes to avoid",
-            "What good source drift control looks like"
-          ],
-          "has_article_body": true
-        },
-        {
-          "slug": "source-system-drift-migration-playbook",
-          "title": "Source System Drift: Migration Playbook",
-          "score": 0.051,
-          "files": [
-            "src/_data/articles.json",
-            "generated/review/generated-articles.json"
-          ],
-          "section_headings": [
-            "What source system drift is",
-            "Why drift breaks migrations",
-            "The main types of drift to look for",
-            "Step 1: Freeze your current assumptions",
-            "Step 2: Profile the live source, not just the sample",
-            "Step 3: Classify drift by impact",
-            "Step 4: Choose the right response",
-            "Step 5: Protect the cutover window",
-            "Step 6: Keep drift monitoring after migration",
-            "Common failure modes",
-            "Operator checklist for source system drift"
-          ],
-          "has_article_body": true
-        }
-      ],
-      "portfolio_context": "Technical education for practicing and aspiring data engineers. Use small, explicitly hypothetical retail-order or customer-event fixtures where useful. Do not claim Jon implemented or tested anything without supplied evidence.",
-      "cross_brand_boundary": "Coldstart and this portfolio share seed concepts, not article prose. Create a fresh example, explanation, and diagnostic outcome. Do not copy or lightly rewrite Coldstart articles.",
-      "seed_origin": {
-        "brand": "Coldstart",
-        "slug": "domain-constraints-for-categorical-data",
-        "snapshot_sha256": "07ea360d63d3b74952b290ee982fd3c3bec11622cdf1bdf932106a7823ea0020",
-        "adapted_on": "2026-09-23"
-      }
-    },
-    "sourceHash": "a40a7f70651b5a5b"
   },
   {
     "slug": "relational-division-for-analytical-questions",
@@ -1237,157 +303,6 @@
     "sourceHash": "0bf1dbb243c1cbdb"
   },
   {
-    "slug": "temporal-uniqueness-constraints",
-    "title": "Temporal uniqueness constraints",
-    "primaryKeyword": "Temporal uniqueness constraints",
-    "relatedKeywords": [
-      "Temporal uniqueness constraints"
-    ],
-    "audience": "practitioners",
-    "updateFrequency": "never",
-    "intent": "How can practitioners define when two records can share an identifier across time?",
-    "format": "Guide",
-    "category": "Data Modeling",
-    "editorialBrief": {
-      "topic": "Temporal uniqueness constraints",
-      "audience": "practitioners",
-      "update_frequency": "never",
-      "content_type": "durable",
-      "category": "Data Modeling",
-      "track": "Data Foundations",
-      "cluster": "relational-foundations",
-      "primary_question": "How can practitioners define when two records can share an identifier across time?",
-      "scope": [
-        "Define when two records can share an identifier across time.",
-        "Relational semantics; leave engine tuning to the performance clusters."
-      ],
-      "exclusions": [
-        "Do not expand this into a general introduction to the entire category.",
-        "Do not repeat the Coldstart coverage listed in coldstart_coverage; link their background where useful.",
-        "Leave Relational division for analytical questions to /writing/relational-division-for-analytical-questions/; its separate outcome is: Identify entities satisfying every requirement in a reference set.",
-        "Leave Domain constraints for categorical data to /writing/domain-constraints-for-categorical-data/; its separate outcome is: Choose a controlled vocabulary without confusing unknown and invalid values.",
-        "Do not replace or retell the three existing in-progress portfolio notes.",
-        "Do not invent employment history, client stories, measurements, expert review, or first-person hands-on experience."
-      ],
-      "original_contribution": "Create a small relational dataset with counterexamples. Use it to define when two records can share an identifier across time.",
-      "prerequisites": [
-        "candidate-keys-and-alternate-keys"
-      ],
-      "secondary_keywords": [],
-      "source_urls": [
-        "https://www.postgresql.org/docs/current/ddl-constraints.html",
-        "https://www.cs.uct.ac.za/mit_notes/database/htmls/chp08.html",
-        "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/multiple-time-zones/"
-      ],
-      "sources": [
-        {
-          "source_id": "pg-ddl-5",
-          "url": "https://www.postgresql.org/docs/current/ddl-constraints.html",
-          "title": "PostgreSQL: Documentation: 18: 5.5. Constraints",
-          "accessed_at": "2026-09-22T16:34:32.958740+00:00"
-        },
-        {
-          "source_id": "database-dependencies",
-          "url": "https://www.cs.uct.ac.za/mit_notes/database/htmls/chp08.html",
-          "title": "Chapter 8. Data Normalisation",
-          "accessed_at": "2026-09-22T20:47:50.052497+00:00"
-        },
-        {
-          "source_id": "kimball-multiple-time-zones",
-          "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/multiple-time-zones/",
-          "title": "Multiple Time Zones | Kimball Dimensional Modeling Techniques",
-          "accessed_at": "2026-09-22T20:36:58.154668+00:00"
-        }
-      ],
-      "evidence_requirements": [
-        "Check the cited primary sources and the original scope before writing; a research lead is not proof of a new claim.",
-        "Use a clearly labeled hypothetical example. Do not invent customer results, personal experience, expert review, or test execution.",
-        "Work through the proposed example or decision framework and verify its assumptions and conclusions before publication."
-      ],
-      "distinctness_rationale": "The article is limited to this deliverable: Define when two records can share an identifier across time. Nearest legacy coverage is retained as background, not rewritten.",
-      "publication_order": 20,
-      "reviewed_distinctions": {},
-      "coldstart_coverage": [
-        {
-          "slug": "customer-data-modeling-founder-framework",
-          "title": "Customer Data Modeling: Founder Framework",
-          "score": 0.078,
-          "files": [
-            "src/_data/articles.json",
-            "generated/review/generated-articles.json"
-          ],
-          "section_headings": [
-            "Why customer data modeling becomes a founder problem",
-            "The founder framework: five questions before tables",
-            "The core entities in a customer data model",
-            "Do not confuse accounts, users, and customers",
-            "Model the customer lifecycle as explicit states",
-            "Separate events from attributes",
-            "Identity resolution is a modeling decision, not a cleanup task",
-            "What makes customer data AI-ready",
-            "A minimum viable customer data model",
-            "Common customer data modeling failure modes",
-            "A practical implementation order",
-            "Diagnostic questions for your current model"
-          ],
-          "has_article_body": true
-        },
-        {
-          "slug": "dashboards-that-match-reality",
-          "title": "Why Dashboards Stop Matching Reality",
-          "score": 0.07,
-          "files": [
-            "src/_data/articles.json",
-            "generated/review/rewritten-first-six-articles.json"
-          ],
-          "section_headings": [
-            "What dashboard trust actually means",
-            "Source systems drift quietly",
-            "Metric definitions break down when they are implied instead of explicit",
-            "Nobody owns the argument",
-            "Common reasons dashboards stop matching reality",
-            "How to diagnose a dashboard disagreement",
-            "Trust returns through repeatable checks",
-            "A practical checklist for a trusted dashboard"
-          ],
-          "has_article_body": true
-        },
-        {
-          "slug": "data-quality-checks-plain-english-guide",
-          "title": "Data Quality Checks: Plain-English Guide",
-          "score": 0.064,
-          "files": [
-            "src/_data/articles.json",
-            "generated/review/generated-articles.json"
-          ],
-          "section_headings": [
-            "What data quality checks are",
-            "Why data quality checks matter",
-            "The main types of data quality checks",
-            "Where checks belong in the data pipeline",
-            "Practical examples of data quality checks",
-            "How to prioritize checks without overbuilding",
-            "Common failure modes data quality checks catch",
-            "What makes a data quality check useful",
-            "A simple implementation approach",
-            "How data quality checks improve dashboard trust",
-            "What not to check at the beginning"
-          ],
-          "has_article_body": true
-        }
-      ],
-      "portfolio_context": "Technical education for practicing and aspiring data engineers. Use small, explicitly hypothetical retail-order or customer-event fixtures where useful. Do not claim Jon implemented or tested anything without supplied evidence.",
-      "cross_brand_boundary": "Coldstart and this portfolio share seed concepts, not article prose. Create a fresh example, explanation, and diagnostic outcome. Do not copy or lightly rewrite Coldstart articles.",
-      "seed_origin": {
-        "brand": "Coldstart",
-        "slug": "temporal-uniqueness-constraints",
-        "snapshot_sha256": "07ea360d63d3b74952b290ee982fd3c3bec11622cdf1bdf932106a7823ea0020",
-        "adapted_on": "2026-09-23"
-      }
-    },
-    "sourceHash": "e78e61f71d4a182c"
-  },
-  {
     "slug": "floating-point-error-in-financial-analytics",
     "title": "Floating-point error in financial analytics",
     "primaryKeyword": "Floating-point error in financial analytics",
@@ -1531,5 +446,1070 @@
       }
     },
     "sourceHash": "b1eff4cf3ad25658"
+  },
+  {
+    "slug": "fixed-point-decimal-precision-and-scale",
+    "title": "Fixed-point decimal precision and scale",
+    "primaryKeyword": "Fixed-point decimal precision and scale",
+    "relatedKeywords": [
+      "Fixed-point decimal precision and scale"
+    ],
+    "audience": "practitioners",
+    "updateFrequency": "never",
+    "intent": "How can practitioners choose capacity for stored values and intermediate calculations?",
+    "format": "Guide",
+    "category": "Data Modeling",
+    "editorialBrief": {
+      "topic": "Fixed-point decimal precision and scale",
+      "audience": "practitioners",
+      "update_frequency": "never",
+      "content_type": "durable",
+      "category": "Data Modeling",
+      "track": "Data Foundations",
+      "cluster": "numeric-correctness",
+      "primary_question": "How can practitioners choose capacity for stored values and intermediate calculations?",
+      "scope": [
+        "Choose capacity for stored values and intermediate calculations.",
+        "Numeric representation and aggregation; exclude tax or accounting advice."
+      ],
+      "exclusions": [
+        "Do not expand this into a general introduction to the entire category.",
+        "Do not repeat the Coldstart coverage listed in coldstart_coverage; link their background where useful.",
+        "Leave Floating-point error in financial analytics to /writing/floating-point-error-in-financial-analytics/; its separate outcome is: Demonstrate representation error in repeated decimal arithmetic.",
+        "Leave Rounding at ingestion versus presentation to /writing/rounding-at-ingestion-versus-presentation/; its separate outcome is: Show how rounding stages change reconciled aggregate totals.",
+        "Do not replace or retell the three existing in-progress portfolio notes.",
+        "Do not invent employment history, client stories, measurements, expert review, or first-person hands-on experience."
+      ],
+      "original_contribution": "Create numeric counterexamples and explicit calculation rules. Use it to choose capacity for stored values and intermediate calculations.",
+      "prerequisites": [
+        "floating-point-error-in-financial-analytics"
+      ],
+      "secondary_keywords": [],
+      "source_urls": [
+        "https://www.postgresql.org/docs/current/datatype-numeric.html",
+        "https://www.itl.nist.gov/div898/handbook/eda/section3/eda356.htm",
+        "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/lag-duration-fact/"
+      ],
+      "sources": [
+        {
+          "source_id": "pg-numeric",
+          "url": "https://www.postgresql.org/docs/current/datatype-numeric.html",
+          "title": "PostgreSQL: Documentation: 18: 8.1. Numeric Types",
+          "accessed_at": "2026-09-22T16:34:32.222891+00:00"
+        },
+        {
+          "source_id": "nist-scale",
+          "url": "https://www.itl.nist.gov/div898/handbook/eda/section3/eda356.htm",
+          "title": "1.3.5.6. Measures of Scale",
+          "accessed_at": "2026-09-22T20:47:48.322923+00:00"
+        },
+        {
+          "source_id": "kimball-lag-duration-fact",
+          "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/lag-duration-fact/",
+          "title": "Lag/Duration Facts - Kimball Group",
+          "accessed_at": "2026-09-22T20:31:48.608304+00:00"
+        }
+      ],
+      "evidence_requirements": [
+        "Check the cited primary sources and the original scope before writing; a research lead is not proof of a new claim.",
+        "Use a clearly labeled hypothetical example. Do not invent customer results, personal experience, expert review, or test execution.",
+        "Work through the proposed example or decision framework and verify its assumptions and conclusions before publication."
+      ],
+      "distinctness_rationale": "The article is limited to this deliverable: Choose capacity for stored values and intermediate calculations. Nearest legacy coverage is retained as background, not rewritten.",
+      "publication_order": 22,
+      "reviewed_distinctions": {},
+      "coldstart_coverage": [
+        {
+          "slug": "backfills-plain-english-guide",
+          "title": "Backfills: Plain-English Guide",
+          "score": 0.073,
+          "files": [
+            "src/_data/articles.json"
+          ],
+          "section_headings": [
+            "What backfills mean in plain English",
+            "Why backfills matter for AI-ready data",
+            "When you need a backfill",
+            "When not to backfill",
+            "The anatomy of a safe backfill",
+            "Define scope and grain before you run anything",
+            "Common ways backfills go wrong",
+            "A practical backfill workflow",
+            "How to validate a backfill",
+            "Backfills, reruns, restatements, and migrations are related but different",
+            "Operator rules for backfills",
+            "Example: backfilling a customer health feature for AI"
+          ],
+          "has_article_body": true
+        },
+        {
+          "slug": "ai-ready-data-plain-english-guide",
+          "title": "AI-Ready Data: Plain-English Guide",
+          "score": 0.065,
+          "files": [
+            "src/_data/articles.json"
+          ],
+          "section_headings": [
+            "What AI-ready data means in plain English",
+            "Why AI readiness is really a data foundation problem",
+            "Why migrations often reveal AI-readiness gaps",
+            "The six layers of AI-ready data",
+            "What AI does not forgive in your data",
+            "How to evaluate whether your data is AI-ready",
+            "A simple maturity model for AI-ready data",
+            "What to fix first before adding AI on top",
+            "Governance for AI-ready data without unnecessary bureaucracy",
+            "Common failure modes when teams rush AI data work",
+            "AI-ready data checklist",
+            "How to start this week"
+          ],
+          "has_article_body": true
+        },
+        {
+          "slug": "dashboard-trust-migration-playbook",
+          "title": "Dashboard Trust: Migration Playbook",
+          "score": 0.044,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "Why dashboard trust breaks during migration",
+            "Define what trust means before you move",
+            "Step 1: Inventory and classify dashboards",
+            "Step 2: Map metrics before mapping charts",
+            "Step 3: Rebuild on a stable data contract",
+            "Step 4: Run old and new dashboards in parallel",
+            "Step 5: Get business signoff with evidence",
+            "Step 6: Cut over with a communication plan",
+            "Step 7: Monitor trust after launch",
+            "Common dashboard migration failure modes",
+            "Operator checklist for dashboard trust"
+          ],
+          "has_article_body": true
+        }
+      ],
+      "portfolio_context": "Technical education for practicing and aspiring data engineers. Use small, explicitly hypothetical retail-order or customer-event fixtures where useful. Do not claim Jon implemented or tested anything without supplied evidence.",
+      "cross_brand_boundary": "Coldstart and this portfolio share seed concepts, not article prose. Create a fresh example, explanation, and diagnostic outcome. Do not copy or lightly rewrite Coldstart articles.",
+      "seed_origin": {
+        "brand": "Coldstart",
+        "slug": "fixed-point-decimal-precision-and-scale",
+        "snapshot_sha256": "07ea360d63d3b74952b290ee982fd3c3bec11622cdf1bdf932106a7823ea0020",
+        "adapted_on": "2026-09-23"
+      }
+    },
+    "sourceHash": "08d0c3b0813061ab"
+  },
+  {
+    "slug": "rounding-at-ingestion-versus-presentation",
+    "title": "Rounding at ingestion versus presentation",
+    "primaryKeyword": "Rounding at ingestion versus presentation",
+    "relatedKeywords": [
+      "Rounding at ingestion versus presentation"
+    ],
+    "audience": "practitioners",
+    "updateFrequency": "never",
+    "intent": "How can practitioners show how rounding stages change reconciled aggregate totals?",
+    "format": "Guide",
+    "category": "Data Modeling",
+    "editorialBrief": {
+      "topic": "Rounding at ingestion versus presentation",
+      "audience": "practitioners",
+      "update_frequency": "never",
+      "content_type": "durable",
+      "category": "Data Modeling",
+      "track": "Data Foundations",
+      "cluster": "numeric-correctness",
+      "primary_question": "How can practitioners show how rounding stages change reconciled aggregate totals?",
+      "scope": [
+        "Show how rounding stages change reconciled aggregate totals.",
+        "Numeric representation and aggregation; exclude tax or accounting advice."
+      ],
+      "exclusions": [
+        "Do not expand this into a general introduction to the entire category.",
+        "Do not repeat the Coldstart coverage listed in coldstart_coverage; link their background where useful.",
+        "Leave Fixed-point decimal precision and scale to /writing/fixed-point-decimal-precision-and-scale/; its separate outcome is: Choose capacity for stored values and intermediate calculations.",
+        "Leave Rounding residuals in proportional allocations to /writing/rounding-residuals-in-proportional-allocations/; its separate outcome is: Distribute remaining units while preserving the original total.",
+        "Do not replace or retell the three existing in-progress portfolio notes.",
+        "Do not invent employment history, client stories, measurements, expert review, or first-person hands-on experience."
+      ],
+      "original_contribution": "Create numeric counterexamples and explicit calculation rules. Use it to show how rounding stages change reconciled aggregate totals.",
+      "prerequisites": [
+        "floating-point-error-in-financial-analytics"
+      ],
+      "secondary_keywords": [],
+      "source_urls": [
+        "https://www.postgresql.org/docs/current/functions-aggregate.html",
+        "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/aggregate-fact-table-cube/",
+        "https://www.postgresql.org/docs/current/datatype-numeric.html"
+      ],
+      "sources": [
+        {
+          "source_id": "pg-aggregate",
+          "url": "https://www.postgresql.org/docs/current/functions-aggregate.html",
+          "title": "PostgreSQL: Documentation: 18: 9.21. Aggregate Functions",
+          "accessed_at": "2026-09-22T16:34:30.057160+00:00"
+        },
+        {
+          "source_id": "kimball-18",
+          "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/aggregate-fact-table-cube/",
+          "title": "Aggregate Fact Tables or Cubes | Kimball Group",
+          "accessed_at": "2026-09-22T16:39:18.216022+00:00"
+        },
+        {
+          "source_id": "pg-numeric",
+          "url": "https://www.postgresql.org/docs/current/datatype-numeric.html",
+          "title": "PostgreSQL: Documentation: 18: 8.1. Numeric Types",
+          "accessed_at": "2026-09-22T16:34:32.222891+00:00"
+        }
+      ],
+      "evidence_requirements": [
+        "Check the cited primary sources and the original scope before writing; a research lead is not proof of a new claim.",
+        "Use a clearly labeled hypothetical example. Do not invent customer results, personal experience, expert review, or test execution.",
+        "Work through the proposed example or decision framework and verify its assumptions and conclusions before publication."
+      ],
+      "distinctness_rationale": "The article is limited to this deliverable: Show how rounding stages change reconciled aggregate totals. Nearest legacy coverage is retained as background, not rewritten.",
+      "publication_order": 23,
+      "reviewed_distinctions": {},
+      "coldstart_coverage": [
+        {
+          "slug": "semantic-layers-operator-checklist",
+          "title": "Semantic Layers: Operator Checklist",
+          "score": 0.089,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "What a semantic layer is",
+            "When semantic layers are worth the overhead",
+            "Operator checklist for semantic layers",
+            "Choose metrics that deserve governance",
+            "Modeling rules that keep semantic layers reliable",
+            "Do not ignore permissions and context",
+            "How semantic layers improve dashboard trust",
+            "Common semantic layer failure modes",
+            "Questions to ask before choosing an implementation",
+            "A safe rollout plan"
+          ],
+          "has_article_body": true
+        },
+        {
+          "slug": "data-modeling-migration-playbook",
+          "title": "Data Modeling: Migration Playbook",
+          "score": 0.083,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "Why Migration Is a Data Modeling Problem, Not Just a Moving Problem",
+            "Start With the Business Process and Grain",
+            "Inventory Legacy Tables, Reports, and Hidden Logic",
+            "Decide What to Migrate, Redesign, Retire, or Bridge",
+            "Create a Source-to-Target Mapping Before Writing Final Models",
+            "Use Layered Models to Control Complexity",
+            "Model for Pipeline Reliability, Not Just Query Convenience",
+            "Use Automation After the Rules Are Clear",
+            "Validate With Reconciliation, Not Vibes",
+            "Roll Out Models With Ownership and a Cutover Plan",
+            "Beginner Checklist for a Modeling Migration"
+          ],
+          "has_article_body": true
+        },
+        {
+          "slug": "data-quality-checks-plain-english-guide",
+          "title": "Data Quality Checks: Plain-English Guide",
+          "score": 0.071,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "What data quality checks are",
+            "Why data quality checks matter",
+            "The main types of data quality checks",
+            "Where checks belong in the data pipeline",
+            "Practical examples of data quality checks",
+            "How to prioritize checks without overbuilding",
+            "Common failure modes data quality checks catch",
+            "What makes a data quality check useful",
+            "A simple implementation approach",
+            "How data quality checks improve dashboard trust",
+            "What not to check at the beginning"
+          ],
+          "has_article_body": true
+        }
+      ],
+      "portfolio_context": "Technical education for practicing and aspiring data engineers. Use small, explicitly hypothetical retail-order or customer-event fixtures where useful. Do not claim Jon implemented or tested anything without supplied evidence.",
+      "cross_brand_boundary": "Coldstart and this portfolio share seed concepts, not article prose. Create a fresh example, explanation, and diagnostic outcome. Do not copy or lightly rewrite Coldstart articles.",
+      "seed_origin": {
+        "brand": "Coldstart",
+        "slug": "rounding-at-ingestion-versus-presentation",
+        "snapshot_sha256": "07ea360d63d3b74952b290ee982fd3c3bec11622cdf1bdf932106a7823ea0020",
+        "adapted_on": "2026-09-23"
+      }
+    },
+    "sourceHash": "2d4673fba8357a2e"
+  },
+  {
+    "slug": "rounding-residuals-in-proportional-allocations",
+    "title": "Rounding residuals in proportional allocations",
+    "primaryKeyword": "Rounding residuals in proportional allocations",
+    "relatedKeywords": [
+      "Rounding residuals in proportional allocations"
+    ],
+    "audience": "practitioners",
+    "updateFrequency": "never",
+    "intent": "How can practitioners distribute remaining units while preserving the original total?",
+    "format": "Guide",
+    "category": "Data Modeling",
+    "editorialBrief": {
+      "topic": "Rounding residuals in proportional allocations",
+      "audience": "practitioners",
+      "update_frequency": "never",
+      "content_type": "durable",
+      "category": "Data Modeling",
+      "track": "Data Foundations",
+      "cluster": "numeric-correctness",
+      "primary_question": "How can practitioners distribute remaining units while preserving the original total?",
+      "scope": [
+        "Distribute remaining units while preserving the original total.",
+        "Numeric representation and aggregation; exclude tax or accounting advice."
+      ],
+      "exclusions": [
+        "Do not expand this into a general introduction to the entire category.",
+        "Do not repeat the Coldstart coverage listed in coldstart_coverage; link their background where useful.",
+        "Leave Rounding at ingestion versus presentation to /writing/rounding-at-ingestion-versus-presentation/; its separate outcome is: Show how rounding stages change reconciled aggregate totals.",
+        "Leave Integer overflow in aggregate calculations to /writing/integer-overflow-in-aggregate-calculations/; its separate outcome is: Estimate intermediate bounds rather than only input value ranges.",
+        "Do not replace or retell the three existing in-progress portfolio notes.",
+        "Do not invent employment history, client stories, measurements, expert review, or first-person hands-on experience."
+      ],
+      "original_contribution": "Create numeric counterexamples and explicit calculation rules. Use it to distribute remaining units while preserving the original total.",
+      "prerequisites": [
+        "floating-point-error-in-financial-analytics"
+      ],
+      "secondary_keywords": [],
+      "source_urls": [
+        "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/profit-loss-fact-table/",
+        "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/multiple-units-of-measure/",
+        "https://www.postgresql.org/docs/current/datatype-numeric.html"
+      ],
+      "sources": [
+        {
+          "source_id": "kimball-profit-loss-fact-table",
+          "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/profit-loss-fact-table/",
+          "title": "Profit and Loss Fact Tables Using Allocations",
+          "accessed_at": "2026-09-22T20:31:48.992983+00:00"
+        },
+        {
+          "source_id": "kimball-multiple-units-of-measure",
+          "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/multiple-units-of-measure/",
+          "title": "Multiple Units of Measure Facts | Kimball Dimensional Modeling Techniques",
+          "accessed_at": "2026-09-22T20:36:55.009729+00:00"
+        },
+        {
+          "source_id": "pg-numeric",
+          "url": "https://www.postgresql.org/docs/current/datatype-numeric.html",
+          "title": "PostgreSQL: Documentation: 18: 8.1. Numeric Types",
+          "accessed_at": "2026-09-22T16:34:32.222891+00:00"
+        }
+      ],
+      "evidence_requirements": [
+        "Check the cited primary sources and the original scope before writing; a research lead is not proof of a new claim.",
+        "Use a clearly labeled hypothetical example. Do not invent customer results, personal experience, expert review, or test execution.",
+        "Work through the proposed example or decision framework and verify its assumptions and conclusions before publication."
+      ],
+      "distinctness_rationale": "The article is limited to this deliverable: Distribute remaining units while preserving the original total. Nearest legacy coverage is retained as background, not rewritten.",
+      "publication_order": 24,
+      "reviewed_distinctions": {},
+      "coldstart_coverage": [
+        {
+          "slug": "spreadsheet-replacement-migration-playbook",
+          "title": "Spreadsheet Replacement: Migration Playbook",
+          "score": 0.054,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "Why spreadsheets become infrastructure",
+            "Define the spreadsheet’s role before replacing it",
+            "Inventory the workbooks that matter",
+            "Classify the right replacement pattern",
+            "Separate inputs, logic, and outputs",
+            "Design the target data model around business grain",
+            "Replace manual paste work with pipelines",
+            "Translate formulas into business rules",
+            "Handle human inputs with controls",
+            "Validate against known periods before cutover",
+            "Plan the cutover deliberately",
+            "Watch the common failure modes",
+            "Govern the new system after migration",
+            "Operator checklist for spreadsheet replacement"
+          ],
+          "has_article_body": true
+        },
+        {
+          "slug": "spreadsheet-replacement-reliability-field-note",
+          "title": "Spreadsheet Replacement: Reliability Field Note",
+          "score": 0.045,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "Field note: the workbook was not the problem",
+            "What spreadsheet replacement really means",
+            "Why spreadsheet systems become fragile",
+            "How to tell whether a spreadsheet is ready to replace",
+            "A safe spreadsheet replacement pattern",
+            "Where the modern data stack fits",
+            "What not to replace too early",
+            "Common failure modes during spreadsheet replacement",
+            "Operator checklist for replacing a critical spreadsheet"
+          ],
+          "has_article_body": true
+        },
+        {
+          "slug": "metric-definitions-operator-checklist",
+          "title": "Metric Definitions: Operator Checklist",
+          "score": 0.036,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "What a Metric Definition Must Do",
+            "Why Metric Definitions Break in Real Data Systems",
+            "The Metric Definitions Operator Checklist",
+            "A Minimum Viable Metric Definition Template",
+            "Example: Turning a Vague Metric Into an Operator-Ready Definition",
+            "Check the Grain Before You Debate the Formula",
+            "Define Time Rules Explicitly",
+            "Govern Metric Definitions Without Creating Bureaucracy",
+            "Where Metric Definitions Should Live",
+            "Review Questions Before Publishing a Metric",
+            "Maintain Definitions as the Business Changes"
+          ],
+          "has_article_body": true
+        }
+      ],
+      "portfolio_context": "Technical education for practicing and aspiring data engineers. Use small, explicitly hypothetical retail-order or customer-event fixtures where useful. Do not claim Jon implemented or tested anything without supplied evidence.",
+      "cross_brand_boundary": "Coldstart and this portfolio share seed concepts, not article prose. Create a fresh example, explanation, and diagnostic outcome. Do not copy or lightly rewrite Coldstart articles.",
+      "seed_origin": {
+        "brand": "Coldstart",
+        "slug": "rounding-residuals-in-proportional-allocations",
+        "snapshot_sha256": "07ea360d63d3b74952b290ee982fd3c3bec11622cdf1bdf932106a7823ea0020",
+        "adapted_on": "2026-09-23"
+      }
+    },
+    "sourceHash": "b5e98090d231f958"
+  },
+  {
+    "slug": "integer-overflow-in-aggregate-calculations",
+    "title": "Integer overflow in aggregate calculations",
+    "primaryKeyword": "Integer overflow in aggregate calculations",
+    "relatedKeywords": [
+      "Integer overflow in aggregate calculations"
+    ],
+    "audience": "practitioners",
+    "updateFrequency": "never",
+    "intent": "How can practitioners estimate intermediate bounds rather than only input value ranges?",
+    "format": "Guide",
+    "category": "Data Modeling",
+    "editorialBrief": {
+      "topic": "Integer overflow in aggregate calculations",
+      "audience": "practitioners",
+      "update_frequency": "never",
+      "content_type": "durable",
+      "category": "Data Modeling",
+      "track": "Data Foundations",
+      "cluster": "numeric-correctness",
+      "primary_question": "How can practitioners estimate intermediate bounds rather than only input value ranges?",
+      "scope": [
+        "Estimate intermediate bounds rather than only input value ranges.",
+        "Numeric representation and aggregation; exclude tax or accounting advice."
+      ],
+      "exclusions": [
+        "Do not expand this into a general introduction to the entire category.",
+        "Do not repeat the Coldstart coverage listed in coldstart_coverage; link their background where useful.",
+        "Leave Rounding residuals in proportional allocations to /writing/rounding-residuals-in-proportional-allocations/; its separate outcome is: Distribute remaining units while preserving the original total.",
+        "Leave Division by zero in business ratios to /writing/division-by-zero-in-business-ratios/; its separate outcome is: Separate undefined results from actual zero performance.",
+        "Do not replace or retell the three existing in-progress portfolio notes.",
+        "Do not invent employment history, client stories, measurements, expert review, or first-person hands-on experience."
+      ],
+      "original_contribution": "Create numeric counterexamples and explicit calculation rules. Use it to estimate intermediate bounds rather than only input value ranges.",
+      "prerequisites": [
+        "floating-point-error-in-financial-analytics"
+      ],
+      "secondary_keywords": [],
+      "source_urls": [
+        "https://www.postgresql.org/docs/current/datatype-numeric.html",
+        "https://www.postgresql.org/docs/current/functions-aggregate.html",
+        "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/aggregate-fact-table-cube/"
+      ],
+      "sources": [
+        {
+          "source_id": "pg-numeric",
+          "url": "https://www.postgresql.org/docs/current/datatype-numeric.html",
+          "title": "PostgreSQL: Documentation: 18: 8.1. Numeric Types",
+          "accessed_at": "2026-09-22T16:34:32.222891+00:00"
+        },
+        {
+          "source_id": "pg-aggregate",
+          "url": "https://www.postgresql.org/docs/current/functions-aggregate.html",
+          "title": "PostgreSQL: Documentation: 18: 9.21. Aggregate Functions",
+          "accessed_at": "2026-09-22T16:34:30.057160+00:00"
+        },
+        {
+          "source_id": "kimball-18",
+          "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/aggregate-fact-table-cube/",
+          "title": "Aggregate Fact Tables or Cubes | Kimball Group",
+          "accessed_at": "2026-09-22T16:39:18.216022+00:00"
+        }
+      ],
+      "evidence_requirements": [
+        "Check the cited primary sources and the original scope before writing; a research lead is not proof of a new claim.",
+        "Use a clearly labeled hypothetical example. Do not invent customer results, personal experience, expert review, or test execution.",
+        "Work through the proposed example or decision framework and verify its assumptions and conclusions before publication."
+      ],
+      "distinctness_rationale": "The article is limited to this deliverable: Estimate intermediate bounds rather than only input value ranges. Nearest legacy coverage is retained as background, not rewritten.",
+      "publication_order": 25,
+      "reviewed_distinctions": {},
+      "coldstart_coverage": [
+        {
+          "slug": "backfills-plain-english-guide",
+          "title": "Backfills: Plain-English Guide",
+          "score": 0.066,
+          "files": [
+            "src/_data/articles.json"
+          ],
+          "section_headings": [
+            "What backfills mean in plain English",
+            "Why backfills matter for AI-ready data",
+            "When you need a backfill",
+            "When not to backfill",
+            "The anatomy of a safe backfill",
+            "Define scope and grain before you run anything",
+            "Common ways backfills go wrong",
+            "A practical backfill workflow",
+            "How to validate a backfill",
+            "Backfills, reruns, restatements, and migrations are related but different",
+            "Operator rules for backfills",
+            "Example: backfilling a customer health feature for AI"
+          ],
+          "has_article_body": true
+        },
+        {
+          "slug": "backfills-common-mistake",
+          "title": "Backfills: Common Mistake",
+          "score": 0.051,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "What backfills are",
+            "The common mistake: rerunning history as if it were today",
+            "Why this mistake matters",
+            "A simple example of the mistake",
+            "Five questions to ask before any backfill",
+            "A safer backfill pattern",
+            "The most important technical property: idempotency",
+            "Check event time, processing time, and business time",
+            "How to validate a backfill",
+            "Do not forget communication and rollback"
+          ],
+          "has_article_body": true
+        },
+        {
+          "slug": "spreadsheet-replacement-migration-playbook",
+          "title": "Spreadsheet Replacement: Migration Playbook",
+          "score": 0.049,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "Why spreadsheets become infrastructure",
+            "Define the spreadsheet’s role before replacing it",
+            "Inventory the workbooks that matter",
+            "Classify the right replacement pattern",
+            "Separate inputs, logic, and outputs",
+            "Design the target data model around business grain",
+            "Replace manual paste work with pipelines",
+            "Translate formulas into business rules",
+            "Handle human inputs with controls",
+            "Validate against known periods before cutover",
+            "Plan the cutover deliberately",
+            "Watch the common failure modes",
+            "Govern the new system after migration",
+            "Operator checklist for spreadsheet replacement"
+          ],
+          "has_article_body": true
+        }
+      ],
+      "portfolio_context": "Technical education for practicing and aspiring data engineers. Use small, explicitly hypothetical retail-order or customer-event fixtures where useful. Do not claim Jon implemented or tested anything without supplied evidence.",
+      "cross_brand_boundary": "Coldstart and this portfolio share seed concepts, not article prose. Create a fresh example, explanation, and diagnostic outcome. Do not copy or lightly rewrite Coldstart articles.",
+      "seed_origin": {
+        "brand": "Coldstart",
+        "slug": "integer-overflow-in-aggregate-calculations",
+        "snapshot_sha256": "07ea360d63d3b74952b290ee982fd3c3bec11622cdf1bdf932106a7823ea0020",
+        "adapted_on": "2026-09-23"
+      }
+    },
+    "sourceHash": "7bbd1747880a0fdb"
+  },
+  {
+    "slug": "division-by-zero-in-business-ratios",
+    "title": "Division by zero in business ratios",
+    "primaryKeyword": "Division by zero in business ratios",
+    "relatedKeywords": [
+      "Division by zero in business ratios"
+    ],
+    "audience": "practitioners",
+    "updateFrequency": "never",
+    "intent": "How can practitioners separate undefined results from actual zero performance?",
+    "format": "Guide",
+    "category": "Data Modeling",
+    "editorialBrief": {
+      "topic": "Division by zero in business ratios",
+      "audience": "practitioners",
+      "update_frequency": "never",
+      "content_type": "durable",
+      "category": "Data Modeling",
+      "track": "Data Foundations",
+      "cluster": "numeric-correctness",
+      "primary_question": "How can practitioners separate undefined results from actual zero performance?",
+      "scope": [
+        "Separate undefined results from actual zero performance.",
+        "Numeric representation and aggregation; exclude tax or accounting advice."
+      ],
+      "exclusions": [
+        "Do not expand this into a general introduction to the entire category.",
+        "Do not repeat the Coldstart coverage listed in coldstart_coverage; link their background where useful.",
+        "Leave Integer overflow in aggregate calculations to /writing/integer-overflow-in-aggregate-calculations/; its separate outcome is: Estimate intermediate bounds rather than only input value ranges.",
+        "Leave Negative values in rate calculations to /writing/negative-values-in-rate-calculations/; its separate outcome is: Define how corrections and reversals affect a reported rate.",
+        "Do not replace or retell the three existing in-progress portfolio notes.",
+        "Do not invent employment history, client stories, measurements, expert review, or first-person hands-on experience."
+      ],
+      "original_contribution": "Create numeric counterexamples and explicit calculation rules. Use it to separate undefined results from actual zero performance.",
+      "prerequisites": [
+        "floating-point-error-in-financial-analytics"
+      ],
+      "secondary_keywords": [],
+      "source_urls": [
+        "https://www.postgresql.org/docs/current/datatype-numeric.html",
+        "https://www.postgresql.org/docs/current/functions-aggregate.html",
+        "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/abstract-generic-dimension/"
+      ],
+      "sources": [
+        {
+          "source_id": "pg-numeric",
+          "url": "https://www.postgresql.org/docs/current/datatype-numeric.html",
+          "title": "PostgreSQL: Documentation: 18: 8.1. Numeric Types",
+          "accessed_at": "2026-09-22T16:34:32.222891+00:00"
+        },
+        {
+          "source_id": "pg-aggregate",
+          "url": "https://www.postgresql.org/docs/current/functions-aggregate.html",
+          "title": "PostgreSQL: Documentation: 18: 9.21. Aggregate Functions",
+          "accessed_at": "2026-09-22T16:34:30.057160+00:00"
+        },
+        {
+          "source_id": "kimball-abstract-generic-dimension",
+          "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/abstract-generic-dimension/",
+          "title": "Abstract Generic Dimensions | Kimball Dimensional Modeling Techniques",
+          "accessed_at": "2026-09-22T20:36:58.993972+00:00"
+        }
+      ],
+      "evidence_requirements": [
+        "Check the cited primary sources and the original scope before writing; a research lead is not proof of a new claim.",
+        "Use a clearly labeled hypothetical example. Do not invent customer results, personal experience, expert review, or test execution.",
+        "Work through the proposed example or decision framework and verify its assumptions and conclusions before publication."
+      ],
+      "distinctness_rationale": "The article is limited to this deliverable: Separate undefined results from actual zero performance. Nearest legacy coverage is retained as background, not rewritten.",
+      "publication_order": 26,
+      "reviewed_distinctions": {},
+      "coldstart_coverage": [
+        {
+          "slug": "data-quality-checks-reliability-field-note",
+          "title": "Data Quality Checks: Reliability Field Note",
+          "score": 0.054,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "Field situation: the dashboard is wrong, but the pipeline is green",
+            "What data quality checks are",
+            "The five check families most teams need first",
+            "Examples of useful checks",
+            "Where to run checks in the pipeline",
+            "Severity matters more than check count",
+            "How to automate checks without creating alert fatigue",
+            "Common failure modes",
+            "A practical starting plan",
+            "Operator checklist before adding a check"
+          ],
+          "has_article_body": true
+        },
+        {
+          "slug": "data-quality-checks-founder-framework",
+          "title": "Data Quality Checks: Founder Framework",
+          "score": 0.035,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "Why data quality checks matter before the data team feels mature",
+            "What a data quality check is in plain English",
+            "The founder framework: start with decisions, not tables",
+            "Six data quality checks most teams need first",
+            "Where data quality checks belong in a modern data stack",
+            "Common failure modes that checks should catch",
+            "How to prioritize checks when everything feels risky",
+            "Practical examples of founder-grade checks",
+            "Avoid check theater: more tests do not always mean better data",
+            "The operating model: ownership, severity, and response",
+            "A simple 30-day path to better data quality"
+          ],
+          "has_article_body": true
+        },
+        {
+          "slug": "pipeline-freshness-operator-checklist",
+          "title": "Pipeline Freshness: Operator Checklist",
+          "score": 0.033,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "What pipeline freshness actually means",
+            "Why freshness breaks dashboard trust",
+            "Pipeline freshness operator checklist",
+            "Choose the right freshness measure",
+            "How to diagnose stale data without guessing",
+            "Freshness checks during migration",
+            "Common freshness failure modes",
+            "How to set useful freshness expectations",
+            "What to monitor first if you are starting from zero"
+          ],
+          "has_article_body": true
+        }
+      ],
+      "portfolio_context": "Technical education for practicing and aspiring data engineers. Use small, explicitly hypothetical retail-order or customer-event fixtures where useful. Do not claim Jon implemented or tested anything without supplied evidence.",
+      "cross_brand_boundary": "Coldstart and this portfolio share seed concepts, not article prose. Create a fresh example, explanation, and diagnostic outcome. Do not copy or lightly rewrite Coldstart articles.",
+      "seed_origin": {
+        "brand": "Coldstart",
+        "slug": "division-by-zero-in-business-ratios",
+        "snapshot_sha256": "07ea360d63d3b74952b290ee982fd3c3bec11622cdf1bdf932106a7823ea0020",
+        "adapted_on": "2026-09-23"
+      }
+    },
+    "sourceHash": "177f5fa3491c05fa"
+  },
+  {
+    "slug": "negative-values-in-rate-calculations",
+    "title": "Negative values in rate calculations",
+    "primaryKeyword": "Negative values in rate calculations",
+    "relatedKeywords": [
+      "Negative values in rate calculations"
+    ],
+    "audience": "practitioners",
+    "updateFrequency": "never",
+    "intent": "How can practitioners define how corrections and reversals affect a reported rate?",
+    "format": "Guide",
+    "category": "Data Modeling",
+    "editorialBrief": {
+      "topic": "Negative values in rate calculations",
+      "audience": "practitioners",
+      "update_frequency": "never",
+      "content_type": "durable",
+      "category": "Data Modeling",
+      "track": "Data Foundations",
+      "cluster": "numeric-correctness",
+      "primary_question": "How can practitioners define how corrections and reversals affect a reported rate?",
+      "scope": [
+        "Define how corrections and reversals affect a reported rate.",
+        "Numeric representation and aggregation; exclude tax or accounting advice."
+      ],
+      "exclusions": [
+        "Do not expand this into a general introduction to the entire category.",
+        "Do not repeat the Coldstart coverage listed in coldstart_coverage; link their background where useful.",
+        "Leave Division by zero in business ratios to /writing/division-by-zero-in-business-ratios/; its separate outcome is: Separate undefined results from actual zero performance.",
+        "Leave Unit conversions in analytical models to /writing/unit-conversions-in-analytical-models/; its separate outcome is: Preserve original units and conversion provenance beside normalized values.",
+        "Do not replace or retell the three existing in-progress portfolio notes.",
+        "Do not invent employment history, client stories, measurements, expert review, or first-person hands-on experience."
+      ],
+      "original_contribution": "Create numeric counterexamples and explicit calculation rules. Use it to define how corrections and reversals affect a reported rate.",
+      "prerequisites": [
+        "floating-point-error-in-financial-analytics"
+      ],
+      "secondary_keywords": [],
+      "source_urls": [
+        "https://www.postgresql.org/docs/current/datatype-numeric.html",
+        "https://www.postgresql.org/docs/current/functions-aggregate.html",
+        "https://www.itl.nist.gov/div898/handbook/eda/section3/eda356.htm"
+      ],
+      "sources": [
+        {
+          "source_id": "pg-numeric",
+          "url": "https://www.postgresql.org/docs/current/datatype-numeric.html",
+          "title": "PostgreSQL: Documentation: 18: 8.1. Numeric Types",
+          "accessed_at": "2026-09-22T16:34:32.222891+00:00"
+        },
+        {
+          "source_id": "pg-aggregate",
+          "url": "https://www.postgresql.org/docs/current/functions-aggregate.html",
+          "title": "PostgreSQL: Documentation: 18: 9.21. Aggregate Functions",
+          "accessed_at": "2026-09-22T16:34:30.057160+00:00"
+        },
+        {
+          "source_id": "nist-scale",
+          "url": "https://www.itl.nist.gov/div898/handbook/eda/section3/eda356.htm",
+          "title": "1.3.5.6. Measures of Scale",
+          "accessed_at": "2026-09-22T20:47:48.322923+00:00"
+        }
+      ],
+      "evidence_requirements": [
+        "Check the cited primary sources and the original scope before writing; a research lead is not proof of a new claim.",
+        "Use a clearly labeled hypothetical example. Do not invent customer results, personal experience, expert review, or test execution.",
+        "Work through the proposed example or decision framework and verify its assumptions and conclusions before publication."
+      ],
+      "distinctness_rationale": "The article is limited to this deliverable: Define how corrections and reversals affect a reported rate. Nearest legacy coverage is retained as background, not rewritten.",
+      "publication_order": 27,
+      "reviewed_distinctions": {},
+      "coldstart_coverage": [
+        {
+          "slug": "revenue-reporting-operator-checklist",
+          "title": "Revenue Reporting: Operator Checklist",
+          "score": 0.082,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "What revenue reporting should answer",
+            "The revenue reporting operator checklist",
+            "Define the revenue model before automation",
+            "Check the source systems before blaming the dashboard",
+            "Pipeline reliability controls for revenue data",
+            "Common revenue reporting failure modes",
+            "Dashboard trust checklist",
+            "When to involve finance early",
+            "A minimum viable revenue reporting implementation"
+          ],
+          "has_article_body": true
+        },
+        {
+          "slug": "metric-definitions-common-mistake",
+          "title": "Metric Definitions: Common Mistake",
+          "score": 0.08,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "Why metric definitions matter",
+            "The common mistake: naming the metric but not defining the logic",
+            "What a good metric definition includes",
+            "Example: turning a vague metric into a usable definition",
+            "Why weak metric definitions break AI-ready data",
+            "Diagnostic questions for unclear metrics",
+            "How to repair metric definitions without boiling the ocean",
+            "Common failure modes to avoid",
+            "A lightweight governance model for metric definitions",
+            "Operator rule: define metrics so they can be challenged"
+          ],
+          "has_article_body": true
+        },
+        {
+          "slug": "metric-definitions-reliability-field-note",
+          "title": "Metric Definitions: Reliability Field Note",
+          "score": 0.077,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "Field observation: the dashboard was not broken, the metric was undefined",
+            "What a useful metric definition includes",
+            "Why metric definitions fail in real data systems",
+            "Example: defining activation rate",
+            "A checklist for repairing an unreliable metric",
+            "How metric definitions connect to data modeling",
+            "Operator rules for dependable metric definitions",
+            "Where semantic layers help, and where they do not",
+            "A practical diagnostic for your next metric dispute"
+          ],
+          "has_article_body": true
+        }
+      ],
+      "portfolio_context": "Technical education for practicing and aspiring data engineers. Use small, explicitly hypothetical retail-order or customer-event fixtures where useful. Do not claim Jon implemented or tested anything without supplied evidence.",
+      "cross_brand_boundary": "Coldstart and this portfolio share seed concepts, not article prose. Create a fresh example, explanation, and diagnostic outcome. Do not copy or lightly rewrite Coldstart articles.",
+      "seed_origin": {
+        "brand": "Coldstart",
+        "slug": "negative-values-in-rate-calculations",
+        "snapshot_sha256": "07ea360d63d3b74952b290ee982fd3c3bec11622cdf1bdf932106a7823ea0020",
+        "adapted_on": "2026-09-23"
+      }
+    },
+    "sourceHash": "e6c36fb46201cd44"
+  },
+  {
+    "slug": "unit-conversions-in-analytical-models",
+    "title": "Unit conversions in analytical models",
+    "primaryKeyword": "Unit conversions in analytical models",
+    "relatedKeywords": [
+      "Unit conversions in analytical models"
+    ],
+    "audience": "practitioners",
+    "updateFrequency": "never",
+    "intent": "How can practitioners preserve original units and conversion provenance beside normalized values?",
+    "format": "Guide",
+    "category": "Data Modeling",
+    "editorialBrief": {
+      "topic": "Unit conversions in analytical models",
+      "audience": "practitioners",
+      "update_frequency": "never",
+      "content_type": "durable",
+      "category": "Data Modeling",
+      "track": "Data Foundations",
+      "cluster": "numeric-correctness",
+      "primary_question": "How can practitioners preserve original units and conversion provenance beside normalized values?",
+      "scope": [
+        "Preserve original units and conversion provenance beside normalized values.",
+        "Numeric representation and aggregation; exclude tax or accounting advice."
+      ],
+      "exclusions": [
+        "Do not expand this into a general introduction to the entire category.",
+        "Do not repeat the Coldstart coverage listed in coldstart_coverage; link their background where useful.",
+        "Leave Negative values in rate calculations to /writing/negative-values-in-rate-calculations/; its separate outcome is: Define how corrections and reversals affect a reported rate.",
+        "Leave Currency conversion dates in reporting to /writing/currency-conversion-dates-in-reporting/; its separate outcome is: Distinguish transaction-date conversion from reporting-date conversion.",
+        "Do not replace or retell the three existing in-progress portfolio notes.",
+        "Do not invent employment history, client stories, measurements, expert review, or first-person hands-on experience."
+      ],
+      "original_contribution": "Create numeric counterexamples and explicit calculation rules. Use it to preserve original units and conversion provenance beside normalized values.",
+      "prerequisites": [
+        "floating-point-error-in-financial-analytics"
+      ],
+      "secondary_keywords": [],
+      "source_urls": [
+        "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/multiple-units-of-measure/",
+        "https://www.itl.nist.gov/div898/handbook/eda/section3/eda356.htm",
+        "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/type-0/"
+      ],
+      "sources": [
+        {
+          "source_id": "kimball-multiple-units-of-measure",
+          "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/multiple-units-of-measure/",
+          "title": "Multiple Units of Measure Facts | Kimball Dimensional Modeling Techniques",
+          "accessed_at": "2026-09-22T20:36:55.009729+00:00"
+        },
+        {
+          "source_id": "nist-scale",
+          "url": "https://www.itl.nist.gov/div898/handbook/eda/section3/eda356.htm",
+          "title": "1.3.5.6. Measures of Scale",
+          "accessed_at": "2026-09-22T20:47:48.322923+00:00"
+        },
+        {
+          "source_id": "kimball-type-0",
+          "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/type-0/",
+          "title": "Type 0: Retain Original | Kimball Dimensional Modeling Techniques",
+          "accessed_at": "2026-09-22T20:31:46.358074+00:00"
+        }
+      ],
+      "evidence_requirements": [
+        "Check the cited primary sources and the original scope before writing; a research lead is not proof of a new claim.",
+        "Use a clearly labeled hypothetical example. Do not invent customer results, personal experience, expert review, or test execution.",
+        "Work through the proposed example or decision framework and verify its assumptions and conclusions before publication."
+      ],
+      "distinctness_rationale": "The article is limited to this deliverable: Preserve original units and conversion provenance beside normalized values. Nearest legacy coverage is retained as background, not rewritten.",
+      "publication_order": 28,
+      "reviewed_distinctions": {},
+      "coldstart_coverage": [
+        {
+          "slug": "metric-definitions-operator-checklist",
+          "title": "Metric Definitions: Operator Checklist",
+          "score": 0.049,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "What a Metric Definition Must Do",
+            "Why Metric Definitions Break in Real Data Systems",
+            "The Metric Definitions Operator Checklist",
+            "A Minimum Viable Metric Definition Template",
+            "Example: Turning a Vague Metric Into an Operator-Ready Definition",
+            "Check the Grain Before You Debate the Formula",
+            "Define Time Rules Explicitly",
+            "Govern Metric Definitions Without Creating Bureaucracy",
+            "Where Metric Definitions Should Live",
+            "Review Questions Before Publishing a Metric",
+            "Maintain Definitions as the Business Changes"
+          ],
+          "has_article_body": true
+        },
+        {
+          "slug": "data-modeling-plain-english-guide",
+          "title": "Data Modeling: Plain-English Guide",
+          "score": 0.042,
+          "files": [
+            "src/_data/articles.json"
+          ],
+          "section_headings": [
+            "What data modeling means",
+            "Why data modeling matters for dashboard trust",
+            "The core building blocks of a data model",
+            "Start with grain before choosing columns",
+            "Common types of analytics models",
+            "A simple example: ecommerce orders",
+            "Metrics need modeling too",
+            "Signs your data model needs work",
+            "A practical data modeling process",
+            "How to repair a weak model without starting over",
+            "Common data modeling mistakes",
+            "What good data modeling looks like",
+            "Why data modeling matters for AI-ready data"
+          ],
+          "has_article_body": true
+        },
+        {
+          "slug": "metric-definitions-common-mistake",
+          "title": "Metric Definitions: Common Mistake",
+          "score": 0.041,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "Why metric definitions matter",
+            "The common mistake: naming the metric but not defining the logic",
+            "What a good metric definition includes",
+            "Example: turning a vague metric into a usable definition",
+            "Why weak metric definitions break AI-ready data",
+            "Diagnostic questions for unclear metrics",
+            "How to repair metric definitions without boiling the ocean",
+            "Common failure modes to avoid",
+            "A lightweight governance model for metric definitions",
+            "Operator rule: define metrics so they can be challenged"
+          ],
+          "has_article_body": true
+        }
+      ],
+      "portfolio_context": "Technical education for practicing and aspiring data engineers. Use small, explicitly hypothetical retail-order or customer-event fixtures where useful. Do not claim Jon implemented or tested anything without supplied evidence.",
+      "cross_brand_boundary": "Coldstart and this portfolio share seed concepts, not article prose. Create a fresh example, explanation, and diagnostic outcome. Do not copy or lightly rewrite Coldstart articles.",
+      "seed_origin": {
+        "brand": "Coldstart",
+        "slug": "unit-conversions-in-analytical-models",
+        "snapshot_sha256": "07ea360d63d3b74952b290ee982fd3c3bec11622cdf1bdf932106a7823ea0020",
+        "adapted_on": "2026-09-23"
+      }
+    },
+    "sourceHash": "4af0766e3bfe643f"
   }
 ]

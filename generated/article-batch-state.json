@@ -1,51 +1,30 @@
 {
   "version": 1,
-  "phase": "finalized",
-  "batchId": "batch_6acd65d3a8b88190ab6c56428d990018",
-  "inputFileId": "file-4GGE1xH5PtiaCZwCydH7uF",
+  "phase": "active",
+  "batchId": "batch_6ad685437a2481908c5c1a1ccff67c16",
+  "inputFileId": "file-3264RCANTLJa9HtytAcavs",
   "model": "gpt-5.5",
   "topicCount": 10,
-  "submissionWeek": "2026-10-12",
+  "submissionWeek": "2026-10-19",
   "submittedThisWeek": 10,
   "topicSlugs": [
-    "natural-keys-versus-surrogate-keys",
-    "referential-integrity-across-analytical-tables",
     "second-and-third-normal-forms",
-    "weak-entities-and-identifying-relationships",
-    "associative-entities-for-many-to-many-relationships",
-    "uniqueness-with-nullable-business-identifiers",
-    "domain-constraints-for-categorical-data",
     "relational-division-for-analytical-questions",
-    "temporal-uniqueness-constraints",
-    "floating-point-error-in-financial-analytics"
+    "floating-point-error-in-financial-analytics",
+    "fixed-point-decimal-precision-and-scale",
+    "rounding-at-ingestion-versus-presentation",
+    "rounding-residuals-in-proportional-allocations",
+    "integer-overflow-in-aggregate-calculations",
+    "division-by-zero-in-business-ratios",
+    "negative-values-in-rate-calculations",
+    "unit-conversions-in-analytical-models"
   ],
-  "submittedAt": "2026-10-12T22:57:23.787Z",
-  "batchStatus": "completed",
-  "outputFileId": "file-Da6eTPnez5XJbvyqyGghmo",
+  "submittedAt": "2026-10-19T21:01:55.577Z",
+  "batchStatus": "validating",
+  "outputFileId": null,
   "errorFileId": null,
-  "successfulCount": 10,
-  "failedCount": 3,
-  "publishedCount": 7,
-  "failures": [
-    {
-      "customId": "article-second-and-third-normal-forms",
-      "code": "editorial_retry",
-      "message": "second-and-third-normal-forms: missing substantive sections, takeaways, or sources"
-    },
-    {
-      "customId": "article-relational-division-for-analytical-questions",
-      "code": "editorial_retry",
-      "message": "Editor cited a source absent from its search evidence"
-    },
-    {
-      "customId": "article-floating-point-error-in-financial-analytics",
-      "code": "editorial_retry",
-      "message": "Editor cited a source absent from its search evidence"
-    }
-  ],
-  "finalizedAt": "2026-10-12T23:21:08.080Z",
-  "automaticReview": true,
-  "retryCount": 3,
-  "reviewCount": 0,
-  "reviewSlugs": []
+  "successfulCount": 0,
+  "failedCount": 0,
+  "publishedCount": 0,
+  "failures": []
 }
