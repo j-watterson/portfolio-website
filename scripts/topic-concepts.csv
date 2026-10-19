@@ -7,7 +7,7 @@ Referential integrity across analytical tables,https://jwatterson.com/writing/re
 SQL null and three-valued logic,https://jwatterson.com/writing/sql-null-and-three-valued-logic,published,practitioners,never
 Set semantics versus bag semantics in SQL,https://jwatterson.com/writing/set-semantics-versus-bag-semantics-in-sql,published,practitioners,never
 First normal form and repeating groups,https://jwatterson.com/writing/first-normal-form-and-repeating-groups,published,practitioners,never
-Second and third normal forms,,ready,practitioners,never
+Second and third normal forms,https://jwatterson.com/writing/second-and-third-normal-forms,published,practitioners,never
 Lossless decomposition of relational tables,https://jwatterson.com/writing/lossless-decomposition-of-relational-tables,published,practitioners,never
 Entity identity versus record identity,https://jwatterson.com/writing/entity-identity-versus-record-identity,published,practitioners,never
 Optional relationships in data models,https://jwatterson.com/writing/optional-relationships-in-data-models,published,practitioners,never
@@ -20,13 +20,13 @@ Domain constraints for categorical data,https://jwatterson.com/writing/domain-co
 Relational division for analytical questions,,ready,practitioners,never
 Temporal uniqueness constraints,https://jwatterson.com/writing/temporal-uniqueness-constraints,published,practitioners,never
 Floating-point error in financial analytics,,ready,practitioners,never
-Fixed-point decimal precision and scale,,not written,practitioners,never
-Rounding at ingestion versus presentation,,not written,practitioners,never
-Rounding residuals in proportional allocations,,not written,practitioners,never
-Integer overflow in aggregate calculations,,not written,practitioners,never
-Division by zero in business ratios,,not written,practitioners,never
-Negative values in rate calculations,,not written,practitioners,never
-Unit conversions in analytical models,,not written,practitioners,never
+Fixed-point decimal precision and scale,,ready,practitioners,never
+Rounding at ingestion versus presentation,,ready,practitioners,never
+Rounding residuals in proportional allocations,https://jwatterson.com/writing/rounding-residuals-in-proportional-allocations,published,practitioners,never
+Integer overflow in aggregate calculations,,ready,practitioners,never
+Division by zero in business ratios,https://jwatterson.com/writing/division-by-zero-in-business-ratios,published,practitioners,never
+Negative values in rate calculations,,ready,practitioners,never
+Unit conversions in analytical models,,ready,practitioners,never
 Currency conversion dates in reporting,,not written,practitioners,never
 Exchange-rate direction and inversion,,not written,practitioners,never
 Percentage points versus percentage changes,,not written,practitioners,never
