@@ -1,71 +1,30 @@
 {
   "version": 1,
-  "phase": "finalized",
-  "batchId": "batch_6ad685437a2481908c5c1a1ccff67c16",
-  "inputFileId": "file-3264RCANTLJa9HtytAcavs",
+  "phase": "active",
+  "batchId": "batch_6adfbf58d49481909c816c414ba48936",
+  "inputFileId": "file-4H2viN5a1LDc2NqnXSvCmK",
   "model": "gpt-5.5",
   "topicCount": 10,
-  "submissionWeek": "2026-10-19",
+  "submissionWeek": "2026-10-26",
   "submittedThisWeek": 10,
   "topicSlugs": [
-    "second-and-third-normal-forms",
     "relational-division-for-analytical-questions",
     "floating-point-error-in-financial-analytics",
     "fixed-point-decimal-precision-and-scale",
     "rounding-at-ingestion-versus-presentation",
-    "rounding-residuals-in-proportional-allocations",
     "integer-overflow-in-aggregate-calculations",
-    "division-by-zero-in-business-ratios",
     "negative-values-in-rate-calculations",
-    "unit-conversions-in-analytical-models"
+    "unit-conversions-in-analytical-models",
+    "currency-conversion-dates-in-reporting",
+    "exchange-rate-direction-and-inversion",
+    "percentage-points-versus-percentage-changes"
   ],
-  "submittedAt": "2026-10-19T21:01:55.577Z",
-  "batchStatus": "completed",
-  "outputFileId": "file-YZYWuVcKzTNTTVN9gg8qUB",
+  "submittedAt": "2026-10-26T21:00:08.949Z",
+  "batchStatus": "validating",
+  "outputFileId": null,
   "errorFileId": null,
-  "successfulCount": 10,
-  "failedCount": 7,
-  "publishedCount": 3,
-  "failures": [
-    {
-      "customId": "article-relational-division-for-analytical-questions",
-      "code": "editorial_retry",
-      "message": "Editor cited a source absent from its search evidence"
-    },
-    {
-      "customId": "article-floating-point-error-in-financial-analytics",
-      "code": "editorial_retry",
-      "message": "Editor cited a source absent from its search evidence"
-    },
-    {
-      "customId": "article-fixed-point-decimal-precision-and-scale",
-      "code": "editorial_retry",
-      "message": "Editor cited a source absent from its search evidence"
-    },
-    {
-      "customId": "article-rounding-at-ingestion-versus-presentation",
-      "code": "editorial_retry",
-      "message": "Editor cited a source absent from its search evidence"
-    },
-    {
-      "customId": "article-integer-overflow-in-aggregate-calculations",
-      "code": "editorial_retry",
-      "message": "Editor cited a source absent from its search evidence"
-    },
-    {
-      "customId": "article-negative-values-in-rate-calculations",
-      "code": "editorial_retry",
-      "message": "Editor cited a source absent from its search evidence"
-    },
-    {
-      "customId": "article-unit-conversions-in-analytical-models",
-      "code": "editorial_retry",
-      "message": "Editor cited a source absent from its search evidence"
-    }
-  ],
-  "finalizedAt": "2026-10-19T21:23:35.600Z",
-  "automaticReview": true,
-  "retryCount": 7,
-  "reviewCount": 0,
-  "reviewSlugs": []
+  "successfulCount": 0,
+  "failedCount": 0,
+  "publishedCount": 0,
+  "failures": []
 }

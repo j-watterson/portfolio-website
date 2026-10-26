@@ -1,0 +1,1516 @@
+[
+  {
+    "slug": "relational-division-for-analytical-questions",
+    "title": "Relational division for analytical questions",
+    "primaryKeyword": "Relational division for analytical questions",
+    "relatedKeywords": [
+      "Relational division for analytical questions"
+    ],
+    "audience": "practitioners",
+    "updateFrequency": "never",
+    "intent": "How can practitioners identify entities satisfying every requirement in a reference set?",
+    "format": "Guide",
+    "category": "Data Modeling",
+    "editorialBrief": {
+      "topic": "Relational division for analytical questions",
+      "audience": "practitioners",
+      "update_frequency": "never",
+      "content_type": "durable",
+      "category": "Data Modeling",
+      "track": "Data Foundations",
+      "cluster": "relational-foundations",
+      "primary_question": "How can practitioners identify entities satisfying every requirement in a reference set?",
+      "scope": [
+        "Identify entities satisfying every requirement in a reference set.",
+        "Relational semantics; leave engine tuning to the performance clusters."
+      ],
+      "exclusions": [
+        "Do not expand this into a general introduction to the entire category.",
+        "Do not repeat the Coldstart coverage listed in coldstart_coverage; link their background where useful.",
+        "Leave Domain constraints for categorical data to /writing/domain-constraints-for-categorical-data/; its separate outcome is: Choose a controlled vocabulary without confusing unknown and invalid values.",
+        "Leave Temporal uniqueness constraints to /writing/temporal-uniqueness-constraints/; its separate outcome is: Define when two records can share an identifier across time.",
+        "Do not replace or retell the three existing in-progress portfolio notes.",
+        "Do not invent employment history, client stories, measurements, expert review, or first-person hands-on experience."
+      ],
+      "original_contribution": "Create a small relational dataset with counterexamples. Use it to identify entities satisfying every requirement in a reference set.",
+      "prerequisites": [
+        "candidate-keys-and-alternate-keys"
+      ],
+      "secondary_keywords": [],
+      "source_urls": [
+        "https://www.cs.uct.ac.za/mit_notes/database/htmls/chp08.html",
+        "https://www.postgresql.org/docs/current/ddl-constraints.html",
+        "https://www.postgresql.org/docs/current/queries-table-expressions.html"
+      ],
+      "sources": [
+        {
+          "source_id": "database-dependencies",
+          "url": "https://www.cs.uct.ac.za/mit_notes/database/htmls/chp08.html",
+          "title": "Chapter 8. Data Normalisation",
+          "accessed_at": "2026-09-22T20:47:50.052497+00:00"
+        },
+        {
+          "source_id": "pg-ddl-5",
+          "url": "https://www.postgresql.org/docs/current/ddl-constraints.html",
+          "title": "PostgreSQL: Documentation: 18: 5.5. Constraints",
+          "accessed_at": "2026-09-22T16:34:32.958740+00:00"
+        },
+        {
+          "source_id": "pg-joins",
+          "url": "https://www.postgresql.org/docs/current/queries-table-expressions.html",
+          "title": "PostgreSQL: Documentation: 18: 7.2. Table Expressions",
+          "accessed_at": "2026-09-22T16:34:29.167087+00:00"
+        }
+      ],
+      "evidence_requirements": [
+        "Check the cited primary sources and the original scope before writing; a research lead is not proof of a new claim.",
+        "Use a clearly labeled hypothetical example. Do not invent customer results, personal experience, expert review, or test execution.",
+        "Work through the proposed example or decision framework and verify its assumptions and conclusions before publication."
+      ],
+      "distinctness_rationale": "The article is limited to this deliverable: Identify entities satisfying every requirement in a reference set. Nearest legacy coverage is retained as background, not rewritten.",
+      "publication_order": 19,
+      "reviewed_distinctions": {},
+      "coldstart_coverage": [
+        {
+          "slug": "warehouse-first-analytics-founder-framework",
+          "title": "Warehouse First Analytics: Founder Framework",
+          "score": 0.062,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "What warehouse first analytics means",
+            "Why founders should care before the data team is large",
+            "The founder framework: five decisions before you build",
+            "What belongs in the warehouse first",
+            "What warehouse first analytics is not",
+            "The basic data modeling pattern",
+            "Example: a SaaS founder repairing conflicting revenue and usage metrics",
+            "Common failure modes",
+            "A readiness checklist for founders",
+            "A practical first 90 days",
+            "How to evaluate whether it is working",
+            "Founder rules for warehouse first analytics"
+          ],
+          "has_article_body": true
+        },
+        {
+          "slug": "customer-data-modeling-founder-framework",
+          "title": "Customer Data Modeling: Founder Framework",
+          "score": 0.062,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "Why customer data modeling becomes a founder problem",
+            "The founder framework: five questions before tables",
+            "The core entities in a customer data model",
+            "Do not confuse accounts, users, and customers",
+            "Model the customer lifecycle as explicit states",
+            "Separate events from attributes",
+            "Identity resolution is a modeling decision, not a cleanup task",
+            "What makes customer data AI-ready",
+            "A minimum viable customer data model",
+            "Common customer data modeling failure modes",
+            "A practical implementation order",
+            "Diagnostic questions for your current model"
+          ],
+          "has_article_body": true
+        },
+        {
+          "slug": "data-modeling-before-dashboards",
+          "title": "Data Modeling Before Dashboards: Build Metrics People Can Trust",
+          "score": 0.062,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/rewritten-first-six-articles.json"
+          ],
+          "section_headings": [
+            "Why dashboards fail when the model is unfinished",
+            "Start with the business nouns and events",
+            "Define the grain before defining the metric",
+            "Write metric definitions where the system can use them",
+            "Let dashboards consume business-ready tables",
+            "Common failure modes to catch early",
+            "A checklist before building or rebuilding a dashboard",
+            "Polish the dashboard after the meaning is stable"
+          ],
+          "has_article_body": true
+        }
+      ],
+      "portfolio_context": "Technical education for practicing and aspiring data engineers. Use small, explicitly hypothetical retail-order or customer-event fixtures where useful. Do not claim Jon implemented or tested anything without supplied evidence.",
+      "cross_brand_boundary": "Coldstart and this portfolio share seed concepts, not article prose. Create a fresh example, explanation, and diagnostic outcome. Do not copy or lightly rewrite Coldstart articles.",
+      "seed_origin": {
+        "brand": "Coldstart",
+        "slug": "relational-division-for-analytical-questions",
+        "snapshot_sha256": "07ea360d63d3b74952b290ee982fd3c3bec11622cdf1bdf932106a7823ea0020",
+        "adapted_on": "2026-09-23"
+      }
+    },
+    "sourceHash": "0bf1dbb243c1cbdb"
+  },
+  {
+    "slug": "floating-point-error-in-financial-analytics",
+    "title": "Floating-point error in financial analytics",
+    "primaryKeyword": "Floating-point error in financial analytics",
+    "relatedKeywords": [
+      "Floating-point error in financial analytics"
+    ],
+    "audience": "practitioners",
+    "updateFrequency": "never",
+    "intent": "How can practitioners demonstrate representation error in repeated decimal arithmetic?",
+    "format": "Guide",
+    "category": "Data Modeling",
+    "editorialBrief": {
+      "topic": "Floating-point error in financial analytics",
+      "audience": "practitioners",
+      "update_frequency": "never",
+      "content_type": "durable",
+      "category": "Data Modeling",
+      "track": "Data Foundations",
+      "cluster": "numeric-correctness",
+      "primary_question": "How can practitioners demonstrate representation error in repeated decimal arithmetic?",
+      "scope": [
+        "Demonstrate representation error in repeated decimal arithmetic.",
+        "Numeric representation and aggregation; exclude tax or accounting advice."
+      ],
+      "exclusions": [
+        "Do not expand this into a general introduction to the entire category.",
+        "Do not repeat the Coldstart coverage listed in coldstart_coverage; link their background where useful.",
+        "Leave Fixed-point decimal precision and scale to /writing/fixed-point-decimal-precision-and-scale/; its separate outcome is: Choose capacity for stored values and intermediate calculations.",
+        "Leave Rounding at ingestion versus presentation to /writing/rounding-at-ingestion-versus-presentation/; its separate outcome is: Show how rounding stages change reconciled aggregate totals.",
+        "Do not replace or retell the three existing in-progress portfolio notes.",
+        "Do not invent employment history, client stories, measurements, expert review, or first-person hands-on experience."
+      ],
+      "original_contribution": "Create numeric counterexamples and explicit calculation rules. Use it to demonstrate representation error in repeated decimal arithmetic.",
+      "prerequisites": [],
+      "secondary_keywords": [],
+      "source_urls": [
+        "https://www.postgresql.org/docs/current/datatype-numeric.html",
+        "https://www.postgresql.org/docs/current/functions-aggregate.html",
+        "https://www.itl.nist.gov/div898/handbook/eda/section3/eda356.htm"
+      ],
+      "sources": [
+        {
+          "source_id": "pg-numeric",
+          "url": "https://www.postgresql.org/docs/current/datatype-numeric.html",
+          "title": "PostgreSQL: Documentation: 18: 8.1. Numeric Types",
+          "accessed_at": "2026-09-22T16:34:32.222891+00:00"
+        },
+        {
+          "source_id": "pg-aggregate",
+          "url": "https://www.postgresql.org/docs/current/functions-aggregate.html",
+          "title": "PostgreSQL: Documentation: 18: 9.21. Aggregate Functions",
+          "accessed_at": "2026-09-22T16:34:30.057160+00:00"
+        },
+        {
+          "source_id": "nist-scale",
+          "url": "https://www.itl.nist.gov/div898/handbook/eda/section3/eda356.htm",
+          "title": "1.3.5.6. Measures of Scale",
+          "accessed_at": "2026-09-22T20:47:48.322923+00:00"
+        }
+      ],
+      "evidence_requirements": [
+        "Check the cited primary sources and the original scope before writing; a research lead is not proof of a new claim.",
+        "Use a clearly labeled hypothetical example. Do not invent customer results, personal experience, expert review, or test execution.",
+        "Work through the proposed example or decision framework and verify its assumptions and conclusions before publication."
+      ],
+      "distinctness_rationale": "The article is limited to this deliverable: Demonstrate representation error in repeated decimal arithmetic. Nearest legacy coverage is retained as background, not rewritten.",
+      "publication_order": 21,
+      "reviewed_distinctions": {},
+      "coldstart_coverage": [
+        {
+          "slug": "ownership-and-runbooks-operator-checklist",
+          "title": "Ownership And Runbooks: Operator Checklist",
+          "score": 0.062,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "Why ownership and runbooks matter",
+            "Checklist: assign ownership to every important data asset",
+            "What good ownership looks like in practice",
+            "Checklist: write runbooks that operators will actually use",
+            "Minimum viable runbook template",
+            "Common failure modes when ownership and runbooks are missing",
+            "How to prioritize what to document first",
+            "Set an operating rhythm so documentation stays useful",
+            "A simple 30-day implementation plan"
+          ],
+          "has_article_body": true
+        },
+        {
+          "slug": "pipelines-that-fail-loudly",
+          "title": "Build Data Pipelines That Fail Loudly",
+          "score": 0.058,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/rewritten-first-six-articles.json"
+          ],
+          "section_headings": [
+            "Silent failure is the expensive failure mode",
+            "Monitor outcomes, not just job completion",
+            "Make alerts understandable to the business",
+            "Separate critical incidents from routine warnings",
+            "Use retries for temporary failures, not broken logic",
+            "Write the recovery steps before the incident",
+            "Common failure modes to design for",
+            "Start with the pipelines that create the most decision risk"
+          ],
+          "has_article_body": true
+        },
+        {
+          "slug": "dashboard-trust-plain-english-guide",
+          "title": "Dashboard Trust: Plain-English Guide",
+          "score": 0.049,
+          "files": [
+            "src/_data/articles.json"
+          ],
+          "section_headings": [
+            "What dashboard trust means",
+            "Why dashboards lose trust",
+            "Trust is a chain, not a single feature",
+            "Start with metric definitions",
+            "Make freshness visible",
+            "Test what users depend on",
+            "Handle differences openly",
+            "Assign real ownership",
+            "Use automation carefully",
+            "A practical repair plan",
+            "Signs a dashboard is becoming trustworthy"
+          ],
+          "has_article_body": true
+        }
+      ],
+      "portfolio_context": "Technical education for practicing and aspiring data engineers. Use small, explicitly hypothetical retail-order or customer-event fixtures where useful. Do not claim Jon implemented or tested anything without supplied evidence.",
+      "cross_brand_boundary": "Coldstart and this portfolio share seed concepts, not article prose. Create a fresh example, explanation, and diagnostic outcome. Do not copy or lightly rewrite Coldstart articles.",
+      "seed_origin": {
+        "brand": "Coldstart",
+        "slug": "floating-point-error-in-financial-analytics",
+        "snapshot_sha256": "07ea360d63d3b74952b290ee982fd3c3bec11622cdf1bdf932106a7823ea0020",
+        "adapted_on": "2026-09-23"
+      }
+    },
+    "sourceHash": "b1eff4cf3ad25658"
+  },
+  {
+    "slug": "fixed-point-decimal-precision-and-scale",
+    "title": "Fixed-point decimal precision and scale",
+    "primaryKeyword": "Fixed-point decimal precision and scale",
+    "relatedKeywords": [
+      "Fixed-point decimal precision and scale"
+    ],
+    "audience": "practitioners",
+    "updateFrequency": "never",
+    "intent": "How can practitioners choose capacity for stored values and intermediate calculations?",
+    "format": "Guide",
+    "category": "Data Modeling",
+    "editorialBrief": {
+      "topic": "Fixed-point decimal precision and scale",
+      "audience": "practitioners",
+      "update_frequency": "never",
+      "content_type": "durable",
+      "category": "Data Modeling",
+      "track": "Data Foundations",
+      "cluster": "numeric-correctness",
+      "primary_question": "How can practitioners choose capacity for stored values and intermediate calculations?",
+      "scope": [
+        "Choose capacity for stored values and intermediate calculations.",
+        "Numeric representation and aggregation; exclude tax or accounting advice."
+      ],
+      "exclusions": [
+        "Do not expand this into a general introduction to the entire category.",
+        "Do not repeat the Coldstart coverage listed in coldstart_coverage; link their background where useful.",
+        "Leave Floating-point error in financial analytics to /writing/floating-point-error-in-financial-analytics/; its separate outcome is: Demonstrate representation error in repeated decimal arithmetic.",
+        "Leave Rounding at ingestion versus presentation to /writing/rounding-at-ingestion-versus-presentation/; its separate outcome is: Show how rounding stages change reconciled aggregate totals.",
+        "Do not replace or retell the three existing in-progress portfolio notes.",
+        "Do not invent employment history, client stories, measurements, expert review, or first-person hands-on experience."
+      ],
+      "original_contribution": "Create numeric counterexamples and explicit calculation rules. Use it to choose capacity for stored values and intermediate calculations.",
+      "prerequisites": [
+        "floating-point-error-in-financial-analytics"
+      ],
+      "secondary_keywords": [],
+      "source_urls": [
+        "https://www.postgresql.org/docs/current/datatype-numeric.html",
+        "https://www.itl.nist.gov/div898/handbook/eda/section3/eda356.htm",
+        "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/lag-duration-fact/"
+      ],
+      "sources": [
+        {
+          "source_id": "pg-numeric",
+          "url": "https://www.postgresql.org/docs/current/datatype-numeric.html",
+          "title": "PostgreSQL: Documentation: 18: 8.1. Numeric Types",
+          "accessed_at": "2026-09-22T16:34:32.222891+00:00"
+        },
+        {
+          "source_id": "nist-scale",
+          "url": "https://www.itl.nist.gov/div898/handbook/eda/section3/eda356.htm",
+          "title": "1.3.5.6. Measures of Scale",
+          "accessed_at": "2026-09-22T20:47:48.322923+00:00"
+        },
+        {
+          "source_id": "kimball-lag-duration-fact",
+          "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/lag-duration-fact/",
+          "title": "Lag/Duration Facts - Kimball Group",
+          "accessed_at": "2026-09-22T20:31:48.608304+00:00"
+        }
+      ],
+      "evidence_requirements": [
+        "Check the cited primary sources and the original scope before writing; a research lead is not proof of a new claim.",
+        "Use a clearly labeled hypothetical example. Do not invent customer results, personal experience, expert review, or test execution.",
+        "Work through the proposed example or decision framework and verify its assumptions and conclusions before publication."
+      ],
+      "distinctness_rationale": "The article is limited to this deliverable: Choose capacity for stored values and intermediate calculations. Nearest legacy coverage is retained as background, not rewritten.",
+      "publication_order": 22,
+      "reviewed_distinctions": {},
+      "coldstart_coverage": [
+        {
+          "slug": "backfills-plain-english-guide",
+          "title": "Backfills: Plain-English Guide",
+          "score": 0.073,
+          "files": [
+            "src/_data/articles.json"
+          ],
+          "section_headings": [
+            "What backfills mean in plain English",
+            "Why backfills matter for AI-ready data",
+            "When you need a backfill",
+            "When not to backfill",
+            "The anatomy of a safe backfill",
+            "Define scope and grain before you run anything",
+            "Common ways backfills go wrong",
+            "A practical backfill workflow",
+            "How to validate a backfill",
+            "Backfills, reruns, restatements, and migrations are related but different",
+            "Operator rules for backfills",
+            "Example: backfilling a customer health feature for AI"
+          ],
+          "has_article_body": true
+        },
+        {
+          "slug": "ai-ready-data-plain-english-guide",
+          "title": "AI-Ready Data: Plain-English Guide",
+          "score": 0.065,
+          "files": [
+            "src/_data/articles.json"
+          ],
+          "section_headings": [
+            "What AI-ready data means in plain English",
+            "Why AI readiness is really a data foundation problem",
+            "Why migrations often reveal AI-readiness gaps",
+            "The six layers of AI-ready data",
+            "What AI does not forgive in your data",
+            "How to evaluate whether your data is AI-ready",
+            "A simple maturity model for AI-ready data",
+            "What to fix first before adding AI on top",
+            "Governance for AI-ready data without unnecessary bureaucracy",
+            "Common failure modes when teams rush AI data work",
+            "AI-ready data checklist",
+            "How to start this week"
+          ],
+          "has_article_body": true
+        },
+        {
+          "slug": "dashboard-trust-migration-playbook",
+          "title": "Dashboard Trust: Migration Playbook",
+          "score": 0.044,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "Why dashboard trust breaks during migration",
+            "Define what trust means before you move",
+            "Step 1: Inventory and classify dashboards",
+            "Step 2: Map metrics before mapping charts",
+            "Step 3: Rebuild on a stable data contract",
+            "Step 4: Run old and new dashboards in parallel",
+            "Step 5: Get business signoff with evidence",
+            "Step 6: Cut over with a communication plan",
+            "Step 7: Monitor trust after launch",
+            "Common dashboard migration failure modes",
+            "Operator checklist for dashboard trust"
+          ],
+          "has_article_body": true
+        }
+      ],
+      "portfolio_context": "Technical education for practicing and aspiring data engineers. Use small, explicitly hypothetical retail-order or customer-event fixtures where useful. Do not claim Jon implemented or tested anything without supplied evidence.",
+      "cross_brand_boundary": "Coldstart and this portfolio share seed concepts, not article prose. Create a fresh example, explanation, and diagnostic outcome. Do not copy or lightly rewrite Coldstart articles.",
+      "seed_origin": {
+        "brand": "Coldstart",
+        "slug": "fixed-point-decimal-precision-and-scale",
+        "snapshot_sha256": "07ea360d63d3b74952b290ee982fd3c3bec11622cdf1bdf932106a7823ea0020",
+        "adapted_on": "2026-09-23"
+      }
+    },
+    "sourceHash": "08d0c3b0813061ab"
+  },
+  {
+    "slug": "rounding-at-ingestion-versus-presentation",
+    "title": "Rounding at ingestion versus presentation",
+    "primaryKeyword": "Rounding at ingestion versus presentation",
+    "relatedKeywords": [
+      "Rounding at ingestion versus presentation"
+    ],
+    "audience": "practitioners",
+    "updateFrequency": "never",
+    "intent": "How can practitioners show how rounding stages change reconciled aggregate totals?",
+    "format": "Guide",
+    "category": "Data Modeling",
+    "editorialBrief": {
+      "topic": "Rounding at ingestion versus presentation",
+      "audience": "practitioners",
+      "update_frequency": "never",
+      "content_type": "durable",
+      "category": "Data Modeling",
+      "track": "Data Foundations",
+      "cluster": "numeric-correctness",
+      "primary_question": "How can practitioners show how rounding stages change reconciled aggregate totals?",
+      "scope": [
+        "Show how rounding stages change reconciled aggregate totals.",
+        "Numeric representation and aggregation; exclude tax or accounting advice."
+      ],
+      "exclusions": [
+        "Do not expand this into a general introduction to the entire category.",
+        "Do not repeat the Coldstart coverage listed in coldstart_coverage; link their background where useful.",
+        "Leave Fixed-point decimal precision and scale to /writing/fixed-point-decimal-precision-and-scale/; its separate outcome is: Choose capacity for stored values and intermediate calculations.",
+        "Leave Rounding residuals in proportional allocations to /writing/rounding-residuals-in-proportional-allocations/; its separate outcome is: Distribute remaining units while preserving the original total.",
+        "Do not replace or retell the three existing in-progress portfolio notes.",
+        "Do not invent employment history, client stories, measurements, expert review, or first-person hands-on experience."
+      ],
+      "original_contribution": "Create numeric counterexamples and explicit calculation rules. Use it to show how rounding stages change reconciled aggregate totals.",
+      "prerequisites": [
+        "floating-point-error-in-financial-analytics"
+      ],
+      "secondary_keywords": [],
+      "source_urls": [
+        "https://www.postgresql.org/docs/current/functions-aggregate.html",
+        "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/aggregate-fact-table-cube/",
+        "https://www.postgresql.org/docs/current/datatype-numeric.html"
+      ],
+      "sources": [
+        {
+          "source_id": "pg-aggregate",
+          "url": "https://www.postgresql.org/docs/current/functions-aggregate.html",
+          "title": "PostgreSQL: Documentation: 18: 9.21. Aggregate Functions",
+          "accessed_at": "2026-09-22T16:34:30.057160+00:00"
+        },
+        {
+          "source_id": "kimball-18",
+          "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/aggregate-fact-table-cube/",
+          "title": "Aggregate Fact Tables or Cubes | Kimball Group",
+          "accessed_at": "2026-09-22T16:39:18.216022+00:00"
+        },
+        {
+          "source_id": "pg-numeric",
+          "url": "https://www.postgresql.org/docs/current/datatype-numeric.html",
+          "title": "PostgreSQL: Documentation: 18: 8.1. Numeric Types",
+          "accessed_at": "2026-09-22T16:34:32.222891+00:00"
+        }
+      ],
+      "evidence_requirements": [
+        "Check the cited primary sources and the original scope before writing; a research lead is not proof of a new claim.",
+        "Use a clearly labeled hypothetical example. Do not invent customer results, personal experience, expert review, or test execution.",
+        "Work through the proposed example or decision framework and verify its assumptions and conclusions before publication."
+      ],
+      "distinctness_rationale": "The article is limited to this deliverable: Show how rounding stages change reconciled aggregate totals. Nearest legacy coverage is retained as background, not rewritten.",
+      "publication_order": 23,
+      "reviewed_distinctions": {},
+      "coldstart_coverage": [
+        {
+          "slug": "semantic-layers-operator-checklist",
+          "title": "Semantic Layers: Operator Checklist",
+          "score": 0.089,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "What a semantic layer is",
+            "When semantic layers are worth the overhead",
+            "Operator checklist for semantic layers",
+            "Choose metrics that deserve governance",
+            "Modeling rules that keep semantic layers reliable",
+            "Do not ignore permissions and context",
+            "How semantic layers improve dashboard trust",
+            "Common semantic layer failure modes",
+            "Questions to ask before choosing an implementation",
+            "A safe rollout plan"
+          ],
+          "has_article_body": true
+        },
+        {
+          "slug": "data-modeling-migration-playbook",
+          "title": "Data Modeling: Migration Playbook",
+          "score": 0.083,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "Why Migration Is a Data Modeling Problem, Not Just a Moving Problem",
+            "Start With the Business Process and Grain",
+            "Inventory Legacy Tables, Reports, and Hidden Logic",
+            "Decide What to Migrate, Redesign, Retire, or Bridge",
+            "Create a Source-to-Target Mapping Before Writing Final Models",
+            "Use Layered Models to Control Complexity",
+            "Model for Pipeline Reliability, Not Just Query Convenience",
+            "Use Automation After the Rules Are Clear",
+            "Validate With Reconciliation, Not Vibes",
+            "Roll Out Models With Ownership and a Cutover Plan",
+            "Beginner Checklist for a Modeling Migration"
+          ],
+          "has_article_body": true
+        },
+        {
+          "slug": "data-quality-checks-plain-english-guide",
+          "title": "Data Quality Checks: Plain-English Guide",
+          "score": 0.071,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "What data quality checks are",
+            "Why data quality checks matter",
+            "The main types of data quality checks",
+            "Where checks belong in the data pipeline",
+            "Practical examples of data quality checks",
+            "How to prioritize checks without overbuilding",
+            "Common failure modes data quality checks catch",
+            "What makes a data quality check useful",
+            "A simple implementation approach",
+            "How data quality checks improve dashboard trust",
+            "What not to check at the beginning"
+          ],
+          "has_article_body": true
+        }
+      ],
+      "portfolio_context": "Technical education for practicing and aspiring data engineers. Use small, explicitly hypothetical retail-order or customer-event fixtures where useful. Do not claim Jon implemented or tested anything without supplied evidence.",
+      "cross_brand_boundary": "Coldstart and this portfolio share seed concepts, not article prose. Create a fresh example, explanation, and diagnostic outcome. Do not copy or lightly rewrite Coldstart articles.",
+      "seed_origin": {
+        "brand": "Coldstart",
+        "slug": "rounding-at-ingestion-versus-presentation",
+        "snapshot_sha256": "07ea360d63d3b74952b290ee982fd3c3bec11622cdf1bdf932106a7823ea0020",
+        "adapted_on": "2026-09-23"
+      }
+    },
+    "sourceHash": "2d4673fba8357a2e"
+  },
+  {
+    "slug": "integer-overflow-in-aggregate-calculations",
+    "title": "Integer overflow in aggregate calculations",
+    "primaryKeyword": "Integer overflow in aggregate calculations",
+    "relatedKeywords": [
+      "Integer overflow in aggregate calculations"
+    ],
+    "audience": "practitioners",
+    "updateFrequency": "never",
+    "intent": "How can practitioners estimate intermediate bounds rather than only input value ranges?",
+    "format": "Guide",
+    "category": "Data Modeling",
+    "editorialBrief": {
+      "topic": "Integer overflow in aggregate calculations",
+      "audience": "practitioners",
+      "update_frequency": "never",
+      "content_type": "durable",
+      "category": "Data Modeling",
+      "track": "Data Foundations",
+      "cluster": "numeric-correctness",
+      "primary_question": "How can practitioners estimate intermediate bounds rather than only input value ranges?",
+      "scope": [
+        "Estimate intermediate bounds rather than only input value ranges.",
+        "Numeric representation and aggregation; exclude tax or accounting advice."
+      ],
+      "exclusions": [
+        "Do not expand this into a general introduction to the entire category.",
+        "Do not repeat the Coldstart coverage listed in coldstart_coverage; link their background where useful.",
+        "Leave Rounding residuals in proportional allocations to /writing/rounding-residuals-in-proportional-allocations/; its separate outcome is: Distribute remaining units while preserving the original total.",
+        "Leave Division by zero in business ratios to /writing/division-by-zero-in-business-ratios/; its separate outcome is: Separate undefined results from actual zero performance.",
+        "Do not replace or retell the three existing in-progress portfolio notes.",
+        "Do not invent employment history, client stories, measurements, expert review, or first-person hands-on experience."
+      ],
+      "original_contribution": "Create numeric counterexamples and explicit calculation rules. Use it to estimate intermediate bounds rather than only input value ranges.",
+      "prerequisites": [
+        "floating-point-error-in-financial-analytics"
+      ],
+      "secondary_keywords": [],
+      "source_urls": [
+        "https://www.postgresql.org/docs/current/datatype-numeric.html",
+        "https://www.postgresql.org/docs/current/functions-aggregate.html",
+        "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/aggregate-fact-table-cube/"
+      ],
+      "sources": [
+        {
+          "source_id": "pg-numeric",
+          "url": "https://www.postgresql.org/docs/current/datatype-numeric.html",
+          "title": "PostgreSQL: Documentation: 18: 8.1. Numeric Types",
+          "accessed_at": "2026-09-22T16:34:32.222891+00:00"
+        },
+        {
+          "source_id": "pg-aggregate",
+          "url": "https://www.postgresql.org/docs/current/functions-aggregate.html",
+          "title": "PostgreSQL: Documentation: 18: 9.21. Aggregate Functions",
+          "accessed_at": "2026-09-22T16:34:30.057160+00:00"
+        },
+        {
+          "source_id": "kimball-18",
+          "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/aggregate-fact-table-cube/",
+          "title": "Aggregate Fact Tables or Cubes | Kimball Group",
+          "accessed_at": "2026-09-22T16:39:18.216022+00:00"
+        }
+      ],
+      "evidence_requirements": [
+        "Check the cited primary sources and the original scope before writing; a research lead is not proof of a new claim.",
+        "Use a clearly labeled hypothetical example. Do not invent customer results, personal experience, expert review, or test execution.",
+        "Work through the proposed example or decision framework and verify its assumptions and conclusions before publication."
+      ],
+      "distinctness_rationale": "The article is limited to this deliverable: Estimate intermediate bounds rather than only input value ranges. Nearest legacy coverage is retained as background, not rewritten.",
+      "publication_order": 25,
+      "reviewed_distinctions": {},
+      "coldstart_coverage": [
+        {
+          "slug": "backfills-plain-english-guide",
+          "title": "Backfills: Plain-English Guide",
+          "score": 0.066,
+          "files": [
+            "src/_data/articles.json"
+          ],
+          "section_headings": [
+            "What backfills mean in plain English",
+            "Why backfills matter for AI-ready data",
+            "When you need a backfill",
+            "When not to backfill",
+            "The anatomy of a safe backfill",
+            "Define scope and grain before you run anything",
+            "Common ways backfills go wrong",
+            "A practical backfill workflow",
+            "How to validate a backfill",
+            "Backfills, reruns, restatements, and migrations are related but different",
+            "Operator rules for backfills",
+            "Example: backfilling a customer health feature for AI"
+          ],
+          "has_article_body": true
+        },
+        {
+          "slug": "backfills-common-mistake",
+          "title": "Backfills: Common Mistake",
+          "score": 0.051,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "What backfills are",
+            "The common mistake: rerunning history as if it were today",
+            "Why this mistake matters",
+            "A simple example of the mistake",
+            "Five questions to ask before any backfill",
+            "A safer backfill pattern",
+            "The most important technical property: idempotency",
+            "Check event time, processing time, and business time",
+            "How to validate a backfill",
+            "Do not forget communication and rollback"
+          ],
+          "has_article_body": true
+        },
+        {
+          "slug": "spreadsheet-replacement-migration-playbook",
+          "title": "Spreadsheet Replacement: Migration Playbook",
+          "score": 0.049,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "Why spreadsheets become infrastructure",
+            "Define the spreadsheet’s role before replacing it",
+            "Inventory the workbooks that matter",
+            "Classify the right replacement pattern",
+            "Separate inputs, logic, and outputs",
+            "Design the target data model around business grain",
+            "Replace manual paste work with pipelines",
+            "Translate formulas into business rules",
+            "Handle human inputs with controls",
+            "Validate against known periods before cutover",
+            "Plan the cutover deliberately",
+            "Watch the common failure modes",
+            "Govern the new system after migration",
+            "Operator checklist for spreadsheet replacement"
+          ],
+          "has_article_body": true
+        }
+      ],
+      "portfolio_context": "Technical education for practicing and aspiring data engineers. Use small, explicitly hypothetical retail-order or customer-event fixtures where useful. Do not claim Jon implemented or tested anything without supplied evidence.",
+      "cross_brand_boundary": "Coldstart and this portfolio share seed concepts, not article prose. Create a fresh example, explanation, and diagnostic outcome. Do not copy or lightly rewrite Coldstart articles.",
+      "seed_origin": {
+        "brand": "Coldstart",
+        "slug": "integer-overflow-in-aggregate-calculations",
+        "snapshot_sha256": "07ea360d63d3b74952b290ee982fd3c3bec11622cdf1bdf932106a7823ea0020",
+        "adapted_on": "2026-09-23"
+      }
+    },
+    "sourceHash": "7bbd1747880a0fdb"
+  },
+  {
+    "slug": "negative-values-in-rate-calculations",
+    "title": "Negative values in rate calculations",
+    "primaryKeyword": "Negative values in rate calculations",
+    "relatedKeywords": [
+      "Negative values in rate calculations"
+    ],
+    "audience": "practitioners",
+    "updateFrequency": "never",
+    "intent": "How can practitioners define how corrections and reversals affect a reported rate?",
+    "format": "Guide",
+    "category": "Data Modeling",
+    "editorialBrief": {
+      "topic": "Negative values in rate calculations",
+      "audience": "practitioners",
+      "update_frequency": "never",
+      "content_type": "durable",
+      "category": "Data Modeling",
+      "track": "Data Foundations",
+      "cluster": "numeric-correctness",
+      "primary_question": "How can practitioners define how corrections and reversals affect a reported rate?",
+      "scope": [
+        "Define how corrections and reversals affect a reported rate.",
+        "Numeric representation and aggregation; exclude tax or accounting advice."
+      ],
+      "exclusions": [
+        "Do not expand this into a general introduction to the entire category.",
+        "Do not repeat the Coldstart coverage listed in coldstart_coverage; link their background where useful.",
+        "Leave Division by zero in business ratios to /writing/division-by-zero-in-business-ratios/; its separate outcome is: Separate undefined results from actual zero performance.",
+        "Leave Unit conversions in analytical models to /writing/unit-conversions-in-analytical-models/; its separate outcome is: Preserve original units and conversion provenance beside normalized values.",
+        "Do not replace or retell the three existing in-progress portfolio notes.",
+        "Do not invent employment history, client stories, measurements, expert review, or first-person hands-on experience."
+      ],
+      "original_contribution": "Create numeric counterexamples and explicit calculation rules. Use it to define how corrections and reversals affect a reported rate.",
+      "prerequisites": [
+        "floating-point-error-in-financial-analytics"
+      ],
+      "secondary_keywords": [],
+      "source_urls": [
+        "https://www.postgresql.org/docs/current/datatype-numeric.html",
+        "https://www.postgresql.org/docs/current/functions-aggregate.html",
+        "https://www.itl.nist.gov/div898/handbook/eda/section3/eda356.htm"
+      ],
+      "sources": [
+        {
+          "source_id": "pg-numeric",
+          "url": "https://www.postgresql.org/docs/current/datatype-numeric.html",
+          "title": "PostgreSQL: Documentation: 18: 8.1. Numeric Types",
+          "accessed_at": "2026-09-22T16:34:32.222891+00:00"
+        },
+        {
+          "source_id": "pg-aggregate",
+          "url": "https://www.postgresql.org/docs/current/functions-aggregate.html",
+          "title": "PostgreSQL: Documentation: 18: 9.21. Aggregate Functions",
+          "accessed_at": "2026-09-22T16:34:30.057160+00:00"
+        },
+        {
+          "source_id": "nist-scale",
+          "url": "https://www.itl.nist.gov/div898/handbook/eda/section3/eda356.htm",
+          "title": "1.3.5.6. Measures of Scale",
+          "accessed_at": "2026-09-22T20:47:48.322923+00:00"
+        }
+      ],
+      "evidence_requirements": [
+        "Check the cited primary sources and the original scope before writing; a research lead is not proof of a new claim.",
+        "Use a clearly labeled hypothetical example. Do not invent customer results, personal experience, expert review, or test execution.",
+        "Work through the proposed example or decision framework and verify its assumptions and conclusions before publication."
+      ],
+      "distinctness_rationale": "The article is limited to this deliverable: Define how corrections and reversals affect a reported rate. Nearest legacy coverage is retained as background, not rewritten.",
+      "publication_order": 27,
+      "reviewed_distinctions": {},
+      "coldstart_coverage": [
+        {
+          "slug": "revenue-reporting-operator-checklist",
+          "title": "Revenue Reporting: Operator Checklist",
+          "score": 0.082,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "What revenue reporting should answer",
+            "The revenue reporting operator checklist",
+            "Define the revenue model before automation",
+            "Check the source systems before blaming the dashboard",
+            "Pipeline reliability controls for revenue data",
+            "Common revenue reporting failure modes",
+            "Dashboard trust checklist",
+            "When to involve finance early",
+            "A minimum viable revenue reporting implementation"
+          ],
+          "has_article_body": true
+        },
+        {
+          "slug": "metric-definitions-common-mistake",
+          "title": "Metric Definitions: Common Mistake",
+          "score": 0.08,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "Why metric definitions matter",
+            "The common mistake: naming the metric but not defining the logic",
+            "What a good metric definition includes",
+            "Example: turning a vague metric into a usable definition",
+            "Why weak metric definitions break AI-ready data",
+            "Diagnostic questions for unclear metrics",
+            "How to repair metric definitions without boiling the ocean",
+            "Common failure modes to avoid",
+            "A lightweight governance model for metric definitions",
+            "Operator rule: define metrics so they can be challenged"
+          ],
+          "has_article_body": true
+        },
+        {
+          "slug": "metric-definitions-reliability-field-note",
+          "title": "Metric Definitions: Reliability Field Note",
+          "score": 0.077,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "Field observation: the dashboard was not broken, the metric was undefined",
+            "What a useful metric definition includes",
+            "Why metric definitions fail in real data systems",
+            "Example: defining activation rate",
+            "A checklist for repairing an unreliable metric",
+            "How metric definitions connect to data modeling",
+            "Operator rules for dependable metric definitions",
+            "Where semantic layers help, and where they do not",
+            "A practical diagnostic for your next metric dispute"
+          ],
+          "has_article_body": true
+        }
+      ],
+      "portfolio_context": "Technical education for practicing and aspiring data engineers. Use small, explicitly hypothetical retail-order or customer-event fixtures where useful. Do not claim Jon implemented or tested anything without supplied evidence.",
+      "cross_brand_boundary": "Coldstart and this portfolio share seed concepts, not article prose. Create a fresh example, explanation, and diagnostic outcome. Do not copy or lightly rewrite Coldstart articles.",
+      "seed_origin": {
+        "brand": "Coldstart",
+        "slug": "negative-values-in-rate-calculations",
+        "snapshot_sha256": "07ea360d63d3b74952b290ee982fd3c3bec11622cdf1bdf932106a7823ea0020",
+        "adapted_on": "2026-09-23"
+      }
+    },
+    "sourceHash": "e6c36fb46201cd44"
+  },
+  {
+    "slug": "unit-conversions-in-analytical-models",
+    "title": "Unit conversions in analytical models",
+    "primaryKeyword": "Unit conversions in analytical models",
+    "relatedKeywords": [
+      "Unit conversions in analytical models"
+    ],
+    "audience": "practitioners",
+    "updateFrequency": "never",
+    "intent": "How can practitioners preserve original units and conversion provenance beside normalized values?",
+    "format": "Guide",
+    "category": "Data Modeling",
+    "editorialBrief": {
+      "topic": "Unit conversions in analytical models",
+      "audience": "practitioners",
+      "update_frequency": "never",
+      "content_type": "durable",
+      "category": "Data Modeling",
+      "track": "Data Foundations",
+      "cluster": "numeric-correctness",
+      "primary_question": "How can practitioners preserve original units and conversion provenance beside normalized values?",
+      "scope": [
+        "Preserve original units and conversion provenance beside normalized values.",
+        "Numeric representation and aggregation; exclude tax or accounting advice."
+      ],
+      "exclusions": [
+        "Do not expand this into a general introduction to the entire category.",
+        "Do not repeat the Coldstart coverage listed in coldstart_coverage; link their background where useful.",
+        "Leave Negative values in rate calculations to /writing/negative-values-in-rate-calculations/; its separate outcome is: Define how corrections and reversals affect a reported rate.",
+        "Leave Currency conversion dates in reporting to /writing/currency-conversion-dates-in-reporting/; its separate outcome is: Distinguish transaction-date conversion from reporting-date conversion.",
+        "Do not replace or retell the three existing in-progress portfolio notes.",
+        "Do not invent employment history, client stories, measurements, expert review, or first-person hands-on experience."
+      ],
+      "original_contribution": "Create numeric counterexamples and explicit calculation rules. Use it to preserve original units and conversion provenance beside normalized values.",
+      "prerequisites": [
+        "floating-point-error-in-financial-analytics"
+      ],
+      "secondary_keywords": [],
+      "source_urls": [
+        "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/multiple-units-of-measure/",
+        "https://www.itl.nist.gov/div898/handbook/eda/section3/eda356.htm",
+        "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/type-0/"
+      ],
+      "sources": [
+        {
+          "source_id": "kimball-multiple-units-of-measure",
+          "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/multiple-units-of-measure/",
+          "title": "Multiple Units of Measure Facts | Kimball Dimensional Modeling Techniques",
+          "accessed_at": "2026-09-22T20:36:55.009729+00:00"
+        },
+        {
+          "source_id": "nist-scale",
+          "url": "https://www.itl.nist.gov/div898/handbook/eda/section3/eda356.htm",
+          "title": "1.3.5.6. Measures of Scale",
+          "accessed_at": "2026-09-22T20:47:48.322923+00:00"
+        },
+        {
+          "source_id": "kimball-type-0",
+          "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/type-0/",
+          "title": "Type 0: Retain Original | Kimball Dimensional Modeling Techniques",
+          "accessed_at": "2026-09-22T20:31:46.358074+00:00"
+        }
+      ],
+      "evidence_requirements": [
+        "Check the cited primary sources and the original scope before writing; a research lead is not proof of a new claim.",
+        "Use a clearly labeled hypothetical example. Do not invent customer results, personal experience, expert review, or test execution.",
+        "Work through the proposed example or decision framework and verify its assumptions and conclusions before publication."
+      ],
+      "distinctness_rationale": "The article is limited to this deliverable: Preserve original units and conversion provenance beside normalized values. Nearest legacy coverage is retained as background, not rewritten.",
+      "publication_order": 28,
+      "reviewed_distinctions": {},
+      "coldstart_coverage": [
+        {
+          "slug": "metric-definitions-operator-checklist",
+          "title": "Metric Definitions: Operator Checklist",
+          "score": 0.049,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "What a Metric Definition Must Do",
+            "Why Metric Definitions Break in Real Data Systems",
+            "The Metric Definitions Operator Checklist",
+            "A Minimum Viable Metric Definition Template",
+            "Example: Turning a Vague Metric Into an Operator-Ready Definition",
+            "Check the Grain Before You Debate the Formula",
+            "Define Time Rules Explicitly",
+            "Govern Metric Definitions Without Creating Bureaucracy",
+            "Where Metric Definitions Should Live",
+            "Review Questions Before Publishing a Metric",
+            "Maintain Definitions as the Business Changes"
+          ],
+          "has_article_body": true
+        },
+        {
+          "slug": "data-modeling-plain-english-guide",
+          "title": "Data Modeling: Plain-English Guide",
+          "score": 0.042,
+          "files": [
+            "src/_data/articles.json"
+          ],
+          "section_headings": [
+            "What data modeling means",
+            "Why data modeling matters for dashboard trust",
+            "The core building blocks of a data model",
+            "Start with grain before choosing columns",
+            "Common types of analytics models",
+            "A simple example: ecommerce orders",
+            "Metrics need modeling too",
+            "Signs your data model needs work",
+            "A practical data modeling process",
+            "How to repair a weak model without starting over",
+            "Common data modeling mistakes",
+            "What good data modeling looks like",
+            "Why data modeling matters for AI-ready data"
+          ],
+          "has_article_body": true
+        },
+        {
+          "slug": "metric-definitions-common-mistake",
+          "title": "Metric Definitions: Common Mistake",
+          "score": 0.041,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "Why metric definitions matter",
+            "The common mistake: naming the metric but not defining the logic",
+            "What a good metric definition includes",
+            "Example: turning a vague metric into a usable definition",
+            "Why weak metric definitions break AI-ready data",
+            "Diagnostic questions for unclear metrics",
+            "How to repair metric definitions without boiling the ocean",
+            "Common failure modes to avoid",
+            "A lightweight governance model for metric definitions",
+            "Operator rule: define metrics so they can be challenged"
+          ],
+          "has_article_body": true
+        }
+      ],
+      "portfolio_context": "Technical education for practicing and aspiring data engineers. Use small, explicitly hypothetical retail-order or customer-event fixtures where useful. Do not claim Jon implemented or tested anything without supplied evidence.",
+      "cross_brand_boundary": "Coldstart and this portfolio share seed concepts, not article prose. Create a fresh example, explanation, and diagnostic outcome. Do not copy or lightly rewrite Coldstart articles.",
+      "seed_origin": {
+        "brand": "Coldstart",
+        "slug": "unit-conversions-in-analytical-models",
+        "snapshot_sha256": "07ea360d63d3b74952b290ee982fd3c3bec11622cdf1bdf932106a7823ea0020",
+        "adapted_on": "2026-09-23"
+      }
+    },
+    "sourceHash": "4af0766e3bfe643f"
+  },
+  {
+    "slug": "currency-conversion-dates-in-reporting",
+    "title": "Currency conversion dates in reporting",
+    "primaryKeyword": "Currency conversion dates in reporting",
+    "relatedKeywords": [
+      "Currency conversion dates in reporting"
+    ],
+    "audience": "practitioners",
+    "updateFrequency": "never",
+    "intent": "How can practitioners distinguish transaction-date conversion from reporting-date conversion?",
+    "format": "Guide",
+    "category": "Data Modeling",
+    "editorialBrief": {
+      "topic": "Currency conversion dates in reporting",
+      "audience": "practitioners",
+      "update_frequency": "never",
+      "content_type": "durable",
+      "category": "Data Modeling",
+      "track": "Data Foundations",
+      "cluster": "numeric-correctness",
+      "primary_question": "How can practitioners distinguish transaction-date conversion from reporting-date conversion?",
+      "scope": [
+        "Distinguish transaction-date conversion from reporting-date conversion.",
+        "Numeric representation and aggregation; exclude tax or accounting advice."
+      ],
+      "exclusions": [
+        "Do not expand this into a general introduction to the entire category.",
+        "Do not repeat the Coldstart coverage listed in coldstart_coverage; link their background where useful.",
+        "Leave Unit conversions in analytical models to /writing/unit-conversions-in-analytical-models/; its separate outcome is: Preserve original units and conversion provenance beside normalized values.",
+        "Leave Exchange-rate direction and inversion to /writing/exchange-rate-direction-and-inversion/; its separate outcome is: Prevent multiplication versus division errors in currency normalization.",
+        "Do not replace or retell the three existing in-progress portfolio notes.",
+        "Do not invent employment history, client stories, measurements, expert review, or first-person hands-on experience."
+      ],
+      "original_contribution": "Create numeric counterexamples and explicit calculation rules. Use it to distinguish transaction-date conversion from reporting-date conversion.",
+      "prerequisites": [
+        "floating-point-error-in-financial-analytics"
+      ],
+      "secondary_keywords": [],
+      "source_urls": [
+        "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/multiple-currencies/",
+        "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/calendar-date-dimension/",
+        "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/"
+      ],
+      "sources": [
+        {
+          "source_id": "kimball-multiple-currencies",
+          "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/multiple-currencies/",
+          "title": "Multiple Currency Facts | Kimball Dimensional Modeling Techniques",
+          "accessed_at": "2026-09-22T20:36:54.289754+00:00"
+        },
+        {
+          "source_id": "kimball-calendar-date-dimension",
+          "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/calendar-date-dimension/",
+          "title": "Calendar Date Dimensions | Kimball Dimensional Modeling Techniques",
+          "accessed_at": "2026-09-22T20:31:44.654206+00:00"
+        },
+        {
+          "source_id": "kimball",
+          "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/",
+          "title": "Dimensional Modeling Techniques - Kimball Group",
+          "accessed_at": "2026-09-22T16:34:26.363014+00:00"
+        }
+      ],
+      "evidence_requirements": [
+        "Check the cited primary sources and the original scope before writing; a research lead is not proof of a new claim.",
+        "Use a clearly labeled hypothetical example. Do not invent customer results, personal experience, expert review, or test execution.",
+        "Work through the proposed example or decision framework and verify its assumptions and conclusions before publication."
+      ],
+      "distinctness_rationale": "The article is limited to this deliverable: Distinguish transaction-date conversion from reporting-date conversion. Nearest legacy coverage is retained as background, not rewritten.",
+      "publication_order": 29,
+      "reviewed_distinctions": {},
+      "coldstart_coverage": [
+        {
+          "slug": "revenue-reporting-operator-checklist",
+          "title": "Revenue Reporting: Operator Checklist",
+          "score": 0.109,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "What revenue reporting should answer",
+            "The revenue reporting operator checklist",
+            "Define the revenue model before automation",
+            "Check the source systems before blaming the dashboard",
+            "Pipeline reliability controls for revenue data",
+            "Common revenue reporting failure modes",
+            "Dashboard trust checklist",
+            "When to involve finance early",
+            "A minimum viable revenue reporting implementation"
+          ],
+          "has_article_body": true
+        },
+        {
+          "slug": "data-modeling-reliability-field-note",
+          "title": "Data Modeling: Reliability Field Note",
+          "score": 0.104,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "What data modeling does in a modern data stack",
+            "Field note: the dashboard was not the real problem",
+            "Grain is the first reliability decision",
+            "Facts, dimensions, and business language",
+            "Common data modeling failure modes",
+            "How to evaluate whether a model is reliable",
+            "A practical sequence for building a model",
+            "Why data modeling matters for AI-ready data",
+            "What to do next if your data model is unreliable"
+          ],
+          "has_article_body": true
+        },
+        {
+          "slug": "metric-definitions-operator-checklist",
+          "title": "Metric Definitions: Operator Checklist",
+          "score": 0.094,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "What a Metric Definition Must Do",
+            "Why Metric Definitions Break in Real Data Systems",
+            "The Metric Definitions Operator Checklist",
+            "A Minimum Viable Metric Definition Template",
+            "Example: Turning a Vague Metric Into an Operator-Ready Definition",
+            "Check the Grain Before You Debate the Formula",
+            "Define Time Rules Explicitly",
+            "Govern Metric Definitions Without Creating Bureaucracy",
+            "Where Metric Definitions Should Live",
+            "Review Questions Before Publishing a Metric",
+            "Maintain Definitions as the Business Changes"
+          ],
+          "has_article_body": true
+        }
+      ],
+      "portfolio_context": "Technical education for practicing and aspiring data engineers. Use small, explicitly hypothetical retail-order or customer-event fixtures where useful. Do not claim Jon implemented or tested anything without supplied evidence.",
+      "cross_brand_boundary": "Coldstart and this portfolio share seed concepts, not article prose. Create a fresh example, explanation, and diagnostic outcome. Do not copy or lightly rewrite Coldstart articles.",
+      "seed_origin": {
+        "brand": "Coldstart",
+        "slug": "currency-conversion-dates-in-reporting",
+        "snapshot_sha256": "07ea360d63d3b74952b290ee982fd3c3bec11622cdf1bdf932106a7823ea0020",
+        "adapted_on": "2026-09-23"
+      }
+    },
+    "sourceHash": "4b0bf6a7cfd5ca80"
+  },
+  {
+    "slug": "exchange-rate-direction-and-inversion",
+    "title": "Exchange-rate direction and inversion",
+    "primaryKeyword": "Exchange-rate direction and inversion",
+    "relatedKeywords": [
+      "Exchange-rate direction and inversion"
+    ],
+    "audience": "practitioners",
+    "updateFrequency": "never",
+    "intent": "How can practitioners prevent multiplication versus division errors in currency normalization?",
+    "format": "Guide",
+    "category": "Data Modeling",
+    "editorialBrief": {
+      "topic": "Exchange-rate direction and inversion",
+      "audience": "practitioners",
+      "update_frequency": "never",
+      "content_type": "durable",
+      "category": "Data Modeling",
+      "track": "Data Foundations",
+      "cluster": "numeric-correctness",
+      "primary_question": "How can practitioners prevent multiplication versus division errors in currency normalization?",
+      "scope": [
+        "Prevent multiplication versus division errors in currency normalization.",
+        "Numeric representation and aggregation; exclude tax or accounting advice."
+      ],
+      "exclusions": [
+        "Do not expand this into a general introduction to the entire category.",
+        "Do not repeat the Coldstart coverage listed in coldstart_coverage; link their background where useful.",
+        "Leave Currency conversion dates in reporting to /writing/currency-conversion-dates-in-reporting/; its separate outcome is: Distinguish transaction-date conversion from reporting-date conversion.",
+        "Leave Percentage points versus percentage changes to /writing/percentage-points-versus-percentage-changes/; its separate outcome is: Use a worked comparison to distinguish absolute and relative change.",
+        "Do not replace or retell the three existing in-progress portfolio notes.",
+        "Do not invent employment history, client stories, measurements, expert review, or first-person hands-on experience."
+      ],
+      "original_contribution": "Create numeric counterexamples and explicit calculation rules. Use it to prevent multiplication versus division errors in currency normalization.",
+      "prerequisites": [
+        "floating-point-error-in-financial-analytics"
+      ],
+      "secondary_keywords": [],
+      "source_urls": [
+        "https://www.postgresql.org/docs/current/datatype-numeric.html",
+        "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/multiple-currencies/",
+        "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/error-event-schema/"
+      ],
+      "sources": [
+        {
+          "source_id": "pg-numeric",
+          "url": "https://www.postgresql.org/docs/current/datatype-numeric.html",
+          "title": "PostgreSQL: Documentation: 18: 8.1. Numeric Types",
+          "accessed_at": "2026-09-22T16:34:32.222891+00:00"
+        },
+        {
+          "source_id": "kimball-multiple-currencies",
+          "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/multiple-currencies/",
+          "title": "Multiple Currency Facts | Kimball Dimensional Modeling Techniques",
+          "accessed_at": "2026-09-22T20:36:54.289754+00:00"
+        },
+        {
+          "source_id": "kimball-error-event-schema",
+          "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/error-event-schema/",
+          "title": "Error Event Schemas | Kimball Dimensional Modeling Techniques",
+          "accessed_at": "2026-09-22T20:37:00.602527+00:00"
+        }
+      ],
+      "evidence_requirements": [
+        "Check the cited primary sources and the original scope before writing; a research lead is not proof of a new claim.",
+        "Use a clearly labeled hypothetical example. Do not invent customer results, personal experience, expert review, or test execution.",
+        "Work through the proposed example or decision framework and verify its assumptions and conclusions before publication."
+      ],
+      "distinctness_rationale": "The article is limited to this deliverable: Prevent multiplication versus division errors in currency normalization. Nearest legacy coverage is retained as background, not rewritten.",
+      "publication_order": 30,
+      "reviewed_distinctions": {},
+      "coldstart_coverage": [
+        {
+          "slug": "revenue-reporting-operator-checklist",
+          "title": "Revenue Reporting: Operator Checklist",
+          "score": 0.051,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "What revenue reporting should answer",
+            "The revenue reporting operator checklist",
+            "Define the revenue model before automation",
+            "Check the source systems before blaming the dashboard",
+            "Pipeline reliability controls for revenue data",
+            "Common revenue reporting failure modes",
+            "Dashboard trust checklist",
+            "When to involve finance early",
+            "A minimum viable revenue reporting implementation"
+          ],
+          "has_article_body": true
+        },
+        {
+          "slug": "data-quality-checks-operator-checklist",
+          "title": "Data Quality Checks: Operator Checklist",
+          "score": 0.036,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "What data quality checks are",
+            "The operator principle: test the contract, not the database",
+            "Checklist step 1: Start with critical data products",
+            "Checklist step 2: Check freshness first",
+            "Checklist step 3: Add volume and distribution checks",
+            "Checklist step 4: Validate required fields and allowed values",
+            "Checklist step 5: Reconcile across tables and systems",
+            "Checklist step 6: Put checks at the right layer",
+            "Checklist step 7: Decide what happens when a check fails",
+            "Checklist step 8: Assign owners and runbooks",
+            "Common failure modes to watch for",
+            "A minimum viable check set for a small team",
+            "How to review and improve checks over time"
+          ],
+          "has_article_body": true
+        },
+        {
+          "slug": "warehouse-first-analytics-common-mistake",
+          "title": "Warehouse First Analytics: Common Mistake",
+          "score": 0.03,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "What warehouse first analytics means",
+            "The common mistake: making the warehouse first in sequence but last in ownership",
+            "Why this happens during migration",
+            "Symptoms of a bad warehouse first implementation",
+            "What the warehouse should own",
+            "A better migration pattern: thin vertical slices",
+            "Modeling rules that prevent the mistake",
+            "Dashboard trust checklist for warehouse first analytics",
+            "When warehouse first is incomplete or the wrong emphasis",
+            "A practical repair plan if you already made the mistake"
+          ],
+          "has_article_body": true
+        }
+      ],
+      "portfolio_context": "Technical education for practicing and aspiring data engineers. Use small, explicitly hypothetical retail-order or customer-event fixtures where useful. Do not claim Jon implemented or tested anything without supplied evidence.",
+      "cross_brand_boundary": "Coldstart and this portfolio share seed concepts, not article prose. Create a fresh example, explanation, and diagnostic outcome. Do not copy or lightly rewrite Coldstart articles.",
+      "seed_origin": {
+        "brand": "Coldstart",
+        "slug": "exchange-rate-direction-and-inversion",
+        "snapshot_sha256": "07ea360d63d3b74952b290ee982fd3c3bec11622cdf1bdf932106a7823ea0020",
+        "adapted_on": "2026-09-23"
+      }
+    },
+    "sourceHash": "1e293ad2b876d2ab"
+  },
+  {
+    "slug": "percentage-points-versus-percentage-changes",
+    "title": "Percentage points versus percentage changes",
+    "primaryKeyword": "Percentage points versus percentage changes",
+    "relatedKeywords": [
+      "Percentage points versus percentage changes"
+    ],
+    "audience": "practitioners",
+    "updateFrequency": "never",
+    "intent": "How can practitioners use a worked comparison to distinguish absolute and relative change?",
+    "format": "Guide",
+    "category": "Data Modeling",
+    "editorialBrief": {
+      "topic": "Percentage points versus percentage changes",
+      "audience": "practitioners",
+      "update_frequency": "never",
+      "content_type": "durable",
+      "category": "Data Modeling",
+      "track": "Data Foundations",
+      "cluster": "numeric-correctness",
+      "primary_question": "How can practitioners use a worked comparison to distinguish absolute and relative change?",
+      "scope": [
+        "Use a worked comparison to distinguish absolute and relative change.",
+        "Numeric representation and aggregation; exclude tax or accounting advice."
+      ],
+      "exclusions": [
+        "Do not expand this into a general introduction to the entire category.",
+        "Do not repeat the Coldstart coverage listed in coldstart_coverage; link their background where useful.",
+        "Leave Exchange-rate direction and inversion to /writing/exchange-rate-direction-and-inversion/; its separate outcome is: Prevent multiplication versus division errors in currency normalization.",
+        "Leave Approximate distinct counts and error bounds to /writing/approximate-distinct-counts-and-error-bounds/; its separate outcome is: Explain acceptable estimation error without presenting estimates as exact.",
+        "Do not replace or retell the three existing in-progress portfolio notes.",
+        "Do not invent employment history, client stories, measurements, expert review, or first-person hands-on experience."
+      ],
+      "original_contribution": "Create numeric counterexamples and explicit calculation rules. Use it to use a worked comparison to distinguish absolute and relative change.",
+      "prerequisites": [
+        "floating-point-error-in-financial-analytics"
+      ],
+      "secondary_keywords": [],
+      "source_urls": [
+        "https://www.postgresql.org/docs/current/datatype-numeric.html",
+        "https://www.postgresql.org/docs/current/functions-aggregate.html",
+        "https://www.itl.nist.gov/div898/handbook/eda/section3/eda356.htm"
+      ],
+      "sources": [
+        {
+          "source_id": "pg-numeric",
+          "url": "https://www.postgresql.org/docs/current/datatype-numeric.html",
+          "title": "PostgreSQL: Documentation: 18: 8.1. Numeric Types",
+          "accessed_at": "2026-09-22T16:34:32.222891+00:00"
+        },
+        {
+          "source_id": "pg-aggregate",
+          "url": "https://www.postgresql.org/docs/current/functions-aggregate.html",
+          "title": "PostgreSQL: Documentation: 18: 9.21. Aggregate Functions",
+          "accessed_at": "2026-09-22T16:34:30.057160+00:00"
+        },
+        {
+          "source_id": "nist-scale",
+          "url": "https://www.itl.nist.gov/div898/handbook/eda/section3/eda356.htm",
+          "title": "1.3.5.6. Measures of Scale",
+          "accessed_at": "2026-09-22T20:47:48.322923+00:00"
+        }
+      ],
+      "evidence_requirements": [
+        "Check the cited primary sources and the original scope before writing; a research lead is not proof of a new claim.",
+        "Use a clearly labeled hypothetical example. Do not invent customer results, personal experience, expert review, or test execution.",
+        "Work through the proposed example or decision framework and verify its assumptions and conclusions before publication."
+      ],
+      "distinctness_rationale": "The article is limited to this deliverable: Use a worked comparison to distinguish absolute and relative change. Nearest legacy coverage is retained as background, not rewritten.",
+      "publication_order": 31,
+      "reviewed_distinctions": {},
+      "coldstart_coverage": [
+        {
+          "slug": "dashboard-trust-operator-checklist",
+          "title": "Dashboard Trust: Operator Checklist",
+          "score": 0.07,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "What dashboard trust actually means",
+            "1. Name the decision and the audience",
+            "2. Verify metric definitions before checking visuals",
+            "3. Trace the dashboard back to source systems",
+            "4. Check freshness against the decision cadence",
+            "5. Reconcile key numbers to trusted references",
+            "6. Add tests where dashboard failure would hurt",
+            "7. Confirm the dashboard explains itself",
+            "8. Assign ownership and control changes",
+            "9. Make access match the data sensitivity",
+            "10. Define what happens when a dashboard is wrong",
+            "A simple dashboard trust scorecard",
+            "Common dashboard trust failure modes",
+            "How to prioritize dashboard repairs"
+          ],
+          "has_article_body": true
+        },
+        {
+          "slug": "metric-definitions-reliability-field-note",
+          "title": "Metric Definitions: Reliability Field Note",
+          "score": 0.069,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "Field observation: the dashboard was not broken, the metric was undefined",
+            "What a useful metric definition includes",
+            "Why metric definitions fail in real data systems",
+            "Example: defining activation rate",
+            "A checklist for repairing an unreliable metric",
+            "How metric definitions connect to data modeling",
+            "Operator rules for dependable metric definitions",
+            "Where semantic layers help, and where they do not",
+            "A practical diagnostic for your next metric dispute"
+          ],
+          "has_article_body": true
+        },
+        {
+          "slug": "bi-governance-migration-playbook",
+          "title": "BI Governance: Migration Playbook",
+          "score": 0.067,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "Why BI governance matters during a migration",
+            "Define the governance scope before moving dashboards",
+            "Step 1: Inventory the current BI environment",
+            "Step 2: Classify what to migrate, retire, or redesign",
+            "Step 3: Standardize metric definitions before rebuilding charts",
+            "Step 4: Assign ownership and change control",
+            "Step 5: Build reliability into the migration",
+            "Step 6: Design permissions for safe self-service",
+            "Step 7: Run parallel validation before cutover",
+            "Step 8: Certify, launch, and monitor",
+            "Common BI governance migration failure modes",
+            "How to measure whether BI governance is working"
+          ],
+          "has_article_body": true
+        }
+      ],
+      "portfolio_context": "Technical education for practicing and aspiring data engineers. Use small, explicitly hypothetical retail-order or customer-event fixtures where useful. Do not claim Jon implemented or tested anything without supplied evidence.",
+      "cross_brand_boundary": "Coldstart and this portfolio share seed concepts, not article prose. Create a fresh example, explanation, and diagnostic outcome. Do not copy or lightly rewrite Coldstart articles.",
+      "seed_origin": {
+        "brand": "Coldstart",
+        "slug": "percentage-points-versus-percentage-changes",
+        "snapshot_sha256": "07ea360d63d3b74952b290ee982fd3c3bec11622cdf1bdf932106a7823ea0020",
+        "adapted_on": "2026-09-23"
+      }
+    },
+    "sourceHash": "fbcb24e138c578c1"
+  }
+]
