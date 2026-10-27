@@ -1,0 +1,1443 @@
+[
+  {
+    "slug": "relational-division-for-analytical-questions",
+    "title": "Relational division for analytical questions",
+    "description": "Learn how to answer analytical questions that ask which entities satisfy every requirement in a reference set, using relational division, anti-joins, and a small hypothetical retail dataset with counterexamples.",
+    "primaryKeyword": "Relational division for analytical questions",
+    "relatedKeywords": [
+      "Relational division for analytical questions"
+    ],
+    "category": "Data Modeling",
+    "level": "Intermediate",
+    "readTime": "8 min read",
+    "datePublished": "2026-10-26",
+    "dateModified": "2026-10-26",
+    "canonicalUrl": "https://jwatterson.com/writing/relational-division-for-analytical-questions",
+    "status": "published",
+    "sourceHash": "0bf1dbb243c1cbdb",
+    "lead": "Some analytical questions are not asking whether an entity has any matching record. They are asking whether the entity satisfies every member of a required set. That pattern is relational division. It appears in questions such as which customers bought every required item, which stores passed every audit check, which accounts have enabled every mandatory control, or which learners completed every course in a curriculum. The hard part is not writing a longer join. The hard part is preserving the meaning of “every” when there are duplicates, extra facts, missing facts, and filtered facts.",
+    "sections": [
+      {
+        "id": "the-shape-of-the-question",
+        "heading": "The shape of the question",
+        "paragraphs": [
+          "Relational division is the relational counterpart to “for all.” Given one relation that records facts about entities and requirements, and another relation that lists the required values, division returns the entities that have a fact for every required value. In analytics, the entity is often a customer, account, store, user, supplier, or device. The requirement set might be mandatory products, required checks, required features, required forms, or required milestones.",
+          "A common mistake is to treat this as an “any match” problem. A join from customers to purchases to required products can tell you which required products were purchased. It does not, by itself, tell you which customers purchased all required products. Another mistake is to count rows without first deciding the grain. If duplicate purchase rows exist, row counts can make an incomplete customer look complete.",
+          "The prerequisite modeling idea is simple but important: the relationship being divided should be understood at a stable grain. For this article, the logical question is customer by SKU. A customer either has at least one qualifying fulfilled purchase of a required SKU, or does not. Duplicate qualifying rows do not create additional requirement coverage. Extra non-required SKUs do not hurt. Returned or canceled items are not qualifying facts because the business question here says “fulfilled purchase.”"
+        ],
+        "bullets": [
+          "Dividend relation: qualifying facts, such as fulfilled customer SKU purchases.",
+          "Divisor relation: the reference set, such as required SKUs.",
+          "Quotient result: entities that cover every value in the reference set."
+        ],
+        "codeExamples": []
+      },
+      {
+        "id": "hypothetical-retail-fixture",
+        "heading": "A hypothetical retail fixture with counterexamples",
+        "paragraphs": [
+          "The following illustrative SQL uses a small hypothetical retail dataset. It is written in ordinary PostgreSQL-style common table expressions using VALUES so the example is self-contained. No execution result is claimed; the expected result is worked through below.",
+          "The reference set contains three required SKUs: R100, R200, and R300. Ada has all three, plus a duplicate row for R300. Ben has R100 twice and R200 once, but is missing R300. Cy has all three and an extra SKU. Dia has R100 and R300, but R200 was returned. Eli has R100 and R300, but R200 was canceled. The intended answer is Ada and Cy only."
+        ],
+        "bullets": [
+          "Ada qualifies because the duplicate does not matter and she covers all three required SKUs.",
+          "Ben does not qualify because duplicates of R100 cannot substitute for missing R300.",
+          "Cy qualifies because extra non-required SKU R999 does not disqualify him.",
+          "Dia and Eli do not qualify because returned and canceled rows are filtered out before evaluating coverage."
+        ],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "WITH\ncustomers(customer_id, customer_name) AS (\n  VALUES\n    (1, 'Ada'),\n    (2, 'Ben'),\n    (3, 'Cy'),\n    (4, 'Dia'),\n    (5, 'Eli')\n),\nrequired_skus(sku) AS (\n  VALUES\n    ('R100'),\n    ('R200'),\n    ('R300')\n),\npurchase_items(customer_id, sku, status) AS (\n  VALUES\n    (1, 'R100', 'fulfilled'),\n    (1, 'R200', 'fulfilled'),\n    (1, 'R300', 'fulfilled'),\n    (1, 'R300', 'fulfilled'),\n    (2, 'R100', 'fulfilled'),\n    (2, 'R100', 'fulfilled'),\n    (2, 'R200', 'fulfilled'),\n    (3, 'R100', 'fulfilled'),\n    (3, 'R200', 'fulfilled'),\n    (3, 'R300', 'fulfilled'),\n    (3, 'R999', 'fulfilled'),\n    (4, 'R100', 'fulfilled'),\n    (4, 'R200', 'returned'),\n    (4, 'R300', 'fulfilled'),\n    (5, 'R100', 'fulfilled'),\n    (5, 'R200', 'cancelled'),\n    (5, 'R300', 'fulfilled')\n)\nSELECT *\nFROM purchase_items;"
+          }
+        ]
+      },
+      {
+        "id": "division-with-double-not-exists",
+        "heading": "Division with double NOT EXISTS",
+        "paragraphs": [
+          "A direct way to express relational division in SQL is the double NOT EXISTS pattern. Read it inside out: for a given customer, there must not exist a required SKU for which there does not exist a qualifying fulfilled purchase. In plainer language, there is no missing required SKU.",
+          "This formulation is useful because it matches the semantics of “every.” It does not depend on row counts. It naturally ignores duplicate fulfilled rows because the inner EXISTS only asks whether at least one qualifying fact exists. It also ignores extra non-required facts because the outer loop is driven by the reference set, not by all purchased SKUs.",
+          "For the hypothetical fixture, Ada is returned because R100, R200, and R300 each have at least one fulfilled purchase for customer 1. Cy is returned for the same reason. Ben fails when the outer required SKU is R300. Dia fails when the required SKU is R200 because the only R200 row has status returned. Eli fails for R200 because the row is cancelled."
+        ],
+        "bullets": [],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "WITH\ncustomers(customer_id, customer_name) AS (\n  VALUES\n    (1, 'Ada'),\n    (2, 'Ben'),\n    (3, 'Cy'),\n    (4, 'Dia'),\n    (5, 'Eli')\n),\nrequired_skus(sku) AS (\n  VALUES\n    ('R100'),\n    ('R200'),\n    ('R300')\n),\npurchase_items(customer_id, sku, status) AS (\n  VALUES\n    (1, 'R100', 'fulfilled'),\n    (1, 'R200', 'fulfilled'),\n    (1, 'R300', 'fulfilled'),\n    (1, 'R300', 'fulfilled'),\n    (2, 'R100', 'fulfilled'),\n    (2, 'R100', 'fulfilled'),\n    (2, 'R200', 'fulfilled'),\n    (3, 'R100', 'fulfilled'),\n    (3, 'R200', 'fulfilled'),\n    (3, 'R300', 'fulfilled'),\n    (3, 'R999', 'fulfilled'),\n    (4, 'R100', 'fulfilled'),\n    (4, 'R200', 'returned'),\n    (4, 'R300', 'fulfilled'),\n    (5, 'R100', 'fulfilled'),\n    (5, 'R200', 'cancelled'),\n    (5, 'R300', 'fulfilled')\n)\nSELECT c.customer_id, c.customer_name\nFROM customers AS c\nWHERE NOT EXISTS (\n  SELECT 1\n  FROM required_skus AS r\n  WHERE NOT EXISTS (\n    SELECT 1\n    FROM purchase_items AS p\n    WHERE p.customer_id = c.customer_id\n      AND p.sku = r.sku\n      AND p.status = 'fulfilled'\n  )\n)\nORDER BY c.customer_id;"
+          }
+        ]
+      },
+      {
+        "id": "division-with-except",
+        "heading": "Division with EXCEPT",
+        "paragraphs": [
+          "Another readable formulation is to compute the set of missing requirements per entity. For each customer, subtract the customer’s fulfilled SKUs from the required SKUs. If the result is empty, the customer satisfies every requirement.",
+          "In PostgreSQL, EXCEPT returns rows from the first query that are not returned by the second query, using set semantics unless EXCEPT ALL is specified. The illustrative query below therefore treats repeated fulfilled purchases as one covered SKU, which is what this analytical question needs. The same caution applies as before: filter the fact relation to qualifying rows before comparing it with the reference set.",
+          "The EXCEPT version can be easier to debug because the missing set can be inspected directly. If the final predicate says NOT EXISTS around the missing set, then a failing customer can be diagnosed by running the inner EXCEPT for that customer and seeing which requirement remains."
+        ],
+        "bullets": [],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "WITH\ncustomers(customer_id, customer_name) AS (\n  VALUES\n    (1, 'Ada'),\n    (2, 'Ben'),\n    (3, 'Cy'),\n    (4, 'Dia'),\n    (5, 'Eli')\n),\nrequired_skus(sku) AS (\n  VALUES\n    ('R100'),\n    ('R200'),\n    ('R300')\n),\npurchase_items(customer_id, sku, status) AS (\n  VALUES\n    (1, 'R100', 'fulfilled'),\n    (1, 'R200', 'fulfilled'),\n    (1, 'R300', 'fulfilled'),\n    (1, 'R300', 'fulfilled'),\n    (2, 'R100', 'fulfilled'),\n    (2, 'R100', 'fulfilled'),\n    (2, 'R200', 'fulfilled'),\n    (3, 'R100', 'fulfilled'),\n    (3, 'R200', 'fulfilled'),\n    (3, 'R300', 'fulfilled'),\n    (3, 'R999', 'fulfilled'),\n    (4, 'R100', 'fulfilled'),\n    (4, 'R200', 'returned'),\n    (4, 'R300', 'fulfilled'),\n    (5, 'R100', 'fulfilled'),\n    (5, 'R200', 'cancelled'),\n    (5, 'R300', 'fulfilled')\n)\nSELECT c.customer_id, c.customer_name\nFROM customers AS c\nWHERE NOT EXISTS (\n  SELECT r.sku\n  FROM required_skus AS r\n  EXCEPT\n  SELECT p.sku\n  FROM purchase_items AS p\n  WHERE p.customer_id = c.customer_id\n    AND p.status = 'fulfilled'\n)\nORDER BY c.customer_id;"
+          }
+        ]
+      },
+      {
+        "id": "the-counting-counterexample",
+        "heading": "The counting counterexample",
+        "paragraphs": [
+          "Counting can be correct if the counted expression matches the logical grain, but a careless count is a common source of false positives. The following query is wrong for this problem because it counts rows, not distinct covered requirements. Ben has three fulfilled rows among required SKUs: R100, R100, and R200. A row count of three equals the number of required SKUs, so Ben would be incorrectly included despite missing R300.",
+          "This is the key modeling lesson: coverage is not the same as activity volume. A customer with many rows for one requirement may still be incomplete. A store with many passing checks in one category may still be missing another mandatory check. A user with many events for one onboarding step may still not have completed every step.",
+          "A count-based version can be repaired by counting distinct required values after applying the qualifying filter. Even then, be explicit about the reference set’s grain. If requirements are unique by SKU, count distinct SKU. If requirements are unique by jurisdiction and form type, count distinct pairs at that grain. If the reference table can contain duplicate requirement rows unintentionally, add a uniqueness constraint or derive a distinct reference set before division."
+        ],
+        "bullets": [],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "-- Counterexample: this is wrong because duplicate rows can hide missing requirements.\nWITH\nrequired_skus(sku) AS (\n  VALUES ('R100'), ('R200'), ('R300')\n),\npurchase_items(customer_id, sku, status) AS (\n  VALUES\n    (2, 'R100', 'fulfilled'),\n    (2, 'R100', 'fulfilled'),\n    (2, 'R200', 'fulfilled')\n)\nSELECT p.customer_id\nFROM purchase_items AS p\nWHERE p.status = 'fulfilled'\n  AND p.sku IN (SELECT sku FROM required_skus)\nGROUP BY p.customer_id\nHAVING COUNT(*) >= (SELECT COUNT(*) FROM required_skus);"
+          },
+          {
+            "language": "sql",
+            "code": "-- Safer count-based shape for a non-empty reference set.\n-- The counted expression is the distinct requirement value, not the row count.\nSELECT p.customer_id\nFROM purchase_items AS p\nJOIN required_skus AS r\n  ON r.sku = p.sku\nWHERE p.status = 'fulfilled'\nGROUP BY p.customer_id\nHAVING COUNT(DISTINCT r.sku) = (SELECT COUNT(*) FROM required_skus);"
+          }
+        ]
+      },
+      {
+        "id": "modeling-decisions-before-querying",
+        "heading": "Modeling decisions before querying",
+        "paragraphs": [
+          "Before writing a division query, decide what belongs in the divisor and what counts as a matching fact. The divisor should be the authoritative reference set for the question. If the question is “which customers bought every required SKU in the starter kit,” then required_skus should contain the starter kit SKUs at the intended grain. If the question is “which accounts enabled every mandatory security control for their plan,” the divisor may depend on plan, region, or account type. That makes the reference set conditional, not global.",
+          "The qualifying fact relation should also be narrowed before division. In the example, only fulfilled purchase rows count. That filter is part of the semantics, not an optimization detail. If the filter is applied after division, returned or canceled rows can produce incorrect coverage. In dimensional models, this often means building or selecting a business-ready fact view whose grain and status rules are already clear.",
+          "Also decide how to handle an empty reference set. In classical logic, every entity satisfies every requirement in an empty set because there is no missing requirement. The double NOT EXISTS query follows that vacuous truth interpretation and would return all customers if required_skus were empty. That may be exactly right for some questions and surprising for others. If the business meaning requires at least one active requirement, enforce that separately with a data quality check or an explicit predicate."
+        ],
+        "bullets": [
+          "Name the entity being returned.",
+          "Name the requirement set and its key.",
+          "Name the qualifying fact and its grain.",
+          "Filter facts before testing coverage.",
+          "Document the intended behavior when the requirement set is empty."
+        ],
+        "codeExamples": []
+      },
+      {
+        "id": "diagnostic-checklist",
+        "heading": "A diagnostic checklist for analytical division",
+        "paragraphs": [
+          "When a query that should mean “every” produces suspicious results, inspect it using small counterexamples rather than a large dashboard aggregate. Add one entity with all requirements, one with a duplicate but a missing requirement, one with extra facts, and one with a non-qualifying status. If the query cannot classify those four cases correctly, it is not expressing relational division correctly.",
+          "Then inspect the keys. The reference set should not have accidental duplicates at the requirement grain. PostgreSQL documentation describes unique and primary key constraints as ways to enforce uniqueness in table definitions; the same modeling principle applies even when the example is implemented as a view or transformation. For production models, a required_skus table would usually have a key or uniqueness rule on sku, or on the full composite requirement grain.",
+          "Finally, separate semantic correctness from engine tuning. Indexes, join order, and materialization can matter for large data, but they should not change the answer. Start with the relational meaning: no required value is missing for the entity. Once the answer is correct on counterexamples, performance work can preserve that meaning at scale."
+        ],
+        "bullets": [
+          "If duplicates change the answer, the query is probably counting rows instead of requirements.",
+          "If extras disqualify an entity, the query may be testing exact equality of sets when it should test containment.",
+          "If returned or canceled facts qualify, the status filter is in the wrong place or missing.",
+          "If an empty reference set returns surprising results, the business rule for empty requirements is undefined."
+        ],
+        "codeExamples": []
+      }
+    ],
+    "takeaways": [
+      "Relational division answers “which entities satisfy every requirement in this reference set,” not “which entities have any matching row.”",
+      "Use double NOT EXISTS or an EXCEPT-based missing-set query to express “no required value is missing.”",
+      "Duplicates, extra facts, and non-qualifying statuses are the fastest way to find whether a query really models coverage.",
+      "Count-based solutions must count distinct requirement values at the correct grain, not fact rows.",
+      "Define the empty-reference-set behavior explicitly because the mathematically natural answer may not match business expectations."
+    ],
+    "sources": [
+      {
+        "title": "Chapter 8. Data Normalisation",
+        "url": "https://www.cs.uct.ac.za/mit_notes/database/htmls/chp08.html"
+      },
+      {
+        "title": "PostgreSQL: Documentation: 18: 5.5. Constraints",
+        "url": "https://www.postgresql.org/docs/current/ddl-constraints.html"
+      },
+      {
+        "title": "PostgreSQL: Documentation: 18: 7.2. Table Expressions",
+        "url": "https://www.postgresql.org/docs/current/queries-table-expressions.html"
+      }
+    ],
+    "requiresVerification": false,
+    "verificationNotes": []
+  },
+  {
+    "slug": "floating-point-error-in-financial-analytics",
+    "title": "Floating-point error in financial analytics",
+    "description": "A practical guide to demonstrating representation error in repeated decimal arithmetic, using a hypothetical retail discount counterexample and explicit calculation rules.",
+    "primaryKeyword": "Floating-point error in financial analytics",
+    "relatedKeywords": [
+      "Floating-point error in financial analytics"
+    ],
+    "category": "Data Modeling",
+    "level": "Intermediate",
+    "readTime": "7 min",
+    "datePublished": "2026-10-26",
+    "dateModified": "2026-10-26",
+    "canonicalUrl": "https://jwatterson.com/writing/floating-point-error-in-financial-analytics",
+    "status": "published",
+    "sourceHash": "b1eff4cf3ad25658",
+    "lead": "Floating-point error in financial analytics is easiest to understand when you stop treating it as a mysterious database or programming-language quirk and model it as a representation problem. Some decimal values that are ordinary in commerce, such as 0.10 dollars, do not have a finite binary fractional representation. If those approximations are stored or repeatedly aggregated, the residual can become visible in totals, reconciliations, and equality checks. This article uses a deliberately small hypothetical retail example and explicit arithmetic rules to show the mechanism without giving tax, accounting, or system-specific advice.",
+    "sections": [
+      {
+        "id": "the-reader-problem",
+        "heading": "The reader problem: repeated decimal arithmetic looks exact until it is not",
+        "paragraphs": [
+          "A data engineer may receive order events with line-item discounts, loyalty credits, refunds, or fees. The business concept is decimal: a 10-cent promotion is exactly 0.10 dollars, and 10,000 such promotions should total exactly 1,000.00 dollars. The analytics system, however, may represent the value with a binary floating-point type somewhere in the path: ingestion code, a transformation engine, a warehouse column, a feature store, or a notebook used for reconciliation.",
+          "The risk is not that every floating-point total will be visibly wrong. Modern binary floating-point formats are much finer than the toy model used below, and many reports round for display. The practical problem is subtler: values that are exact in the business domain can be approximate in the computational domain. Repetition, joins, regrouping, subtraction of nearly equal totals, and equality comparisons can expose the approximation.",
+          "PostgreSQL’s documentation makes the modeling distinction directly: numeric values can be stored with exact precision, while floating-point types are inexact. Its aggregate documentation also matters because totals are produced by aggregate functions whose return behavior depends on the input type. The durable lesson is not specific to PostgreSQL: before choosing a representation for financial analytics, make sure the representation matches the question you intend to answer."
+        ],
+        "bullets": [],
+        "codeExamples": []
+      },
+      {
+        "id": "why-one-tenth-is-not-a-binary-fraction",
+        "heading": "Why 0.10 is not exactly representable as a finite binary fraction",
+        "paragraphs": [
+          "A finite decimal fraction can be written as an integer divided by a power of 10. For example, 0.10 is 1/10, and 0.01 is 1/100. A finite binary fraction can be written as an integer divided by a power of 2. For example, 0.125 is 1/8, and 0.5 is 1/2.",
+          "Now ask whether 0.10 can be represented as a finite binary fraction. If it could, there would be integers k and n such that 1/10 = k / 2^n. Rearranging gives 10k = 2^n. The left side has a factor of 5 because 10 = 2 × 5. The right side is a power of 2 and has no factor of 5. That contradiction means no such finite binary representation exists.",
+          "The same argument applies to cents. One cent is 1/100. Since 100 = 2^2 × 5^2, a denominator of 100 contains factors of 5. A denominator that is only a power of 2 cannot exactly equal it after simplification. Some cent amounts are exactly representable in binary, such as 0.25 or 0.50 dollars, because their reduced fractions have denominators that are powers of 2. Many other ordinary amounts are not.",
+          "This proof does not depend on any particular database engine. It explains why a system using binary floating-point arithmetic must store a nearby value for many decimal amounts. The remaining engineering question is how to make that invisible approximation visible enough to reason about it."
+        ],
+        "bullets": [],
+        "codeExamples": []
+      },
+      {
+        "id": "a-toy-counterexample-with-explicit-rules",
+        "heading": "A toy counterexample with explicit calculation rules",
+        "paragraphs": [
+          "The following counterexample uses a hypothetical retail dataset and a deliberately coarse binary representation. It is not claiming that a production floating-point type stores values this coarsely. The point is to isolate the mechanism: repeated storage of a decimal value as a nearby binary fraction changes the aggregate.",
+          "Assume a retailer issues a 10-cent discount on every eligible order. The exact business amount per order is 0.10 dollars. To make representation error easy to calculate by hand, use this toy storage rule: every amount must be stored as an integer multiple of 1/1024 dollar, and each incoming amount is replaced by the nearest such multiple. If there is a tie, round upward. This is a binary fractional grid because 1024 is 2^10.",
+          "Now store 0.10 dollars. Since 0.10 × 1024 = 102.4, the nearest grid point is 102/1024, not 103/1024. The stored value is therefore 0.099609375 dollars. The per-row representation error is 0.099609375 - 0.10 = -0.000390625 dollars.",
+          "For 10,000 hypothetical discount rows, the exact business total is 10,000 × 0.10 = 1,000.00 dollars. If every row is first replaced by the toy binary approximation and then summed, the stored-row total is 10,000 × 0.099609375 = 996.09375 dollars. The residual is -3.90625 dollars.",
+          "That residual is intentionally large because the toy grid is coarse. A real double-precision binary float uses many more bits than this toy representation, so this example must not be read as a performance or accuracy benchmark for a particular type. Its value is diagnostic: it proves that repeated decimal arithmetic can accumulate representation error even when each individual input looked harmless."
+        ],
+        "bullets": [
+          "Exact business value per row: 0.10 dollars.",
+          "Toy binary grid: multiples of 1/1024 dollar.",
+          "Stored toy value per row: 102/1024 = 0.099609375 dollars.",
+          "Per-row residual: -0.000390625 dollars.",
+          "Exact total for 10,000 rows: 1,000.00 dollars.",
+          "Toy stored-row total for 10,000 rows: 996.09375 dollars.",
+          "Aggregate residual: -3.90625 dollars."
+        ],
+        "codeExamples": [
+          {
+            "language": "python",
+            "code": "from fractions import Fraction\n\n# Hypothetical retail discount: $0.10 per order.\n# Toy representation rule: store each amount as the nearest multiple of 1/1024 dollar.\n# This script uses exact rational arithmetic to demonstrate the representation step.\n\ndef quantize_to_1024(x: Fraction) -> Fraction:\n    scaled = x * 1024\n    # nearest integer, ties upward; all values in this example are positive\n    units = (scaled.numerator * 2 + scaled.denominator) // (2 * scaled.denominator)\n    return Fraction(units, 1024)\n\norders = 10_000\nexact_each = Fraction(10, 100)\nstored_each = quantize_to_1024(exact_each)\nexact_total = exact_each * orders\nstored_total = stored_each * orders\nresidual = stored_total - exact_total\n\nprint(f\"exact_each={float(exact_each):.9f}\")\nprint(f\"stored_each={float(stored_each):.9f}\")\nprint(f\"exact_total={float(exact_total):.5f}\")\nprint(f\"stored_total={float(stored_total):.5f}\")\nprint(f\"residual={float(residual):.5f}\")\n\n# Expected output:\n# exact_each=0.100000000\n# stored_each=0.099609375\n# exact_total=1000.00000\n# stored_total=996.09375\n# residual=-3.90625"
+          }
+        ]
+      },
+      {
+        "id": "what-the-example-diagnoses",
+        "heading": "What this example diagnoses in a real analytics pipeline",
+        "paragraphs": [
+          "The toy example separates three concepts that are often blurred during pipeline debugging. First, there is the business value: the value domain says a discount is exactly 10 cents. Second, there is the stored representation: the computational domain may use a nearby binary value. Third, there is the aggregate: repeated arithmetic combines the stored values, not the business values you had in mind.",
+          "A useful diagnostic is to build an invariant using a representation that matches the business domain. For a hypothetical order-discount table, store or derive an integer-cent column and compare it with the floating-derived total. The invariant is simple: if every eligible order receives exactly 10 cents, then the cent total must equal eligible_order_count × 10. If a floating-derived dollars total is used, do not compare it with exact equality unless you intentionally chose a representation where exact equality is valid.",
+          "The diagnostic should be scoped narrowly. It is not a full accounting reconciliation, and it is not a recommendation about tax treatment, revenue recognition, or presentation rounding. It is a numeric-correctness check: can the pipeline preserve repeated decimal amounts well enough for the analytic question? If the question is financial and exact cents matter, an integer minor-unit representation or an exact decimal type is usually a better starting point than binary floating point.",
+          "In PostgreSQL terms, this distinction maps to documented type behavior: numeric is designed for exact numeric storage, while real and double precision are inexact floating-point types. Aggregate functions such as sum then operate over the chosen input type. The implementation details of a production schema, including decimal precision and scale, are a separate modeling decision. This article’s narrower purpose is to show why the distinction matters before that choice is made."
+        ],
+        "bullets": [],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "-- Illustrative PostgreSQL 18-style diagnostic sketch, not an executed result.\n-- The goal is to compare an exact minor-unit invariant with a floating-derived total.\n\nWITH hypothetical_orders(order_id, discount_cents) AS (\n  VALUES\n    (1, 10),\n    (2, 10),\n    (3, 10),\n    (4, 10),\n    (5, 10)\n)\nSELECT\n  COUNT(*) AS order_count,\n  SUM(discount_cents) AS exact_discount_cents,\n  COUNT(*) * 10 AS expected_discount_cents,\n  SUM(discount_cents)::numeric / 100 AS exact_discount_dollars,\n  SUM((discount_cents::double precision) / 100.0) AS floating_derived_dollars\nFROM hypothetical_orders;"
+          }
+        ]
+      },
+      {
+        "id": "a-simple-rule-for-practitioners",
+        "heading": "A simple rule for practitioners",
+        "paragraphs": [
+          "Use floating-point arithmetic when small representation differences are acceptable for the analytic purpose, such as many scientific, statistical, or approximate operational metrics. Be more cautious when the values are financial amounts, contractual quantities, ledger-like balances, or reconciliation inputs. In those domains, users often expect decimal identities to hold: 10,000 ten-cent discounts should reconcile to exactly 1,000.00 dollars before any explicitly defined rounding or adjustment.",
+          "The practical rule is: represent financial amounts in the smallest exact unit you need, or use an exact decimal type whose precision and scale are chosen deliberately. Then aggregate in that representation for reconciliation. Convert to a display format at the edge. If a floating-point value enters the pipeline because of a source system, file format, or modeling shortcut, add a diagnostic that compares it with an exact-domain invariant before the value becomes a trusted financial aggregate.",
+          "There is also a communication benefit. When an analyst sees a residual, the explanation should not be “computers are weird.” A better explanation is: the business value was a decimal fraction; the chosen computational representation was a binary approximation; repeated aggregation combined the approximations; here is the exact invariant that shows the difference. That explanation is testable and repairable.",
+          "Keep the scope disciplined. Choosing a decimal precision and scale, deciding where rounding should occur, and defining accounting policy are separate decisions. The representation-error demonstration only answers one foundational question: can repeated decimal arithmetic drift because the stored number is not the exact decimal number? Yes, and the counterexample above shows the mechanism."
+        ],
+        "bullets": [],
+        "codeExamples": []
+      }
+    ],
+    "takeaways": [
+      "Many ordinary financial decimals, including 0.10 and 0.01, do not have finite binary fractional representations.",
+      "Repeated aggregation can expose representation error because the aggregate combines stored approximations, not the exact decimal values users have in mind.",
+      "A small hypothetical counterexample with explicit binary-grid rules is enough to demonstrate the mechanism without relying on a specific database result.",
+      "For financial analytics that must reconcile exactly, prefer integer minor units or exact decimal types, and use diagnostics that compare aggregates with exact-domain invariants."
+    ],
+    "sources": [
+      {
+        "title": "PostgreSQL: Documentation: 18: 8.1. Numeric Types",
+        "url": "https://www.postgresql.org/docs/current/datatype-numeric.html"
+      },
+      {
+        "title": "PostgreSQL: Documentation: 18: 9.21. Aggregate Functions",
+        "url": "https://www.postgresql.org/docs/current/functions-aggregate.html"
+      }
+    ],
+    "requiresVerification": false,
+    "verificationNotes": []
+  },
+  {
+    "slug": "fixed-point-decimal-precision-and-scale",
+    "title": "Fixed-point decimal precision and scale",
+    "description": "A practical guide to choosing DECIMAL precision and scale for stored facts and intermediate calculations, with worked capacity rules and a hypothetical retail-order example.",
+    "primaryKeyword": "Fixed-point decimal precision and scale",
+    "relatedKeywords": [
+      "Fixed-point decimal precision and scale"
+    ],
+    "category": "Data Modeling",
+    "level": "Intermediate",
+    "readTime": "8 min read",
+    "datePublished": "2026-10-26",
+    "dateModified": "2026-10-26",
+    "canonicalUrl": "https://jwatterson.com/writing/fixed-point-decimal-precision-and-scale",
+    "status": "published",
+    "sourceHash": "08d0c3b0813061ab",
+    "lead": "Fixed-point decimal types are chosen twice: once for the values you store, and again for the calculations those values must survive. A column that fits every incoming price can still fail when prices are multiplied by quantities, summed across a batch, or squared for a statistical feature. The practical question is not “what DECIMAL type do we usually use?” It is “what maximum value, fractional detail, and intermediate expansion must this fact support?”",
+    "sections": [
+      {
+        "id": "precision-scale-and-capacity",
+        "heading": "Precision, scale, and capacity are separate decisions",
+        "paragraphs": [
+          "Most SQL systems expose fixed-point decimal numbers with a declaration like DECIMAL(p, s) or NUMERIC(p, s). PostgreSQL 18 documentation describes precision as the total count of significant digits and scale as the count of digits to the right of the decimal point. The remaining capacity, p minus s, is the number of digits available to the left of the decimal point.",
+          "That definition is simple, but the modeling consequence is easy to miss. DECIMAL(10, 2) is not “a money type.” It is a capacity promise: up to eight integer digits and two fractional digits, subject to the exact behavior of the database engine. A value such as 12345678.90 fits. A value such as 123456789.00 needs nine integer digits and does not fit. A value such as 12.345 has more fractional detail than the type stores.",
+          "For data engineering work, capacity should be selected from explicit assumptions. Those assumptions usually include the largest absolute stored value, the smallest unit of measurement that must be preserved, the largest group size used in aggregates, and the operations used in derived facts. This article focuses on representation and aggregation mechanics only. It does not provide tax, accounting, or financial policy advice."
+        ],
+        "bullets": [
+          "Precision p: total digits available for the value, excluding sign and decimal separator.",
+          "Scale s: digits available after the decimal point.",
+          "Integer digit capacity: p minus s.",
+          "Stored value question: what is the largest absolute value and how many fractional digits must be preserved?",
+          "Intermediate question: how much can multiplication, summation, or other transformations expand the value before final storage?"
+        ],
+        "codeExamples": []
+      },
+      {
+        "id": "rules-for-stored-facts",
+        "heading": "Choose stored column capacity from range and fractional detail",
+        "paragraphs": [
+          "Start with the physical fact being stored, not with a familiar default. A stored column needs enough integer digits for the largest value that should be valid, and enough fractional digits for the smallest unit that should survive ingestion. If a hypothetical retail order line stores a unit price up to 9,999.99, the price needs four integer digits and two fractional digits, so DECIMAL(6, 2) is the smallest matching declaration. If the unit price can reach 10,000.00, the integer requirement becomes five digits, so DECIMAL(7, 2) is the smallest matching declaration.",
+          "Quantities deserve the same treatment. A store that only sells whole units may model quantity as an integer. A store that sells fabric, produce, or fuel may need fractional units. If a hypothetical quantity can be as high as 999.999 units, it needs three integer digits and three fractional digits, so DECIMAL(6, 3) is the smallest matching declaration.",
+          "Avoid choosing scale from display formatting alone. A dashboard may show two decimals, but an upstream operational value may need three or six decimals to support later calculations. Conversely, preserving unnecessary fractional detail can make schemas harder to reason about and may increase storage or compute costs depending on the engine. The durable decision is not “more decimals are safer.” The durable decision is “store the detail the business fact actually carries, then explicitly choose where derived outputs are rounded.”"
+        ],
+        "bullets": [
+          "Rule 1: integer_digits = digits needed for the maximum absolute valid value before the decimal point.",
+          "Rule 2: scale = fractional digits needed for the smallest valid stored unit.",
+          "Rule 3: precision = integer_digits + scale.",
+          "Rule 4: keep the sign out of the precision calculation; negative values still need the same digit capacity as their absolute value.",
+          "Rule 5: document whether the declared maximum is a physical limit, a business rule, or only an observed historical maximum."
+        ],
+        "codeExamples": []
+      },
+      {
+        "id": "rules-for-intermediate-calculations",
+        "heading": "Intermediate calculations need their own capacity budget",
+        "paragraphs": [
+          "A common failure mode is sizing every stored field correctly, then using the same size for derived fields. Multiplication and aggregation expand numeric capacity. If the intermediate result is held in a column, materialized model, staging table, or data frame with insufficient fixed-point capacity, the pipeline may overflow, truncate, or round earlier than intended.",
+          "For multiplication, add the integer capacities and add the scales. Suppose unit_price is DECIMAL(6, 2), so it has four integer digits and two fractional digits. Suppose quantity is DECIMAL(6, 3), so it has three integer digits and three fractional digits. The exact product can require seven integer digits and five fractional digits. The smallest fixed-point capacity for the unrounded product is DECIMAL(12, 5).",
+          "The arithmetic checks out at the boundary. The largest unit_price under DECIMAL(6, 2) is 9,999.99. The largest quantity under DECIMAL(6, 3) is 999.999. Their product is 9,999,980.00001. That value has seven integer digits and five fractional digits, exactly matching DECIMAL(12, 5).",
+          "For summation, keep the scale of the addends and add enough integer digits for the group size. If each line amount can have seven integer digits and five fractional digits, summing up to 250,000 lines can require 13 integer digits, because 250,000 introduces six orders of magnitude of expansion. The conservative rule is integer_digits_for_sum = integer_digits_of_addend + ceiling(log10(max_row_count)), with ceiling(log10(1)) treated as 0. The scale stays five if you are summing the unrounded line amounts.",
+          "That gives DECIMAL(18, 5) for the daily unrounded line sum: 13 integer digits plus five fractional digits. The boundary example is 9,999,980.00001 multiplied by 250,000, which equals 2,499,995,000,002.50000. A daily aggregate declared as DECIMAL(12, 2) would be too small by integer capacity, even though it looks like a large money field."
+        ],
+        "bullets": [
+          "Multiplication rule: result integer digits = left integer digits + right integer digits; result scale = left scale + right scale.",
+          "Summation rule: result scale = addend scale; result integer digits = addend integer digits + ceiling(log10(maximum number of addends)).",
+          "Average rule: the average of nonnegative values does not exceed the maximum input value, but the sum used to compute it still needs summation capacity.",
+          "Subtraction rule: capacity usually matches the larger absolute input range, but signed results may need to be allowed even when both source columns are nonnegative.",
+          "Division rule: choose output scale deliberately; division can create repeating decimals, so the result scale is a modeling decision rather than a natural consequence of the inputs."
+        ],
+        "codeExamples": []
+      },
+      {
+        "id": "worked-hypothetical-retail-example",
+        "heading": "Worked example: hypothetical retail order facts",
+        "paragraphs": [
+          "Consider a hypothetical retail-order model with three values: unit_price, quantity, and daily gross merchandise value. The assumptions are intentionally explicit. Unit price is valid from 0.00 through 9,999.99. Quantity is valid from 0.000 through 999.999. A daily sales aggregate can include at most 250,000 order lines. The model wants to keep unrounded line arithmetic until the final aggregate is produced.",
+          "The stored unit_price requires four integer digits and two fractional digits, so DECIMAL(6, 2) is sufficient. The stored quantity requires three integer digits and three fractional digits, so DECIMAL(6, 3) is sufficient. Those two choices are fine for stored inputs, but neither is sufficient for the line amount. The unrounded line amount requires DECIMAL(12, 5), as shown by the boundary product 9,999.99 times 999.999 equals 9,999,980.00001.",
+          "Now size the daily aggregate. The largest possible unrounded line amount is 9,999,980.00001. The largest daily group has 250,000 lines. The maximum daily sum under those assumptions is 2,499,995,000,002.50000. That requires 13 integer digits and five fractional digits. Therefore the intermediate daily sum needs DECIMAL(18, 5) if it preserves the unrounded line scale.",
+          "A counterexample makes the risk concrete. Suppose a developer stores line_amount as DECIMAL(10, 2) because displayed currency has two decimals. The boundary product cannot be represented at full detail because it has seven integer digits and five fractional digits. Suppose another developer skips line storage but declares the daily aggregate as DECIMAL(12, 2). That aggregate allows only ten integer digits, so it cannot hold 2,499,995,000,002.50. Both schemas can pass casual tests with small orders and still fail under valid inputs.",
+          "The right final storage type may differ from the right intermediate type. If the published daily metric is intentionally defined at two decimal places, final storage might use two fractional digits after an explicit rounding rule. But the calculation leading to that final value still needs enough capacity for the unrounded product and the unrounded sum. Capacity design should make that distinction visible."
+        ],
+        "bullets": [
+          "Input unit_price: DECIMAL(6, 2), based on 9,999.99 maximum.",
+          "Input quantity: DECIMAL(6, 3), based on 999.999 maximum.",
+          "Intermediate line_amount: DECIMAL(12, 5), based on multiplying price by quantity.",
+          "Intermediate daily sum for up to 250,000 lines: DECIMAL(18, 5).",
+          "Potential final reporting value: separately defined, with its own rounding and storage policy."
+        ],
+        "codeExamples": []
+      },
+      {
+        "id": "diagnostic-for-existing-models",
+        "heading": "A diagnostic for existing decimal models",
+        "paragraphs": [
+          "Existing warehouses often contain decimal choices that were copied from earlier tables. A quick diagnostic is to reverse engineer the implied assumptions and compare them with the business process. For every fixed-point fact, write down the largest representable positive value, the stored fractional unit, and the largest intermediate expression that uses it.",
+          "For a DECIMAL(10, 2) amount, the implied maximum is 99,999,999.99. That may be plenty for an order line and too small for a daily marketplace total. For a DECIMAL(8, 6) ratio, the implied maximum is 99.999999. That may fit a percentage stored as 0 to 1, but it may hide an unclear convention if some teams store 25 percent as 0.25 and others store it as 25.000000.",
+          "The diagnostic should also cover non-money facts. Kimball’s dimensional modeling guidance treats lags and durations as facts that can be stored and analyzed. A shipment duration, processing latency, energy usage measure, or model feature can have the same precision and scale problems as currency. Separately, be aware that “scale” also has a statistical meaning, such as measures of spread described by NIST. Decimal scale in DECIMAL(p, s) is about digits after the decimal point; statistical scale is about variability. Confusing the two can lead to unclear design conversations."
+        ],
+        "bullets": [
+          "List every DECIMAL or NUMERIC column used as a fact, measure, or model feature.",
+          "For each column, compute integer digit capacity as precision minus scale.",
+          "State the largest valid source value, not just the largest value observed so far.",
+          "Trace multiplication, summation, averages, ratios, and squared terms that use the column.",
+          "Check whether staging tables and materialized aggregates have enough capacity for intermediate results, not only final display values.",
+          "Record the rounding point separately from the storage capacity decision."
+        ],
+        "codeExamples": []
+      },
+      {
+        "id": "tradeoffs-and-practical-defaults",
+        "heading": "Tradeoffs and practical defaults",
+        "paragraphs": [
+          "The safest-looking type is not always the best model. Extremely wide decimals can obscure the real domain, allow impossible values, and make downstream contracts vague. Very narrow decimals create overflow and premature rounding risk. The useful middle ground is a documented capacity envelope: what the value means, how large it can be, how much fractional detail matters, and how calculations expand it.",
+          "When the true maximum is unknown, choose a defensible ceiling and label it as a business assumption. For example, “daily order lines are capped at 250,000 for this aggregate” is better than silently choosing DECIMAL(18, 2). If the ceiling changes, the schema can be reviewed with a known reason. This is especially important for backfills and migrations, where historical volume may exceed current operational expectations.",
+          "The core habit is to size facts from their domain and size calculations from their expressions. Stored unit_price, stored quantity, unrounded line_amount, daily sum, and published daily metric are different numeric artifacts. They may all describe the same business process, but they do not all need the same precision and scale."
+        ],
+        "bullets": [
+          "Use narrow types when the domain is genuinely narrow and stable.",
+          "Use wider intermediate types when multiplication or aggregation expands capacity.",
+          "Do not rely on display formatting as a substitute for numeric modeling.",
+          "Treat maximum group size as part of the aggregate contract.",
+          "Document assumptions so future schema changes can be reviewed instead of guessed."
+        ],
+        "codeExamples": []
+      }
+    ],
+    "takeaways": [
+      "DECIMAL(p, s) is a capacity contract: p is total digits, s is fractional digits, and p minus s is integer digit capacity.",
+      "Stored values and intermediate calculations should be sized separately; multiplication adds integer capacities and scales, while summation expands integer capacity by group size.",
+      "A schema can fit every input value and still fail on valid aggregates if intermediate line amounts or grouped sums are undersized.",
+      "Use explicit assumptions for maximum values, fractional units, and maximum row counts instead of copying a familiar decimal type."
+    ],
+    "sources": [
+      {
+        "title": "PostgreSQL: Documentation: 18: 8.1. Numeric Types",
+        "url": "https://www.postgresql.org/docs/current/datatype-numeric.html"
+      },
+      {
+        "title": "1.3.5.6. Measures of Scale",
+        "url": "https://www.itl.nist.gov/div898/handbook/eda/section3/eda356.htm"
+      },
+      {
+        "title": "Lag/Duration Facts - Kimball Group",
+        "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/lag-duration-fact/"
+      }
+    ],
+    "requiresVerification": false,
+    "verificationNotes": []
+  },
+  {
+    "slug": "rounding-at-ingestion-versus-presentation",
+    "title": "Rounding at ingestion versus presentation",
+    "description": "A practical guide to showing how rounding before or after aggregation changes reconciled totals, with explicit rules, a hypothetical retail example, and a diagnostic SQL pattern.",
+    "primaryKeyword": "Rounding at ingestion versus presentation",
+    "relatedKeywords": [
+      "Rounding at ingestion versus presentation"
+    ],
+    "category": "Data Modeling",
+    "level": "Intermediate",
+    "readTime": "7 min",
+    "datePublished": "2026-10-26",
+    "dateModified": "2026-10-26",
+    "canonicalUrl": "https://jwatterson.com/writing/rounding-at-ingestion-versus-presentation",
+    "status": "published",
+    "sourceHash": "2d4673fba8357a2e",
+    "lead": "Rounding is not just a display concern. If a pipeline rounds at ingestion and a report rounds at presentation, both can be internally consistent while producing different reconciled totals. The fix is not to declare one number “right” by habit. The fix is to define the grain, the stored measure, the aggregation rule, and the rounding stage explicitly.",
+    "sections": [
+      {
+        "id": "the-problem",
+        "heading": "The problem: rounding is a transformation, not formatting",
+        "paragraphs": [
+          "A common reconciliation failure starts with two reasonable-sounding rules. One system stores each transaction line rounded to cents as soon as it arrives. Another system stores the unrounded decimal amount and rounds only the final report total. Neither rule is inherently irrational. The problem is that they answer different questions.",
+          "If the business question is “what is the sum of the displayed line amounts?”, then summing rounded line values is consistent. If the question is “what is the rounded value of the mathematically aggregated raw amounts?”, then rounding after aggregation is consistent. Those questions often appear under the same metric name, such as revenue, sales, charge amount, or net amount.",
+          "This article is limited to numeric representation and aggregation. It is not tax, invoicing, or accounting advice. Real organizations may have external rules that dictate the required rounding stage. The data engineering task is to make the rule visible, reproducible, and reconcilable instead of letting it emerge accidentally from pipeline order."
+        ],
+        "bullets": [],
+        "codeExamples": []
+      },
+      {
+        "id": "two-explicit-rules",
+        "heading": "Two explicit rules that produce different totals",
+        "paragraphs": [
+          "Use a deliberately small hypothetical retail dataset. Amounts are shown in dollars with three decimal places because upstream calculations can produce fractions of a cent after discounts, unit conversions, loyalty allocations, or currency-rate application. The example avoids half-cent ties so the result does not depend on a tie-breaking convention.",
+          "Define the rounding function for this example as ordinary rounding to two decimal places: 4.334 becomes 4.33, 2.336 becomes 2.34, and 13.002 becomes 13.00. The important point is not the name of the rounding mode. The important point is that the same rounding function is applied at different stages.",
+          "Rule A is ingestion rounding: round each line amount to two decimals when loading the line fact, then aggregate the stored rounded line amount. Rule B is presentation rounding: store the unrounded decimal line amount, aggregate those unrounded values, then round the final result for display.",
+          "Consider order O1001 with three line amounts: 4.334, 4.334, and 4.334. Under Rule A, each line becomes 4.33 and the order total is 12.99. Under Rule B, the raw sum is 13.002 and the displayed order total is 13.00. The same source lines reconcile to different order totals, with a difference of 0.01.",
+          "Now consider order O1002 with three line amounts: 2.336, 2.336, and 2.336. Under Rule A, each line becomes 2.34 and the order total is 7.02. Under Rule B, the raw sum is 7.008 and the displayed order total is 7.01. The difference is again 0.01, but in the opposite direction.",
+          "At the daily grain, these two orders can appear to reconcile by coincidence. The rounded-at-ingestion total is 12.99 plus 7.02, or 20.01. The rounded-at-presentation total is round(13.002 plus 7.008, 2), which is round(20.010, 2), or 20.01. A daily reconciliation can pass while the order-level reconciliation fails. That is why rounding diagnostics need to run at the grain where users compare numbers, not only at the highest summary level."
+        ],
+        "bullets": [
+          "Rule A: rounded_line_amount = round(raw_line_amount, 2); order_total = sum(rounded_line_amount).",
+          "Rule B: order_total = round(sum(raw_line_amount), 2).",
+          "For O1001, Rule A returns 12.99 and Rule B returns 13.00.",
+          "For O1002, Rule A returns 7.02 and Rule B returns 7.01.",
+          "For the two-order daily total, both rules return 20.01, masking the order-level differences."
+        ],
+        "codeExamples": []
+      },
+      {
+        "id": "diagnostic-query",
+        "heading": "A diagnostic query for finding rounding-stage differences",
+        "paragraphs": [
+          "The following PostgreSQL 18 example is illustrative. It uses a hypothetical inline dataset and exact numeric values so the arithmetic is about rounding stage, not binary floating-point representation. PostgreSQL documentation describes numeric as an exact numeric type suitable when exactness is needed, and its aggregate documentation covers SUM as the standard aggregation function used here.",
+          "The diagnostic groups by the reconciliation grain, computes both candidate totals, and reports the delta. In a real model, the group by columns should match the grain at which totals are compared: order, invoice, statement, customer-month, store-day, or another explicitly defined grain.",
+          "The expected results for the hypothetical rows are: O1001 has sum_of_rounded_lines 12.99, rounded_sum_of_raw_lines 13.00, and delta -0.01. O1002 has 7.02, 7.01, and delta 0.01. If the same query is grouped only by sales_date, the delta for the two rows together is 0.00, demonstrating why a passing high-level check does not prove lower-grain reconciliation."
+        ],
+        "bullets": [],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "-- Illustrative PostgreSQL 18 example; not execution evidence.\n-- Hypothetical retail line amounts.\nwith line_amounts as (\n    select *\n    from (values\n        ('2026-10-26'::date, 'O1001', 'L1', 4.334::numeric),\n        ('2026-10-26'::date, 'O1001', 'L2', 4.334::numeric),\n        ('2026-10-26'::date, 'O1001', 'L3', 4.334::numeric),\n        ('2026-10-26'::date, 'O1002', 'L1', 2.336::numeric),\n        ('2026-10-26'::date, 'O1002', 'L2', 2.336::numeric),\n        ('2026-10-26'::date, 'O1002', 'L3', 2.336::numeric)\n    ) as t(sales_date, order_id, line_id, raw_line_amount)\n)\nselect\n    sales_date,\n    order_id,\n    sum(round(raw_line_amount, 2)) as sum_of_rounded_lines,\n    round(sum(raw_line_amount), 2) as rounded_sum_of_raw_lines,\n    sum(round(raw_line_amount, 2)) - round(sum(raw_line_amount), 2) as rounding_stage_delta\nfrom line_amounts\ngroup by sales_date, order_id\norder by sales_date, order_id;"
+          }
+        ]
+      },
+      {
+        "id": "why-aggregate-tables-magnify-the-issue",
+        "heading": "Why aggregate tables magnify the issue",
+        "paragraphs": [
+          "Rounding-stage choices become harder to see when teams introduce summary tables. Dimensional models often use aggregate fact tables or cubes to store summarized data for performance or usability. That design can be appropriate, but it makes the derivation rule part of the contract. A store-day aggregate built from rounded order totals is not the same measure as a store-day aggregate built from raw line amounts and then rounded.",
+          "The dangerous version is not “we rounded.” The dangerous version is “different layers rounded differently while using the same metric name.” A detail table might expose raw_line_amount. A mart table might expose line_amount_cents rounded at ingestion. A dashboard semantic layer might define revenue as round(sum(raw_line_amount), 2). A finance extract might define revenue as sum(line_amount_cents). Those can all look plausible in isolation.",
+          "A useful aggregate table definition states its source grain and its calculation rule. For example: customer_day_revenue.display_amount is calculated as round(sum(order_line.raw_net_amount), 2) grouped by customer_id and sales_date. Or: customer_day_revenue.booked_amount is calculated as sum(order_line.rounded_net_amount) grouped by customer_id and sales_date. Those two measures should not silently share the same name unless the organization has accepted the difference and documented why it is immaterial or required.",
+          "The same principle applies to reconciliation tests. A check that compares an aggregate table to detail should use the same rounding stage as the aggregate table. If the aggregate stores sum of rounded lines, compare it to sum(round(raw_line_amount, 2)). If the aggregate stores rounded sum of raw lines, compare it to round(sum(raw_line_amount), 2). Mixing the check can create false incidents or, worse, normalize a hidden metric definition mismatch."
+        ],
+        "bullets": [],
+        "codeExamples": []
+      },
+      {
+        "id": "implementation-pattern",
+        "heading": "Implementation pattern: store both intent and calculation stage",
+        "paragraphs": [
+          "A robust model separates the source measurement from the reported measurement. The source measurement preserves the best available numeric value at the event or line grain. The reported measurement applies the agreed rounding rule at the agreed stage. This does not require every downstream user to reason from first principles every time; it requires the model to name the difference.",
+          "For example, a line fact can include raw_net_amount as the unrounded decimal measure received or calculated by the ingestion process. It can also include rounded_net_amount if the business process requires line-level display or line-level reconciliation. A derived order model can then expose order_net_amount_from_rounded_lines and order_net_amount_rounded_after_sum during validation. Once the policy is settled, the public metric can choose one, but the validation columns make the choice inspectable.",
+          "Avoid using column names that hide the stage. amount, total, net, and revenue are too vague when multiple rounding stages exist. Better names include raw_line_amount, rounded_line_amount, sum_of_rounded_line_amount, and rounded_sum_raw_line_amount. Verbose names are not elegant, but they reduce ambiguity in reconciliation conversations.",
+          "This pattern also helps with incident triage. When a stakeholder reports that a dashboard is off by a few cents from an export, the first diagnostic question becomes mechanical: are both outputs summing the same stored measure and rounding at the same grain? If not, the difference may be a definition mismatch rather than a data loss problem."
+        ],
+        "bullets": [
+          "Preserve an unrounded decimal measure where the source and storage design allow it.",
+          "Create rounded measures only with a named rounding stage and grain.",
+          "Do not give ingestion-rounded and presentation-rounded measures the same metric name without a documented policy.",
+          "Run reconciliation at the lowest grain where users expect equality, not only at the dashboard total.",
+          "Treat small cent-level differences as explainable, not automatically acceptable; the rule still needs to be explicit."
+        ],
+        "codeExamples": []
+      },
+      {
+        "id": "counterexample-to-a-common-shortcut",
+        "heading": "Counterexample: “rounding only affects pennies” is not a rule",
+        "paragraphs": [
+          "It is tempting to dismiss these differences because each group often differs by only a cent. That shortcut fails for two reasons. First, the direction is data-dependent. Values just below a rounding threshold tend to reduce totals when rounded per line; values just above a threshold tend to increase them. The net effect can cancel, accumulate, or vary by product, channel, or time period.",
+          "Second, reconciliation is often contractual at a specific grain. If customers, orders, invoices, or statements are displayed at a rounded amount, then a report that aggregates a different rounded representation may not tie back to those displayed records. The issue is not only materiality at the grand total. It is whether the model can explain the path from detail to summary.",
+          "A better shortcut is to keep a small diagnostic table or query that shows both totals and the delta by grain. If the delta is always zero, the chosen dataset is not proving much; try groups with repeated fractional-cent values around rounding thresholds. If the delta is nonzero, the team can decide which rule represents the metric and encode that rule consistently."
+        ],
+        "bullets": [],
+        "codeExamples": []
+      },
+      {
+        "id": "decision-checklist",
+        "heading": "A concise decision checklist",
+        "paragraphs": [
+          "Use this checklist when defining or reviewing a metric that can contain fractions smaller than the display unit. The goal is not to make every metric use the same rule. The goal is to make each metric use one rule intentionally.",
+          "First, identify the atomic grain of the source values. Is the amount born at event, line, order, allocation, usage interval, or customer-day grain? Second, identify the reconciliation grain. Where do users expect equality: line, order, statement, day, month, or report total? Third, choose whether the official metric sums rounded values or rounds after summing raw values. Fourth, ensure aggregate tables, semantic-layer metrics, extracts, and dashboards implement the same rule. Fifth, write a regression check that computes the alternative rule and reports the delta, so future changes do not move the rounding stage accidentally.",
+          "The durable lesson is simple: rounding stage is part of metric definition. If it is omitted, the pipeline still chooses a stage through implementation order. Practitioners should make that choice explicit before building aggregates that people will reconcile."
+        ],
+        "bullets": [],
+        "codeExamples": []
+      }
+    ],
+    "takeaways": [
+      "Rounding at ingestion and rounding at presentation can both be internally consistent while producing different reconciled totals.",
+      "A reconciliation check must run at the grain where users expect numbers to tie; higher-level totals can hide lower-grain rounding differences.",
+      "Aggregate fact tables and semantic metrics should document whether they sum rounded values or round after summing raw values.",
+      "Use explicit measure names and diagnostic queries to make rounding-stage deltas visible instead of treating cent-level differences as mysterious pipeline noise."
+    ],
+    "sources": [
+      {
+        "title": "PostgreSQL: Documentation: 18: 9.21. Aggregate Functions",
+        "url": "https://www.postgresql.org/docs/current/functions-aggregate.html"
+      },
+      {
+        "title": "PostgreSQL: Documentation: 18: 8.1. Numeric Types",
+        "url": "https://www.postgresql.org/docs/current/datatype-numeric.html"
+      },
+      {
+        "title": "Aggregate Fact Tables or Cubes | Kimball Group",
+        "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/aggregate-fact-table-cube/"
+      }
+    ],
+    "requiresVerification": false,
+    "verificationNotes": []
+  },
+  {
+    "slug": "integer-overflow-in-aggregate-calculations",
+    "title": "Integer overflow in aggregate calculations",
+    "description": "A practical guide to estimating intermediate numeric bounds in aggregate calculations, using a hypothetical retail example and explicit rules for products, sums, rollups, and ratios.",
+    "primaryKeyword": "Integer overflow in aggregate calculations",
+    "relatedKeywords": [
+      "Integer overflow in aggregate calculations"
+    ],
+    "category": "Data Modeling",
+    "level": "Intermediate",
+    "readTime": "8 min read",
+    "datePublished": "2026-10-26",
+    "dateModified": "2026-10-26",
+    "canonicalUrl": "https://jwatterson.com/writing/integer-overflow-in-aggregate-calculations",
+    "status": "published",
+    "sourceHash": "7bbd1747880a0fdb",
+    "lead": "Integer overflow in aggregate calculations is easy to miss because the raw column values can look safe. A price in cents, a quantity, a count, or a score may fit comfortably in an integer column, while the expression built from those columns does not. The practical fix is not only to check input ranges. Estimate the largest intermediate value produced by each multiplication, sum, rollup, and ratio component before choosing the data type.",
+    "sections": [
+      {
+        "id": "why-input-ranges-are-not-enough",
+        "heading": "Why input ranges are not enough",
+        "paragraphs": [
+          "A common numeric review asks whether each stored column can hold the largest expected input. That is necessary, but it is not sufficient for aggregates. Aggregates create new values: a line amount, a daily total, a monthly rollup, a weighted numerator, or a denominator. Those intermediate values can be much larger than any single input field.",
+          "For example, PostgreSQL documents integer, bigint, decimal, numeric, real, and double precision numeric types, and its aggregate documentation describes widened return types for some sums. Those details matter, but they do not remove the modeling task. If an expression overflows before it reaches the aggregate, or if a rollup table stores a total in a narrower type than the aggregate produced, the result can still be wrong or fail.",
+          "The data engineering question is: what is the largest plausible value at each step of the calculation? The answer depends on grain. A per-order-line amount has a different bound from a store-day total, and a store-month aggregate fact table has a different bound again. Kimball’s aggregate fact table guidance is useful background here: aggregate tables summarize facts at a higher grain, so the numeric capacity should be chosen for that higher grain rather than copied from the base transaction grain."
+        ],
+        "bullets": [],
+        "codeExamples": []
+      },
+      {
+        "id": "a-small-counterexample",
+        "heading": "A small counterexample",
+        "paragraphs": [
+          "Suppose a hypothetical retail order-line table stores unit_price_cents and quantity as integer columns. The product unit_price_cents times quantity is used as line_revenue_cents. Each input value may fit within a 32-bit signed integer. That does not prove the product fits.",
+          "Use a deliberately small counterexample. A unit price of 999,999 cents is $9,999.99. A quantity of 3,000 is large, but not impossible for wholesale or bulk orders. Both inputs are far below 2,147,483,647, the maximum value of a common signed 32-bit integer. Their product is 2,999,997,000 cents, which is greater than 2,147,483,647. The input columns fit; the intermediate product does not.",
+          "There is a second failure mode. Even when the line product fits, the group sum may not. If the maximum line amount is 5,000,000 cents and a store-day group can contain 800,000 lines, the maximum store-day sum is 4,000,000,000,000 cents. That is well beyond 32-bit integer range. The column-level review would miss this unless it considered group size.",
+          "This article is not tax or accounting advice, and it does not address rounding allocation residuals or division-by-zero policy. The narrower point is numeric capacity: model the values your calculations create, not only the values you ingest."
+        ],
+        "bullets": [
+          "Input bound: unit_price_cents <= 999,999 and quantity <= 3,000.",
+          "Intermediate product bound: 999,999 x 3,000 = 2,999,997,000 cents.",
+          "A 32-bit signed integer maximum is 2,147,483,647, so the product can exceed the type even though both inputs fit.",
+          "Aggregate bound: 800,000 lines x 5,000,000 cents = 4,000,000,000,000 cents."
+        ],
+        "codeExamples": []
+      },
+      {
+        "id": "worked-hypothetical-retail-example",
+        "heading": "Worked hypothetical retail example",
+        "paragraphs": [
+          "Consider a hypothetical retailer that wants a store_month_sales aggregate table. The base fact grain is one order line. The aggregate grain is store_id plus calendar_month. The measure is gross_sales_cents, calculated from unit_price_cents times quantity. The following assumptions are intentionally conservative and self-contained; they are not customer results or benchmark data.",
+          "Assume the maximum unit price is 25,000 cents, the maximum quantity per line is 200, the maximum number of order lines per store per day is 800,000, a month has at most 31 days, and the aggregate covers one store-month. First estimate the line expression. The maximum line amount is 25,000 x 200 = 5,000,000 cents. Then estimate the store-day total. The maximum store-day total is 800,000 x 5,000,000 = 4,000,000,000,000 cents. Then estimate the store-month total. The maximum store-month total is 31 x 4,000,000,000,000 = 124,000,000,000,000 cents.",
+          "That final number is 124 trillion cents, or $1.24 trillion. The value may be an intentionally extreme operational bound, but that is the point of the exercise. If this number is impossible under real business constraints, document the stronger constraint and use it. If it is merely rare, the storage type still needs to handle it or the pipeline needs an explicit rejection rule.",
+          "Now compare this bound with common integer capacities. It is far too large for 32-bit integer. It fits within a 64-bit signed integer, whose positive maximum is about 9.22 quintillion. If future rollups combine many stores, currencies, or years, repeat the calculation at that new grain. Do not assume a type that fits the store-month table also fits an all-company multi-year table.",
+          "The main modeling decision is where to widen. A safe pattern is to cast before the multiplication and keep the aggregate storage type at least as wide as the largest estimated output. In PostgreSQL, numeric can be used for exact arbitrary-precision-style decimal calculations within documented limits, and the PostgreSQL aggregate documentation should be consulted for the exact return type of sum for the input expression being aggregated."
+        ],
+        "bullets": [],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "-- Illustrative PostgreSQL 18-oriented bound calculation.\n-- This estimates capacity needs; it is not a claim of executed test results.\nWITH assumptions AS (\n  SELECT\n    25000::numeric AS max_unit_price_cents,\n    200::numeric AS max_quantity,\n    800000::numeric AS max_lines_per_store_day,\n    31::numeric AS max_days_per_month\n), bounds AS (\n  SELECT\n    max_unit_price_cents * max_quantity AS max_line_sales_cents,\n    max_lines_per_store_day * max_unit_price_cents * max_quantity AS max_store_day_sales_cents,\n    max_days_per_month * max_lines_per_store_day * max_unit_price_cents * max_quantity AS max_store_month_sales_cents\n  FROM assumptions\n)\nSELECT\n  max_line_sales_cents,\n  max_store_day_sales_cents,\n  max_store_month_sales_cents\nFROM bounds;"
+          }
+        ]
+      },
+      {
+        "id": "rules-for-estimating-intermediate-bounds",
+        "heading": "Rules for estimating intermediate bounds",
+        "paragraphs": [
+          "The following rules are intentionally mechanical. They are meant to be applied during data modeling, code review, and metric definition review.",
+          "Rule 1: Bound expressions, not just columns. If the metric is sum(unit_price_cents * quantity), estimate the product first, then estimate the sum. Aggregate widening does not help if an earlier expression has already exceeded its safe range in the engine or intermediate representation being used.",
+          "Rule 2: Include group cardinality. A sum’s upper bound is not the maximum input value. It is the maximum number of rows in the group times the maximum contribution per row. If groups are uneven, use the largest plausible group, not the average group. Average line count per store-day is not a safe substitute for maximum line count per store-day.",
+          "Rule 3: Recompute bounds when the grain changes. Daily, monthly, store-level, regional, and all-company aggregates are different numeric objects. Aggregate fact tables and cubes are often built for performance and usability, but their measures still need type choices based on their summarized grain.",
+          "Rule 4: Treat weighted calculations as two aggregates. A weighted average such as sum(score_micro * event_count) / sum(event_count) has a numerator and a denominator. The final average may be between 0 and 1,000,000 micro-units, but the numerator can be enormous. Choosing a type based on the final displayed ratio is a category error.",
+          "Rule 5: Preserve sign assumptions explicitly. If returns, credits, or adjustments can be negative, calculate both lower and upper bounds. A signed type may need capacity for large negative totals as well as large positive totals. If business rules say a value cannot be negative, enforce that rule near ingestion or transformation, not only in a wiki page.",
+          "Rule 6: Add a margin for uncertainty, but do not hide the math. A capacity decision should say something like: maximum line amount is 5,000,000 cents; maximum group size is 800,000 lines; maximum month length is 31 days; bound is 124,000,000,000,000 cents; chosen type supports at least that value. The assumptions are reviewable, and future changes have somewhere concrete to attach."
+        ],
+        "bullets": [],
+        "codeExamples": []
+      },
+      {
+        "id": "diagnostic-query-patterns",
+        "heading": "Diagnostic query patterns",
+        "paragraphs": [
+          "A diagnostic query can make the assumptions visible. It should not only scan current data for today’s maximum value. Current data may not contain tomorrow’s largest group. Use diagnostics for two different jobs: profile observed data, and compare documented bounds with type limits.",
+          "Observed profiling helps find surprises. For example, a store-day with far more order lines than expected may indicate a legitimate operating condition, duplicated records, or a bad join. Bound checks are different: they encode the maximum values the model claims to support.",
+          "The next example is illustrative. It profiles a hypothetical order_lines table and deliberately casts before multiplying. The cast is not about making the sample query pretty; it documents that the expression’s capacity is wider than the raw integer columns. In a production implementation, adapt the types, date functions, and limit values to the SQL engine and warehouse standards being used."
+        ],
+        "bullets": [],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "-- Illustrative profiling query for a hypothetical retail order_lines table.\n-- Adapt date truncation and numeric types to the target SQL engine.\nSELECT\n  store_id,\n  CAST(order_ts AS date) AS order_date,\n  COUNT(*) AS line_count,\n  MAX(unit_price_cents) AS observed_max_unit_price_cents,\n  MAX(quantity) AS observed_max_quantity,\n  MAX(CAST(unit_price_cents AS numeric) * CAST(quantity AS numeric)) AS observed_max_line_sales_cents,\n  SUM(CAST(unit_price_cents AS numeric) * CAST(quantity AS numeric)) AS observed_store_day_sales_cents\nFROM order_lines\nGROUP BY store_id, CAST(order_ts AS date)\nORDER BY observed_store_day_sales_cents DESC\nFETCH FIRST 20 ROWS ONLY;"
+          },
+          {
+            "language": "sql",
+            "code": "-- Illustrative model check for documented assumptions.\n-- The expected result is that store_month_bound_exceeds_int32 is true\n-- and store_month_bound_exceeds_int64 is false for these assumptions.\nWITH limits AS (\n  SELECT\n    2147483647::numeric AS int32_max,\n    9223372036854775807::numeric AS int64_max\n), assumptions AS (\n  SELECT\n    25000::numeric AS max_unit_price_cents,\n    200::numeric AS max_quantity,\n    800000::numeric AS max_lines_per_store_day,\n    31::numeric AS max_days_per_month\n), bound AS (\n  SELECT\n    max_unit_price_cents * max_quantity * max_lines_per_store_day * max_days_per_month AS max_store_month_sales_cents\n  FROM assumptions\n)\nSELECT\n  max_store_month_sales_cents,\n  max_store_month_sales_cents > int32_max AS store_month_bound_exceeds_int32,\n  max_store_month_sales_cents > int64_max AS store_month_bound_exceeds_int64\nFROM bound CROSS JOIN limits;"
+          }
+        ]
+      },
+      {
+        "id": "choosing-the-storage-type",
+        "heading": "Choosing the storage type",
+        "paragraphs": [
+          "After estimating bounds, choose types for three places: the expression, the aggregate result, and the stored aggregate table. These can be different. A base table may store unit_price_cents as integer, the transformation may cast operands to numeric or bigint before multiplication, and the aggregate table may store gross_sales_cents as bigint or numeric depending on the calculated bound and the database’s documented behavior.",
+          "For exact money-like integer cents, integer arithmetic is often preferable to binary floating-point for the stored measure. A related background issue is floating-point error in financial analytics: floats can introduce representation surprises even when overflow is not the problem. This article’s focus is narrower. The immediate concern is whether the exact integer or decimal representation has enough capacity for every intermediate value.",
+          "Do not choose the smallest type that fits the sample data. Choose a type that fits the documented bound. If the documented bound is implausibly high, improve the model by adding a real constraint: maximum supported quantity, maximum supported unit price, maximum rows per batch, maximum stores per rollup, or maximum years retained in one aggregate. A constraint that is enforced by validation can reduce the numeric bound. A hope that the value will not get large cannot.",
+          "Also consider failure behavior. Some systems raise errors on overflow; others may wrap, saturate, or produce engine-specific behavior depending on the operation and type. The portable modeling practice is to avoid reaching the boundary at all, cast before risky expressions, and include checks that make unexpectedly large values visible before they corrupt downstream tables."
+        ],
+        "bullets": [
+          "Use the base column type for valid inputs.",
+          "Use a wider expression type for products and weighted numerators.",
+          "Use an aggregate storage type sized for the output grain, not the input grain.",
+          "Document assumptions next to the model or metric definition so future grain changes trigger a capacity review."
+        ],
+        "codeExamples": []
+      }
+    ],
+    "takeaways": [
+      "Check the largest value created by each expression, not only the largest value accepted by each input column.",
+      "For sums, estimate maximum contribution per row times maximum rows per group; for rollups, repeat the calculation at the new aggregate grain.",
+      "Cast before risky multiplications or weighted numerators, and store aggregate facts in a type sized for the documented bound."
+    ],
+    "sources": [
+      {
+        "title": "PostgreSQL: Documentation: 18: 8.1. Numeric Types",
+        "url": "https://www.postgresql.org/docs/current/datatype-numeric.html"
+      },
+      {
+        "title": "PostgreSQL: Documentation: 18: 9.21. Aggregate Functions",
+        "url": "https://www.postgresql.org/docs/current/functions-aggregate.html"
+      },
+      {
+        "title": "Aggregate Fact Tables or Cubes | Kimball Group",
+        "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/aggregate-fact-table-cube/"
+      }
+    ],
+    "requiresVerification": false,
+    "verificationNotes": []
+  },
+  {
+    "slug": "negative-values-in-rate-calculations",
+    "title": "Negative Values in Rate Calculations",
+    "description": "A practical guide to defining how corrections, reversals, and signed rows should affect reported rates without producing misleading negative or netted ratios.",
+    "primaryKeyword": "Negative values in rate calculations",
+    "relatedKeywords": [
+      "Negative values in rate calculations"
+    ],
+    "category": "Data Modeling",
+    "level": "Intermediate",
+    "readTime": "7 min",
+    "datePublished": "2026-10-26",
+    "dateModified": "2026-10-26",
+    "canonicalUrl": "https://jwatterson.com/writing/negative-values-in-rate-calculations",
+    "status": "published",
+    "sourceHash": "e6c36fb46201cd44",
+    "lead": "Negative rows are not automatically wrong. They become dangerous when a model lets them change a rate without saying whether they are activity, corrections, reversals, or net-change components. A reliable rate definition needs an explicit sign policy before the first dashboard filter is added.",
+    "sections": [
+      {
+        "id": "why-negative-rows-break-rates",
+        "heading": "Why negative rows break otherwise simple rates",
+        "paragraphs": [
+          "Most rates look harmless: numerator divided by denominator. Return rate might be returned units divided by shipped units. Defect rate might be defective units divided by inspected units. Activation rate might be activated accounts divided by eligible accounts. The hard part is not the division itself. The hard part is deciding what negative values mean before they are aggregated.",
+          "In analytical data, negative rows often appear for good reasons. A duplicate shipment row may be corrected by posting negative shipped units. A mistaken return may be reversed by posting negative returned units. A chargeback may reverse a previously counted transaction. A backfilled source system may emit compensating records instead of updating old records. These rows are useful evidence, but they are not all the same kind of evidence.",
+          "The modeling mistake is to let every signed row flow into both sides of a rate as if addition alone defines the business meaning. Addition is valid for many measures, but a rate also has an exposure concept. The denominator usually represents the population at risk or eligible activity. If corrections are allowed to reduce that exposure below zero, a dashboard can produce a negative rate, a positive rate caused by two negative sums, or a rate that appears to improve when data quality worsens.",
+          "This article is not tax, revenue-recognition, or accounting advice. The narrower data modeling question is: when a source emits negative values, should those values restate a prior rate, adjust the current period’s rate, be excluded from the rate but reported separately, or be intentionally used in a signed net-change metric?"
+        ],
+        "bullets": [],
+        "codeExamples": []
+      },
+      {
+        "id": "a-hypothetical-counterexample",
+        "heading": "A hypothetical counterexample: netting creates a negative return rate",
+        "paragraphs": [
+          "Consider a hypothetical retail-order model. The business reports monthly return rate as returned units divided by shipped units. In February, the source emits four postings. Two are ordinary February activity: 40 shipped units and 4 returned units. Two are corrections to January activity: a duplicate January shipment is corrected by posting -50 shipped units in February, and a mistaken January return is reversed by posting -1 returned unit in February.",
+          "If the February report simply groups by posted month and sums signed units, the numerator is 4 + -1 = 3 returned units. The denominator is 40 + -50 = -10 shipped units. The naive posted-month return rate is 3 / -10 = -30 percent. That result is arithmetically explainable, but it is not a meaningful return rate. February did not have negative exposure. The negative denominator came from a correction to an earlier period.",
+          "A second failure is more subtle. Suppose the February correction rows had been -4 returned units and -40 shipped units. The naive rate would be 0 / 0, which is undefined, even though February had real activity before corrections. If the correction rows had been -8 returned units and -40 shipped units, the naive rate would be -4 / 0, also undefined. Problems around zero denominators deserve their own definition, but the upstream issue here is that the model allowed correction mechanics to erase the exposure population.",
+          "The corrective move is not to ban negative values. The corrective move is to classify them. A negative shipment correction is not a February shipment. A negative return reversal is not a February customer return. They are adjustment facts that may restate January, explain February posting activity, or feed a correction-impact report. They should not silently redefine the February activity rate."
+        ],
+        "bullets": [],
+        "codeExamples": []
+      },
+      {
+        "id": "calculation-rules-for-signed-rows",
+        "heading": "Calculation rules for corrections and reversals",
+        "paragraphs": [
+          "A useful rate definition should state the sign policy as part of the metric contract. The policy can be short, but it must be explicit enough that two engineers would aggregate the same rows the same way.",
+          "Rule 1: separate activity date from posting date. The posting period says when the system recorded the row. The effective period says which business period the row changes. If a correction is posted in February but corrects January activity, a restated January rate should use the effective period. A February operational activity rate should usually use ordinary February activity rows and report the correction separately.",
+          "Rule 2: assign each signed row a role. Common roles are original activity, correction, reversal, reclassification, and net-change component. A correction changes the measured amount of a previous event. A reversal cancels a previous event. A reclassification moves an event between categories. A net-change component is intentionally signed, such as new accounts minus closed accounts. These roles should be modeled as data, not inferred only from the sign.",
+          "Rule 3: decide whether the metric is a gross rate, a restated rate, or a net-change rate. In a gross activity rate, corrections and reversals are excluded from the current-period numerator and denominator, then shown in an adjustment column. In a restated rate, corrections are applied to the effective period they correct. In a net-change rate, negative values can be part of the numerator by design, but the denominator should still be a defined positive exposure such as beginning accounts, eligible users, or starting balance.",
+          "Rule 4: protect denominator meaning. A denominator is not just another additive measure. It represents exposure, eligibility, capacity, or population. If signed adjustments can make that exposure negative, the model needs a separate adjustment measure or an effective-period restatement rule. A negative denominator may be valid for some specialized financial ratios, but it should not appear accidentally in event-rate metrics such as return rate, defect rate, or completion rate.",
+          "Rule 5: preserve the audit trail. Store the original event identifier, the correcting event identifier, the sign, the effective period, the posted period, and the reason when available. Without those fields, downstream models are forced to guess whether -10 means a true negative event, a correction, a reversal, or a data error."
+        ],
+        "bullets": [
+          "For current-period operational rates, include original activity rows in the rate and expose corrections as separate adjustment measures.",
+          "For historical truth rates, apply corrections to the effective period and allow previously published periods to restate.",
+          "For intentionally signed metrics, name the metric as net change and define a positive exposure denominator.",
+          "For share-of-population metrics, do not let correction rows create negative exposure."
+        ],
+        "codeExamples": []
+      },
+      {
+        "id": "worked-sql-example",
+        "heading": "Illustrative SQL pattern for a signed-row rate",
+        "paragraphs": [
+          "The following PostgreSQL 18 style SQL is illustrative. It uses a small hypothetical fixture and decimal numeric arithmetic. PostgreSQL documents numeric as an exact numeric type, and its aggregate functions such as sum are the ordinary building blocks for this kind of calculation. The important part is not the syntax; it is the classification before aggregation.",
+          "In the fixture, the naive February posted-month rate is -30 percent: 3 returned units divided by -10 shipped units. The activity-only February rate is 10 percent: 4 returned units divided by 40 shipped units. A restated effective-period report would apply the -50 shipment correction and -1 return reversal to January, not February.",
+          "This example uses NULLIF to avoid treating an undefined division as a valid zero. That is only a guardrail in the sample expression. The metric definition should still say how undefined denominators are represented in the published dataset."
+        ],
+        "bullets": [],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "WITH events AS (\n  SELECT *\n  FROM (VALUES\n    ('2026-01'::text, '2026-01'::text, 'shipment'::text,            200::numeric, NULL::text),\n    ('2026-01'::text, '2026-01'::text, 'return'::text,               10::numeric, NULL::text),\n    ('2026-02'::text, '2026-02'::text, 'shipment'::text,             40::numeric, NULL::text),\n    ('2026-02'::text, '2026-02'::text, 'return'::text,                4::numeric, NULL::text),\n    ('2026-02'::text, '2026-01'::text, 'shipment_correction'::text, -50::numeric, 'S-JAN-DUP'::text),\n    ('2026-02'::text, '2026-01'::text, 'return_reversal'::text,      -1::numeric, 'R-JAN-ERR'::text)\n  ) AS t(posted_month, effective_month, line_type, units, correction_of_event_id)\n), feb_postings AS (\n  SELECT *\n  FROM events\n  WHERE posted_month = '2026-02'\n)\nSELECT\n  SUM(CASE WHEN line_type IN ('return', 'return_reversal')\n           THEN units ELSE 0::numeric END) AS naive_return_units,\n  SUM(CASE WHEN line_type IN ('shipment', 'shipment_correction')\n           THEN units ELSE 0::numeric END) AS naive_shipped_units,\n  SUM(CASE WHEN line_type IN ('return', 'return_reversal')\n           THEN units ELSE 0::numeric END)\n    / NULLIF(SUM(CASE WHEN line_type IN ('shipment', 'shipment_correction')\n                      THEN units ELSE 0::numeric END), 0::numeric) AS naive_posted_month_rate,\n  SUM(CASE WHEN line_type = 'return'\n             AND effective_month = posted_month\n           THEN units ELSE 0::numeric END) AS activity_return_units,\n  SUM(CASE WHEN line_type = 'shipment'\n             AND effective_month = posted_month\n           THEN units ELSE 0::numeric END) AS activity_shipped_units,\n  SUM(CASE WHEN line_type = 'return'\n             AND effective_month = posted_month\n           THEN units ELSE 0::numeric END)\n    / NULLIF(SUM(CASE WHEN line_type = 'shipment'\n                        AND effective_month = posted_month\n                      THEN units ELSE 0::numeric END), 0::numeric) AS activity_return_rate\nFROM feb_postings;"
+          }
+        ]
+      },
+      {
+        "id": "choosing-the-right-policy",
+        "heading": "Choosing the right policy for the report",
+        "paragraphs": [
+          "There is no universal answer because different reports answer different questions. A customer-facing service dashboard may need to show what happened during the current week, so it should avoid letting old corrections distort current activity rates. A finance reconciliation report may need to show posted adjustments in the period they were booked. A data quality report may need to show correction volume directly. A historical trend may need to restate prior periods so that January always reflects the best current view of January.",
+          "The mistake is mixing these policies inside one unnamed rate. If February return rate excludes prior-period shipment corrections but includes prior-period return reversals, the numerator and denominator are following different rules. If January is restated for corrections but February is not, the time series changes definition midstream. If the dashboard shows a rate but hides adjustment volume, users cannot tell whether the rate moved because customer behavior changed or because old rows were repaired.",
+          "A practical metric contract can be compact. For example: Monthly return rate is returned units from original return activity divided by shipped units from original shipment activity, grouped by effective month. Correction and reversal rows restate the effective month of the event they correct. Published extracts include returned_unit_adjustment and shipped_unit_adjustment so consumers can reconcile changes from the prior extract. That definition tells an engineer where the negative rows go, and it tells a reviewer why a prior month may change.",
+          "The tradeoff is freshness versus stability. Restated rates are usually better for historical truth, but they make prior periods mutable. Booked-period rates are stable once closed, but they can describe accounting or processing activity more than customer behavior. Current-period activity rates are easy to interpret, but they need companion adjustment measures so that corrections do not disappear. Pick the policy that matches the report question and name the metric accordingly."
+        ],
+        "bullets": [],
+        "codeExamples": []
+      },
+      {
+        "id": "diagnostic-checklist",
+        "heading": "Diagnostic checklist for an existing model",
+        "paragraphs": [
+          "When a rate already exists and negative values are appearing, inspect the model before changing the visualization. A chart cannot repair an undefined sign policy. The diagnostic should identify whether the rate is mathematically surprising, semantically wrong, or both.",
+          "Start by grouping numerator and denominator components by sign, row role, posted period, and effective period. If the negative denominator comes mostly from correction rows, the problem is likely a classification issue. If the numerator is negative for a metric that claims to count occurrences, the model may be treating reversals as events. If both numerator and denominator are negative, a positive rate may still be meaningless because it is a ratio of adjustments rather than activity.",
+          "Also check numeric representation. Exact decimal types are preferable when the values represent counted units, money-like quantities, or other decimal business measures where binary floating-point artifacts would create avoidable confusion. Floating-point behavior is a separate topic, but signed corrections make small representation errors harder to explain because reviewers are already trying to reason about signs, periods, and rate semantics.",
+          "Finally, add tests at the semantic layer or transformation layer. Useful tests include: no negative exposure for gross activity rates; correction rows must reference an original event or carry a correction reason; current-period activity rates must not include prior-period effective corrections; restated rates must aggregate by effective period; and net-change rates must have names that disclose their signed nature. These tests do not prove that the business policy is correct, but they make violations visible."
+        ],
+        "bullets": [
+          "Can the denominator become negative? If yes, is that explicitly allowed by the metric definition?",
+          "Are negative rows corrections, reversals, true negative activity, or net-change components?",
+          "Does the report group by posted period, effective period, or both?",
+          "Are adjustment volumes visible next to the rate so users can explain movement?",
+          "Would the same row be included under the same rule next month, or does the policy depend on dashboard context?"
+        ],
+        "codeExamples": []
+      }
+    ],
+    "takeaways": [
+      "Negative values are not inherently bad, but a rate must define whether they are activity, corrections, reversals, reclassifications, or intentional net-change components.",
+      "Do not let signed correction rows silently create negative exposure in event-rate denominators. Restate the effective period or report correction impact separately.",
+      "A durable metric contract should specify date policy, row roles, numerator rules, denominator rules, and how undefined or adjusted results are represented."
+    ],
+    "sources": [
+      {
+        "title": "PostgreSQL: Documentation: 18: 8.1. Numeric Types",
+        "url": "https://www.postgresql.org/docs/current/datatype-numeric.html"
+      },
+      {
+        "title": "PostgreSQL: Documentation: 18: 9.21. Aggregate Functions",
+        "url": "https://www.postgresql.org/docs/current/functions-aggregate.html"
+      },
+      {
+        "title": "NIST/SEMATECH e-Handbook of Statistical Methods: 1.3.5.6. Measures of Scale",
+        "url": "https://www.itl.nist.gov/div898/handbook/eda/section3/eda356.htm"
+      }
+    ],
+    "requiresVerification": false,
+    "verificationNotes": []
+  },
+  {
+    "slug": "unit-conversions-in-analytical-models",
+    "title": "Unit conversions in analytical models",
+    "description": "A practical guide to modeling original units, normalized values, and conversion provenance so analytical measures can be aggregated, audited, and reprocessed safely.",
+    "primaryKeyword": "Unit conversions in analytical models",
+    "relatedKeywords": [
+      "Unit conversions in analytical models"
+    ],
+    "category": "Data Modeling",
+    "level": "Intermediate",
+    "readTime": "7 min",
+    "datePublished": "2026-10-26",
+    "dateModified": "2026-10-26",
+    "canonicalUrl": "https://jwatterson.com/writing/unit-conversions-in-analytical-models",
+    "status": "published",
+    "sourceHash": "4af0766e3bfe643f",
+    "lead": "Unit conversion is not just a formatting step. In analytical models, a converted number is a derived fact with assumptions behind it: the original value, the original unit, the conversion rule, the version of that rule, and the rounding policy. If you keep only the normalized number, you may be able to build a dashboard, but you make audits, corrections, and source reconciliation much harder.",
+    "sections": [
+      {
+        "id": "the-modeling-problem",
+        "heading": "The modeling problem",
+        "paragraphs": [
+          "Analytical systems often need normalized measures. A merchandising team may want all package weights in kilograms. A supply chain dashboard may want all item counts in eaches. A marketplace model may receive product dimensions in inches, centimeters, feet, and meters but report volume in cubic meters. Normalization makes grouping and aggregation possible.",
+          "The mistake is treating the normalized number as if it replaces the original measurement. It should sit beside the original measurement. The original value and unit explain what came from the source. The normalized value explains what the analytical model calculated. The conversion metadata explains how the model got from one to the other.",
+          "A useful pattern is to model measurements as facts with two layers. The source layer records the measurement as received: original_value, original_unit_code, source_precision, and source_event_id. The analytical layer records the standardized form: normalized_value, normalized_unit_code, conversion_rule_id, conversion_factor, conversion_offset if needed, and the rule version or effective date used. Kimball’s dimensional modeling guidance on multiple units of measure supports the idea that facts may need to be stored in more than one unit, rather than assuming a single physical representation is sufficient for every business question. Kimball’s Type 0 pattern is also relevant: some attributes should retain their original value rather than being restated as the business changes.",
+          "This article is limited to numeric correctness in analytical models. It does not cover tax, accounting treatment, or currency conversion date policy. It also assumes that metric definitions and floating-point risks are already understood at a basic level."
+        ],
+        "bullets": [],
+        "codeExamples": []
+      },
+      {
+        "id": "counterexample-rounded-normalized-values",
+        "heading": "Counterexample: rounded normalized values corrupt aggregates",
+        "paragraphs": [
+          "Consider a hypothetical retail-order dataset where a carrier sends package weight in ounces. The analytics model reports total shipped weight in kilograms. The exact conversion used here is 1 ounce = 0.028349523125 kilograms.",
+          "Suppose 100 order lines each contain a package weight of 1 ounce. If the model converts each row and stores only a display-rounded value at two decimal places, each row becomes 0.03 kilograms. Summing those stored row values gives 3.00 kilograms. But the unrounded calculation is 100 × 0.028349523125 = 2.8349523125 kilograms, which rounds to 2.83 kilograms for display. The row-rounded aggregate overstates the total by 0.1650476875 kilograms, or about 5.82 percent relative to the exact total.",
+          "The calculation is simple, but the modeling lesson is important: display precision is not storage precision. Store the normalized value at sufficient precision for aggregation. Round only when presenting the final result, unless a business rule explicitly says otherwise. If a warehouse or semantic layer materializes rounded measures for performance, name those columns accordingly, such as shipped_weight_kg_display_2dp, and do not use them as base facts for further aggregation.",
+          "A second failure appears when only the normalized value is retained. If an analyst questions why a 1-ounce package contributes 0.028349523125 kilograms, the system needs to show that the original unit was ounce and the conversion rule was ounce-to-kilogram with that factor. Without those fields, the normalized number is an orphaned derivative."
+        ],
+        "bullets": [
+          "Bad rule: convert each row, round for display, store the rounded value as the only analytical fact, and sum it later.",
+          "Better rule: store the original value and unit, store the normalized value at calculation precision, preserve the conversion rule, and round only in the final presentation layer."
+        ],
+        "codeExamples": []
+      },
+      {
+        "id": "counterexample-changing-pack-size",
+        "heading": "Counterexample: current conversion rules rewrite history",
+        "paragraphs": [
+          "Unit conversion is not always a physical constant. Some units are business-defined. A case, pack, carton, bundle, or serving can change by product, supplier, geography, or date. If a model joins every historical fact to the current conversion rule, historical quantities can be restated accidentally.",
+          "Use this hypothetical retail quantity example. A product used to be sold in cases of 12 eaches. Later the supplier changed the case pack to 10 eaches. Two order lines both say 3 cases, but they occurred under different rules.",
+          "Line A happened under rule CASE-12-EACH: 3 cases × 12 eaches per case = 36 eaches. Line B happened under rule CASE-10-EACH: 3 cases × 10 eaches per case = 30 eaches. The correct total is 66 eaches. If the model stores only original_value = 3 and original_unit = CASE, then joins both facts to the current case definition of 10, it reports 60 eaches. The error is not a math error in the query; it is a data modeling error. The fact did not preserve the rule that was used, or should have been used, when the measurement was normalized.",
+          "The fix is to make the conversion rule part of the fact’s provenance. Store conversion_rule_id on the fact row, and make that rule immutable for the fact. If a rule is corrected, insert a new rule version and decide whether facts need a controlled backfill. Do not silently let facts inherit a changed conversion rule through a current-state dimension join."
+        ],
+        "bullets": [
+          "For physical constants, provenance still matters because precision and rounding choices matter.",
+          "For business-defined units, provenance is mandatory because the conversion can change over time.",
+          "For corrected rules, decide whether to restate facts explicitly; do not let restatement happen by accident."
+        ],
+        "codeExamples": []
+      },
+      {
+        "id": "calculation-rules",
+        "heading": "Explicit calculation rules",
+        "paragraphs": [
+          "A model that preserves original units should also publish the arithmetic rules it follows. The rules below are intentionally mechanical. They make unit conversion reviewable by data engineers, analytics engineers, and metric owners.",
+          "First, normalize at the atomic fact grain. Convert each source measurement at the row where the original value is still visible. Do not wait until a dashboard query where the original unit, product, source system, and rule version may no longer be available.",
+          "Second, store exact or high-precision decimal values for deterministic business reporting. Binary floating-point can be appropriate for scientific workloads, but it is often a poor default for auditable analytical facts because many decimal quantities are not represented exactly in binary. A practical pattern is to store original_value and normalized_value as decimal columns, and store the conversion factor either as a decimal with enough scale or as numerator and denominator columns when the rule is naturally rational.",
+          "Third, aggregate normalized measures only when they share the same normalized unit and compatible meaning. Kilograms can be summed with kilograms. Eaches can be summed with eaches if the business meaning is the same. A package count and an item count should not be summed just because both are numbers.",
+          "Fourth, calculate ratios from aggregated components, not by averaging row-level ratios unless the metric definition calls for an unweighted average. For example, total cost per kilogram should be sum(cost) divided by sum(weight_kg), not the average of each row’s cost_per_kg. This is not unique to unit conversion, but unit conversion errors often hide inside ratio metrics.",
+          "Fifth, handle affine conversions separately from multiplicative conversions. Most quantity conversions are multiplicative: normalized_value = original_value × factor. Temperature conversion is different because it can include an offset. Also, some measures such as temperature are usually averaged or compared, not summed. Store an aggregation policy or measure type when the normalized value is not safely additive.",
+          "Sixth, keep rounding policy explicit. Store calculation precision separately from display precision. If the source provides only one decimal place, keep that source precision as provenance, but do not confuse it with the precision required for normalized aggregation."
+        ],
+        "bullets": [
+          "Atomic normalization rule: convert where the original measurement is still present.",
+          "Aggregation rule: sum normalized additive measures, then round the final result for display.",
+          "Ratio rule: divide aggregated numerator by aggregated denominator unless the metric explicitly defines otherwise.",
+          "Version rule: facts reference the conversion rule version used; they do not rely on a current conversion lookup.",
+          "Audit rule: every normalized value should be traceable to original_value, original_unit_code, and conversion_rule_id."
+        ],
+        "codeExamples": []
+      },
+      {
+        "id": "schema-pattern",
+        "heading": "A compact schema pattern",
+        "paragraphs": [
+          "The following SQL is illustrative, not tied to a specific warehouse dialect. It shows the shape of a model that keeps source measurements, normalized values, and conversion provenance together. In a production warehouse, naming conventions, data types, constraints, and generated columns would vary by platform.",
+          "The conversion rule table separates the unit relationship from the fact row. The fact row stores the rule used and the resulting normalized value. Some teams also denormalize the factor onto the fact row for easier audit and reproducibility. That is a storage tradeoff: it duplicates data, but it makes each fact more self-contained.",
+          "The model also records measure_name because the same order line can have several measurements: shipped weight, package length, item quantity, volume, or temperature. Keeping them in a measurement fact table can be cleaner than adding dozens of nullable columns to an order-line fact, especially when different source systems provide different measures."
+        ],
+        "bullets": [],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "CREATE TABLE unit_conversion_rule (\n  conversion_rule_id        VARCHAR(100) PRIMARY KEY,\n  from_unit_code            VARCHAR(50) NOT NULL,\n  to_unit_code              VARCHAR(50) NOT NULL,\n  factor_numerator          DECIMAL(38, 12) NOT NULL,\n  factor_denominator        DECIMAL(38, 12) NOT NULL,\n  offset_after_multiply     DECIMAL(38, 12) NOT NULL DEFAULT 0,\n  rule_version              VARCHAR(50) NOT NULL,\n  effective_from_date       DATE,\n  effective_to_date         DATE,\n  rule_status               VARCHAR(20) NOT NULL\n);\n\nCREATE TABLE order_line_measure (\n  order_line_id             VARCHAR(100) NOT NULL,\n  measure_name              VARCHAR(100) NOT NULL,\n  original_value            DECIMAL(38, 12) NOT NULL,\n  original_unit_code        VARCHAR(50) NOT NULL,\n  source_decimal_places     INTEGER,\n  normalized_value          DECIMAL(38, 12) NOT NULL,\n  normalized_unit_code      VARCHAR(50) NOT NULL,\n  conversion_rule_id        VARCHAR(100) NOT NULL,\n  conversion_factor_used    DECIMAL(38, 12) NOT NULL,\n  conversion_offset_used    DECIMAL(38, 12) NOT NULL DEFAULT 0,\n  source_system_event_id    VARCHAR(100),\n  measured_at               TIMESTAMP,\n  loaded_at                 TIMESTAMP NOT NULL,\n  PRIMARY KEY (order_line_id, measure_name)\n);"
+          },
+          {
+            "language": "sql",
+            "code": "-- Hypothetical validation query for additive measures.\n-- Expected result for 100 rows of 1 ounce each:\n-- exact_total_kg = 2.834952312500\n-- display_total_kg_2dp = 2.83\n\nSELECT\n  SUM(normalized_value) AS exact_total_kg,\n  ROUND(SUM(normalized_value), 2) AS display_total_kg_2dp\nFROM order_line_measure\nWHERE measure_name = 'shipped_weight'\n  AND normalized_unit_code = 'kg';"
+          }
+        ]
+      },
+      {
+        "id": "diagnostic-checklist",
+        "heading": "Diagnostic checklist for existing models",
+        "paragraphs": [
+          "A quick way to evaluate an existing analytical model is to pick a normalized measure and ask whether you can reconstruct the conversion decision for any row. If the answer depends on external documentation, a current spreadsheet, or a transformation that no longer has the original inputs, the model is fragile.",
+          "The diagnostic should be done on actual base facts, not only on a semantic metric. Semantic layers often hide the issue because they expose a tidy measure name such as shipped_weight_kg. The question is whether that measure is auditable back to the original measurement and conversion rule.",
+          "There are reasonable tradeoffs. Storing both original and normalized values uses more storage. Adding conversion_rule_id increases modeling work. High-precision decimals can be less convenient than floating-point numbers in some transformation code. Those costs are usually small compared with the cost of an unexplained aggregate, especially when business-defined units such as cases and packs change over time."
+        ],
+        "bullets": [
+          "Can each normalized value be traced to the original value and original unit?",
+          "Is the conversion rule version stored with the fact, rather than inferred from a current lookup?",
+          "Are rounded display values prevented from becoming base facts for later aggregation?",
+          "Are additive and non-additive measures labeled so that temperatures, rates, and package counts are not summed incorrectly?",
+          "Can a corrected conversion rule be applied through an explicit restatement process instead of an accidental dimension update?",
+          "Does the model distinguish source precision from calculation precision and presentation rounding?"
+        ],
+        "codeExamples": []
+      },
+      {
+        "id": "practical-default",
+        "heading": "A practical default",
+        "paragraphs": [
+          "For most analytical models, the default should be simple: keep the original measurement, keep the normalized measurement, and keep the conversion provenance that links them. The original measurement is what the source said. The normalized measurement is what the warehouse calculated for analysis. The conversion provenance is the evidence that makes the calculation reviewable.",
+          "This pattern prevents two common failures. It prevents rounded row-level values from corrupting aggregates, and it prevents current conversion rules from rewriting historical facts. It also gives analysts a safer base for metrics: totals can be calculated from normalized additive values, ratios can be calculated from aggregated components, and exceptions can be traced back to the source measurement rather than guessed from a finished dashboard number.",
+          "The goal is not to model every possible unit system. The goal is to make each converted analytical fact explain itself."
+        ],
+        "bullets": [],
+        "codeExamples": []
+      }
+    ],
+    "takeaways": [
+      "Store original_value and original_unit_code beside normalized_value and normalized_unit_code; the normalized value should not replace the source measurement.",
+      "Preserve conversion_rule_id, rule version, factor, offset, and rounding policy so converted facts remain auditable and reproducible.",
+      "Aggregate high-precision normalized values, then round for display; do not sum row-level display-rounded conversions.",
+      "Treat business-defined units such as cases, packs, and bundles as versioned rules, not permanent constants."
+    ],
+    "sources": [
+      {
+        "title": "Multiple Units of Measure Facts | Kimball Dimensional Modeling Techniques",
+        "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/multiple-units-of-measure/"
+      },
+      {
+        "title": "1.3.5.6. Measures of Scale | NIST/SEMATECH e-Handbook of Statistical Methods",
+        "url": "https://www.itl.nist.gov/div898/handbook/eda/section3/eda356.htm"
+      },
+      {
+        "title": "Type 0: Retain Original | Kimball Dimensional Modeling Techniques",
+        "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/type-0/"
+      }
+    ],
+    "requiresVerification": false,
+    "verificationNotes": []
+  },
+  {
+    "slug": "currency-conversion-dates-in-reporting",
+    "title": "Currency conversion dates in reporting",
+    "description": "A practical guide to distinguishing transaction-date currency conversion from reporting-date conversion, with numeric counterexamples and modeling rules for data engineers.",
+    "primaryKeyword": "Currency conversion dates in reporting",
+    "relatedKeywords": [
+      "Currency conversion dates in reporting"
+    ],
+    "category": "Data Modeling",
+    "level": "Intermediate",
+    "readTime": "7 min",
+    "datePublished": "2026-10-26",
+    "dateModified": "2026-10-26",
+    "canonicalUrl": "https://jwatterson.com/writing/currency-conversion-dates-in-reporting",
+    "status": "published",
+    "sourceHash": "4b0bf6a7cfd5ca80",
+    "lead": "Currency conversion bugs often survive because the number looks plausible. The rate is real, the arithmetic is valid, and the dashboard total adds up. The problem is that the model may be answering the wrong time question: should the amount be converted using the rate on the transaction date, or using the rate on the reporting date?",
+    "sections": [
+      {
+        "id": "the-two-questions-are-different",
+        "heading": "The two questions are different",
+        "paragraphs": [
+          "Transaction-date conversion and reporting-date conversion are not interchangeable. They answer different analytical questions, and the difference belongs in the metric definition and the data model, not in a last-minute dashboard filter.",
+          "Transaction-date conversion asks: what was the target-currency value of this transaction when it happened? For an order placed on January 15 in EUR, the conversion date is January 15. This is usually the safer default for historical transactional metrics such as booked sales, refunds, fees, or usage charges, because each event carries its own date, native amount, and source currency.",
+          "Reporting-date conversion asks: what is the target-currency value of a native-currency amount as of a selected reporting date? For a January report produced as of January 31, the conversion date is January 31, even for amounts that originated earlier. This pattern is common when the report intentionally remeasures native balances or presents an as-of view. The data engineering point is not to decide accounting treatment; it is to make the date rule explicit so downstream consumers do not mix the two methods accidentally.",
+          "The Kimball dimensional modeling guidance on multiple currencies emphasizes the need to represent facts in their local currency and in a standard currency, supported by currency and exchange-rate structures. That modeling principle is useful here because the conversion date is part of the meaning of the converted fact. A USD amount converted using a transaction date is a different measure from a USD amount converted using a reporting date."
+        ],
+        "bullets": [],
+        "codeExamples": []
+      },
+      {
+        "id": "worked-hypothetical-orders",
+        "heading": "Worked example with hypothetical retail orders",
+        "paragraphs": [
+          "Consider this hypothetical retail-order fixture. The target reporting currency is USD. The exchange rates are expressed as USD per one unit of source currency. This article does not cover rate direction and inversion beyond that assumption.",
+          "Orders: O1 occurs on 2026-01-15 for 100 EUR. O2 occurs on 2026-01-20 for 100 GBP. O3 occurs on 2026-01-25 for 50 EUR. Transaction-date rates are: EUR on 2026-01-15 equals 1.10, GBP on 2026-01-20 equals 1.30, and EUR on 2026-01-25 equals 1.12. Reporting-date rates for the January report as of 2026-01-31 are: EUR equals 1.16 and GBP equals 1.24.",
+          "Under transaction-date conversion, each order is converted at its own transaction date. O1 is 100 times 1.10, or 110.00 USD. O2 is 100 times 1.30, or 130.00 USD. O3 is 50 times 1.12, or 56.00 USD. The January total is 296.00 USD.",
+          "Under reporting-date conversion as of 2026-01-31, the native amounts are first kept by currency. EUR native amount is 150, made from O1 and O3. GBP native amount is 100, made from O2. The reporting-date USD amount is 150 times 1.16 plus 100 times 1.24, which equals 174.00 plus 124.00, or 298.00 USD.",
+          "Both totals are arithmetically correct. Neither number is a rounding error. The two-dollar difference is the consequence of answering different questions. A report labeled only as “sales_usd” has hidden the most important part of the calculation rule."
+        ],
+        "bullets": [],
+        "codeExamples": []
+      },
+      {
+        "id": "calculation-rules",
+        "heading": "Calculation rules that prevent ambiguity",
+        "paragraphs": [
+          "A useful model names the conversion rule in the measure, not just in the documentation. The following rules are intentionally mechanical so they can be implemented in SQL, semantic models, or data quality checks.",
+          "For transaction-date conversion, calculate at the atomic fact grain: converted_amount = native_amount multiplied by the rate for source_currency, target_currency, and transaction_date. Then aggregate converted_amount. If the native currency is already the target currency, use a rate of 1. The conversion date is the transaction date or another event date explicitly chosen by the metric definition.",
+          "For reporting-date conversion, choose a reporting_as_of_date first. Select the native amounts that belong in the report as of that date, grouped at least by source currency. Then calculate converted_amount = grouped_native_amount multiplied by the rate for source_currency, target_currency, and reporting_as_of_date. The conversion date is the report’s as-of date, not the event date.",
+          "The distinction also affects reversals and negative amounts. A refund of negative 20 EUR on February 10 can be converted using the February 10 transaction rate for a transaction-date refund metric. If a report remeasures an outstanding native amount as of February 28, the negative amount participates in the native balance before the February 28 rate is applied. The sign does not change the rule; it only changes the arithmetic.",
+          "Use fixed-precision decimal types for money and rates. Floating-point types can introduce representation noise that makes reconciliation harder. Keep enough scale for rates, calculate with more precision than the final display, and apply presentation rounding at a defined boundary. The important modeling point is that rounding cannot rescue a measure that used the wrong conversion date."
+        ],
+        "bullets": [
+          "Transaction-date rule: convert each event using the rate effective for that event’s conversion date, then sum the converted values.",
+          "Reporting-date rule: determine the report’s native amounts by currency, apply the as-of rate for the reporting date, then sum the converted values.",
+          "Never aggregate different source currencies into one native amount before conversion."
+        ],
+        "codeExamples": []
+      },
+      {
+        "id": "counterexamples-to-watch-for",
+        "heading": "Counterexamples to watch for",
+        "paragraphs": [
+          "The most common mistake is applying one plausible rate to a total that no longer has a single currency meaning. In the hypothetical January fixture, the total native amount is 250, but that number is 150 EUR plus 100 GBP. Multiplying 250 by any one exchange rate is not a currency conversion; it is arithmetic on a measure that lost its unit.",
+          "A second mistake is converting every transaction using the report end date while labeling the result as historical revenue. Using the January 31 rates on all three orders gives 298.00 USD, not the transaction-date total of 296.00 USD. If the business definition says January sales are measured at order-date rates, the 298.00 value is wrong even though every rate lookup succeeded.",
+          "A third mistake is taking an average monthly rate and applying it after aggregation without proving that this is the defined rule. Suppose someone averages the two EUR transaction rates, 1.10 and 1.12, to get 1.11, then applies that to the 150 EUR January amount. The result is 166.50 USD for the EUR portion. The actual transaction-date EUR total is 100 times 1.10 plus 50 times 1.12, or 166.00 USD. The average-rate shortcut overstates this small fixture by 0.50 USD because the two transactions have different weights.",
+          "Weighted averages can reproduce transaction-date totals only when the weighting rule exactly matches the underlying native amounts and currency grouping. At that point, the model is usually more transparent if it stores or computes the row-level converted amount directly. Shortcuts should be treated as separate metric definitions, not hidden optimizations."
+        ],
+        "bullets": [],
+        "codeExamples": []
+      },
+      {
+        "id": "modeling-pattern",
+        "heading": "A modeling pattern for both methods",
+        "paragraphs": [
+          "A practical dimensional model can support both conversion methods without forcing analysts to infer the rule. The fact table should preserve the native amount, source currency, and transaction date. The exchange-rate table should identify source currency, target currency, effective date, and the rate. The date dimension remains useful because transaction dates, reporting dates, posting dates, and calendar periods are different roles even when they use the same calendar table.",
+          "For transaction-date metrics, materialize or expose a column with an explicit name such as amount_usd_txn_date. Include lineage columns such as txn_conversion_date, txn_rate_id, or txn_rate_source if those are available in the warehouse. Do not overwrite the native amount. The native amount is still needed for reconciliation, restatement, and alternative reporting views.",
+          "For reporting-date metrics, avoid storing a single permanent amount_usd_report_date on an immutable transaction row unless the reporting date is part of the key. A January 31 reporting-date value and a February 28 reporting-date value are different values. If the model stores them, store them in a snapshot or derived table keyed by reporting_as_of_date, source currency, target currency, and the relevant business grain.",
+          "The following illustrative SQL shows the shape of the two calculations using the hypothetical data above. It is not tied to a specific warehouse dialect and may need minor syntax changes for a particular platform."
+        ],
+        "bullets": [],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "WITH orders AS (\n  SELECT 'O1' AS order_id, DATE '2026-01-15' AS order_date, 'EUR' AS currency, CAST(100.00 AS DECIMAL(18,2)) AS native_amount\n  UNION ALL SELECT 'O2', DATE '2026-01-20', 'GBP', CAST(100.00 AS DECIMAL(18,2))\n  UNION ALL SELECT 'O3', DATE '2026-01-25', 'EUR', CAST(50.00 AS DECIMAL(18,2))\n),\nrates AS (\n  SELECT 'EUR' AS currency, DATE '2026-01-15' AS rate_date, CAST(1.10 AS DECIMAL(18,6)) AS usd_per_unit\n  UNION ALL SELECT 'GBP', DATE '2026-01-20', CAST(1.30 AS DECIMAL(18,6))\n  UNION ALL SELECT 'EUR', DATE '2026-01-25', CAST(1.12 AS DECIMAL(18,6))\n  UNION ALL SELECT 'EUR', DATE '2026-01-31', CAST(1.16 AS DECIMAL(18,6))\n  UNION ALL SELECT 'GBP', DATE '2026-01-31', CAST(1.24 AS DECIMAL(18,6))\n),\ntransaction_date_conversion AS (\n  SELECT\n    SUM(o.native_amount * r.usd_per_unit) AS amount_usd_transaction_date\n  FROM orders o\n  JOIN rates r\n    ON r.currency = o.currency\n   AND r.rate_date = o.order_date\n),\nreporting_date_conversion AS (\n  SELECT\n    SUM(currency_native_amount * r.usd_per_unit) AS amount_usd_reporting_date\n  FROM (\n    SELECT currency, SUM(native_amount) AS currency_native_amount\n    FROM orders\n    GROUP BY currency\n  ) grouped_orders\n  JOIN rates r\n    ON r.currency = grouped_orders.currency\n   AND r.rate_date = DATE '2026-01-31'\n)\nSELECT\n  t.amount_usd_transaction_date,\n  a.amount_usd_reporting_date\nFROM transaction_date_conversion t\nCROSS JOIN reporting_date_conversion a;"
+          }
+        ]
+      },
+      {
+        "id": "diagnostic-questions",
+        "heading": "Diagnostic questions for an existing report",
+        "paragraphs": [
+          "When reviewing an existing dashboard or semantic metric, start with the column names and grain. A measure named revenue_usd does not say which date supplied the exchange rate. A fact table with order_date, posted_date, and report_month does not say which of those dates was joined to the exchange-rate table. The ambiguity is the risk.",
+          "Ask whether the report is aggregating converted amounts or converting aggregated native amounts. For transaction-date conversion, the safe pattern is usually row-level conversion followed by aggregation. For reporting-date conversion, the safe pattern is grouping native amounts by currency for the selected reporting date, then applying the as-of rate. If a query sums native amounts across currencies before joining to rates, the result should be treated as suspect.",
+          "Also check whether the reporting date is a parameter, a column, or an implicit dashboard filter. If the same report can be run as of different dates, the reporting_as_of_date should appear in the data set or the query logic. Otherwise, cached extracts and downstream spreadsheets can silently preserve values from one reporting date while being interpreted as another.",
+          "Finally, compare two small hand-calculated fixtures like the one in this article. A good diagnostic fixture includes at least two currencies, at least two transaction dates for one currency, and a reporting date with rates that differ from the transaction-date rates. If the two methods produce the same answer in the fixture, adjust the numbers. The test case should make the difference visible."
+        ],
+        "bullets": [
+          "Which date is used to look up the exchange rate?",
+          "Is that date the event date or the report as-of date?",
+          "Are native amounts grouped by currency before any reporting-date conversion?",
+          "Does the metric name reveal the rule, such as amount_usd_txn_date or amount_usd_as_of_date?",
+          "Can the result be reproduced from native amount, currency, rate, and conversion date columns?"
+        ],
+        "codeExamples": []
+      },
+      {
+        "id": "practical-rule-of-thumb",
+        "heading": "Practical rule of thumb",
+        "paragraphs": [
+          "Use transaction-date conversion when the metric is about historical events and the business question is stated in terms of what happened during the period. Use reporting-date conversion when the metric is explicitly an as-of view and the selected reporting date is part of the question. If a report needs both, publish both measures with different names.",
+          "The durable modeling requirement is simple: preserve the native amount, preserve the source currency, preserve the conversion date, and name the converted measure according to the rule that produced it. Once those fields are present, the debate can move from hidden arithmetic to an explicit metric definition."
+        ],
+        "bullets": [],
+        "codeExamples": []
+      }
+    ],
+    "takeaways": [
+      "Transaction-date conversion converts each fact using the rate for the event’s defined conversion date, then aggregates the converted amounts.",
+      "Reporting-date conversion applies an as-of rate for the selected reporting date to native amounts kept separate by source currency.",
+      "A converted currency amount is incomplete without its source currency, native amount, conversion date, target currency, and rate rule.",
+      "Do not aggregate native amounts across currencies before conversion; the resulting total has no single unit.",
+      "Use explicit measure names, such as amount_usd_txn_date and amount_usd_reporting_date, to prevent plausible but wrong dashboard totals."
+    ],
+    "sources": [
+      {
+        "title": "Multiple Currency Facts | Kimball Dimensional Modeling Techniques",
+        "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/multiple-currencies/"
+      },
+      {
+        "title": "Calendar Date Dimensions | Kimball Dimensional Modeling Techniques",
+        "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/calendar-date-dimension/"
+      },
+      {
+        "title": "Dimensional Modeling Techniques - Kimball Group",
+        "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/"
+      }
+    ],
+    "requiresVerification": false,
+    "verificationNotes": []
+  },
+  {
+    "slug": "exchange-rate-direction-and-inversion",
+    "title": "Exchange-rate direction and inversion",
+    "description": "A practical guide to modeling exchange-rate direction so data engineers do not multiply when they should divide, or divide when they should multiply, during currency normalization.",
+    "primaryKeyword": "Exchange-rate direction and inversion",
+    "relatedKeywords": [
+      "Exchange-rate direction and inversion"
+    ],
+    "category": "Data Modeling",
+    "level": "Intermediate",
+    "readTime": "7 min",
+    "datePublished": "2026-10-26",
+    "dateModified": "2026-10-26",
+    "canonicalUrl": "https://jwatterson.com/writing/exchange-rate-direction-and-inversion",
+    "status": "published",
+    "sourceHash": "1e293ad2b876d2ab",
+    "lead": "Currency normalization bugs often hide in plain sight because the query looks mathematically plausible. A column named exchange_rate does not tell you whether 100 EUR should become 110 USD by multiplication, or 90.91 USD by division. The fix is not a better comment next to a dashboard calculation. The fix is to model the direction of the rate, use one canonical calculation rule, and add diagnostics that make an inverted operator visible before the number becomes a trusted metric.",
+    "sections": [
+      {
+        "id": "the-real-bug-is-ambiguous-direction",
+        "heading": "The real bug is ambiguous direction",
+        "paragraphs": [
+          "An exchange rate is not a single number. It is a relationship between two currencies with a direction. The statement “EUR to USD is 1.10” means something different from “USD to EUR is 0.9090909,” even though the two statements are reciprocals. Both may be correct. The error starts when a table stores 1.10 in a column named rate and downstream code has to guess whether to multiply or divide.",
+          "The safest convention is to describe a rate as “to-currency units per one from-currency unit.” Under that convention, the calculation is always: amount_to = amount_from * rate. If the table says from_currency = EUR, to_currency = USD, and rate = 1.10, then 100 EUR becomes 110 USD.",
+          "If a source instead gives “from-currency units per one to-currency unit,” the calculation is: amount_to = amount_from / rate. For example, if a source says 0.9090909 EUR per 1 USD, then 100 EUR divided by 0.9090909 is approximately 110 USD. That division is not a different business rule. It is the same conversion expressed with the reciprocal rate.",
+          "Practitioners should not rely on currency pair names alone. A pair label such as EUR/USD is commonly read as USD per EUR in market quoting contexts, but an internal table should not require every analyst to know a convention from memory. Store the direction explicitly."
+        ],
+        "bullets": [
+          "Rule 1: If the stored rate means target units per one source unit, multiply.",
+          "Rule 2: If the stored rate means source units per one target unit, divide.",
+          "Rule 3: If both directions are stored, their product should be approximately 1, allowing for decimal precision and rounding.",
+          "Rule 4: Do not expose an unqualified column named rate without from_currency, to_currency, and a documented basis."
+        ],
+        "codeExamples": []
+      },
+      {
+        "id": "hypothetical-retail-counterexample",
+        "heading": "A hypothetical retail counterexample",
+        "paragraphs": [
+          "Consider a hypothetical retail order table that must be normalized to USD for reporting. The rate table uses one canonical basis: usd_per_source_unit. That means one unit of the order currency equals rate units of USD, so the correct operation is multiplication.",
+          "The fixture is intentionally small so the arithmetic can be checked without trusting any implementation. There are three orders: 100 EUR, 8,000 JPY, and 50 GBP. The hypothetical rates are 1.10 USD per EUR, 0.0067 USD per JPY, and 1.25 USD per GBP.",
+          "Correct normalization multiplies native amount by the stored rate. The EUR order becomes 100 * 1.10 = 110.00 USD. The JPY order becomes 8,000 * 0.0067 = 53.60 USD. The GBP order becomes 50 * 1.25 = 62.50 USD. The normalized total is 226.10 USD.",
+          "Now apply the wrong operator. Dividing by the same rates gives 100 / 1.10 = 90.91 USD, 8,000 / 0.0067 = 1,194,029.85 USD, and 50 / 1.25 = 40.00 USD, after rounding to cents. The total becomes 1,194,160.76 USD. This failure is obvious because JPY has a small USD-per-unit rate, so division explodes the amount.",
+          "The dangerous cases are not always so visible. EUR at 1.10 becomes 90.91 instead of 110.00 if divided, which is wrong by 19.09 USD on a 100 EUR order. That can look like a discount, refund, timing difference, or tax treatment if the model does not expose the operator error directly. A good diagnostic should catch both the spectacular error and the plausible one."
+        ],
+        "bullets": [
+          "Hypothetical correct total: 226.10 USD.",
+          "Hypothetical total after dividing by a USD-per-source rate: 1,194,160.76 USD.",
+          "The JPY row makes the bug obvious; the EUR and GBP rows show why reasonableness checks alone are not enough."
+        ],
+        "codeExamples": []
+      },
+      {
+        "id": "model-one-canonical-rate-basis",
+        "heading": "Model one canonical rate basis",
+        "paragraphs": [
+          "A robust model chooses a canonical basis at ingestion or staging and makes the calculation boring. One useful basis is “to_currency units per one from_currency unit.” In a USD reporting pipeline, that can be specialized to “USD per one native currency unit,” but the more general from/to model is easier to reuse when more than one reporting currency is needed.",
+          "The rate table should make it impossible to read a number without its direction. A rate of 1.10 is not self-describing. A row with from_currency = EUR, to_currency = USD, rate_basis = TO_PER_FROM, and rate = 1.10 is self-describing. With that contract, downstream normalization uses multiplication and does not branch on the currency.",
+          "The fact table should usually retain the native amount and currency as well as the normalized amount used for reporting. Kimball’s multiple-currency guidance supports the idea that facts may need both local transaction currency and a standardized equivalent for analysis. Keeping both values makes reconciliation possible: a stakeholder can trace a USD metric back to the original transaction amount instead of reverse-engineering what happened.",
+          "Use exact decimal numeric types for stored monetary amounts and exchange rates when exact decimal behavior is required. PostgreSQL documents numeric as an exact, arbitrary-precision decimal type, which makes it a better fit for this kind of stored calculation than binary floating-point types that cannot represent many decimal fractions exactly. This does not remove the need for rounding rules, but it avoids adding binary representation error to a direction problem."
+        ],
+        "bullets": [
+          "Name the direction: from_currency and to_currency are required fields, not documentation.",
+          "Name the basis: rate_basis should define the formula, not merely the source system.",
+          "Normalize with one operator after canonicalization: amount_to = amount_from * rate for TO_PER_FROM.",
+          "Preserve native amount and currency for auditability and reconciliation."
+        ],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "-- Illustrative PostgreSQL-style model. Assumes a canonical rate basis:\n-- one unit of from_currency equals rate units of to_currency.\n\nCREATE TABLE fx_rate (\n    rate_date date NOT NULL,\n    from_currency char(3) NOT NULL,\n    to_currency char(3) NOT NULL,\n    rate_basis text NOT NULL CHECK (rate_basis = 'TO_PER_FROM'),\n    rate numeric(38, 18) NOT NULL CHECK (rate > 0),\n    PRIMARY KEY (rate_date, from_currency, to_currency, rate_basis)\n);\n\nCREATE TABLE retail_order_hypothetical (\n    order_id integer PRIMARY KEY,\n    order_date date NOT NULL,\n    native_currency char(3) NOT NULL,\n    native_amount numeric(18, 4) NOT NULL\n);\n\n-- Canonical calculation for a USD reporting table:\n-- amount_usd = native_amount * rate\nSELECT\n    o.order_id,\n    o.native_currency,\n    o.native_amount,\n    r.to_currency AS reporting_currency,\n    o.native_amount * r.rate AS reporting_amount\nFROM retail_order_hypothetical o\nJOIN fx_rate r\n  ON r.rate_date = o.order_date\n AND r.from_currency = o.native_currency\n AND r.to_currency = 'USD'\n AND r.rate_basis = 'TO_PER_FROM';"
+          }
+        ]
+      },
+      {
+        "id": "make-inversion-an-ingestion-step",
+        "heading": "Make inversion an ingestion step, not a query habit",
+        "paragraphs": [
+          "Some providers, files, or application tables will arrive in the opposite basis from the one your warehouse uses. That is normal. The key is to invert once during ingestion or staging, label the resulting rate with the canonical basis, and make downstream reporting ignore the provider’s original orientation.",
+          "Suppose a feed supplies EUR per USD rather than USD per EUR. If the feed says 0.9090909 EUR per 1 USD, the canonical USD-per-EUR rate is 1 / 0.9090909, or approximately 1.100000011. Depending on the precision of the source, you may store a rounded value such as 1.10 for reporting calculations. The important point is that the inversion is visible in the ingestion logic and the resulting row is stored as EUR to USD with basis TO_PER_FROM.",
+          "Do not let every dashboard, notebook, and transformation decide whether to invert. Repeated local decisions create inconsistent metrics. One analyst multiplies, another divides, and both queries may pass simple smoke tests for currencies whose rates are near 1. Centralizing inversion also gives you one place to reject zero, negative, missing, or duplicate rates.",
+          "When a source row cannot be interpreted safely, treat it as a data quality event rather than guessing. Kimball’s error event schema pattern is relevant here: capture the bad input, the reason it was rejected, and enough context for investigation. A missing direction is not a harmless null; it can flip the sign of a metric’s meaning without producing a database error."
+        ],
+        "bullets": [
+          "Invert at the boundary of the system, then store the canonical direction.",
+          "Reject zero and negative exchange rates before normalization.",
+          "Quarantine rows whose direction cannot be determined from trusted metadata.",
+          "Avoid per-report CASE expressions that guess whether a rate should be inverted."
+        ],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "-- Illustrative staging pattern for a source that provides source_currency per USD.\n-- Example: 0.9090909 EUR per 1 USD becomes about 1.10 USD per 1 EUR.\n\nINSERT INTO fx_rate (\n    rate_date,\n    from_currency,\n    to_currency,\n    rate_basis,\n    rate\n)\nSELECT\n    source_rate_date AS rate_date,\n    source_currency AS from_currency,\n    'USD' AS to_currency,\n    'TO_PER_FROM' AS rate_basis,\n    1 / source_units_per_usd AS rate\nFROM inbound_source_rates\nWHERE source_units_per_usd > 0;"
+          }
+        ]
+      },
+      {
+        "id": "diagnostics-that-catch-the-wrong-operator",
+        "heading": "Diagnostics that catch the wrong operator",
+        "paragraphs": [
+          "A direction-aware model should still have diagnostics. The simplest check compares the effective rate implied by a normalized fact to the rate that should have been applied. For nonzero native amounts, effective_rate = reporting_amount / native_amount. If the canonical basis is TO_PER_FROM, the effective rate should match the stored rate within a tolerance chosen for the scale and rounding rules of the pipeline.",
+          "This diagnostic catches multiplication-versus-division errors directly. If a 100 EUR order uses a canonical rate of 1.10 and was normalized by multiplication, reporting_amount / native_amount is 110 / 100 = 1.10. If it was normalized by division, the effective rate is 90.91 / 100 = 0.9091, which is the reciprocal and should fail the comparison.",
+          "A second diagnostic checks reciprocal consistency when both directions exist. If EUR to USD is 1.10 and USD to EUR is 0.9090909, their product is approximately 1. If the product is far from 1, one side may have been loaded in the wrong basis, rounded too aggressively, or joined to the wrong currency.",
+          "Be careful with aggregate diagnostics. An average of row-level exchange rates is not usually the same as the effective rate for a group. In a hypothetical group with 10 EUR at 1.00 and 1,000 EUR at 2.00, the correct normalized total is 10 + 2,000 = 2,010 USD. The unweighted average rate is 1.50, and 1,010 EUR * 1.50 = 1,515 USD, which is wrong. For an aggregate check, use sum(reporting_amount) / sum(native_amount) within a same-currency group, and compare that to a weighted expectation if one is appropriate for the reporting question."
+        ],
+        "bullets": [
+          "Row check: reporting_amount / native_amount should equal the canonical rate for nonzero amounts.",
+          "Reciprocal check: rate(A to B) * rate(B to A) should be approximately 1 when both are stored.",
+          "Aggregate check: use weighted effective rates, not unweighted average exchange rates.",
+          "Exception handling: rejected or suspicious rows should be visible as data quality events, not silently dropped."
+        ],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "-- Illustrative diagnostic for facts already normalized with TO_PER_FROM rates.\n-- This assumes reporting_amount was calculated before this query.\n\nWITH checked AS (\n    SELECT\n        f.order_id,\n        f.native_currency,\n        f.native_amount,\n        f.reporting_currency,\n        f.reporting_amount,\n        r.rate,\n        f.reporting_amount / NULLIF(f.native_amount, 0) AS effective_rate\n    FROM normalized_order_fact_hypothetical f\n    JOIN fx_rate r\n      ON r.rate_date = f.order_date\n     AND r.from_currency = f.native_currency\n     AND r.to_currency = f.reporting_currency\n     AND r.rate_basis = 'TO_PER_FROM'\n    WHERE f.native_amount <> 0\n)\nSELECT\n    order_id,\n    native_currency,\n    native_amount,\n    reporting_currency,\n    reporting_amount,\n    rate,\n    effective_rate\nFROM checked\nWHERE abs(effective_rate - rate) > 0.000001;"
+          }
+        ]
+      },
+      {
+        "id": "implementation-rules-to-keep",
+        "heading": "Implementation rules to keep",
+        "paragraphs": [
+          "The practical goal is to remove operator choice from most of the codebase. Currency normalization should read like a contract: this table stores target units per one source unit; therefore this calculation multiplies. If a source arrives in another form, staging converts it to the contract before it reaches reporting facts.",
+          "This approach does not answer every currency question. It does not decide whether a report should use transaction-date, settlement-date, or reporting-date rates. It does not provide tax, accounting, or revenue-recognition advice. It only prevents a narrower but common data engineering defect: using the reciprocal of the intended exchange rate because the model did not encode direction.",
+          "A final review question is useful before publishing a currency-normalized dataset: can a new engineer determine the correct operator from the schema alone? If the answer depends on a wiki page, a dashboard convention, or a memory of how a vendor names currency pairs, the model is still too ambiguous."
+        ],
+        "bullets": [
+          "Prefer one canonical rate basis across the warehouse.",
+          "Make rate direction part of the key or contract, not an implied convention.",
+          "Normalize at row level before aggregating mixed currencies or mixed applicable rates.",
+          "Store native and normalized amounts so currency math can be reconciled.",
+          "Add diagnostics for effective rates and reciprocal consistency."
+        ],
+        "codeExamples": []
+      }
+    ],
+    "takeaways": [
+      "An exchange rate must be modeled with direction. A number in a column named rate is not enough to determine whether to multiply or divide.",
+      "Choose a canonical basis such as “to-currency units per one from-currency unit,” then make the standard calculation amount_to = amount_from * rate.",
+      "Invert rates during ingestion when necessary, not inside every report. Downstream queries should not guess the provider’s quote direction.",
+      "Use exact decimal numeric types for stored currency amounts and rates when exact decimal behavior is required, and keep native amounts for reconciliation.",
+      "Diagnostics should compare effective row-level rates to stored rates and check reciprocal pairs when both directions are present."
+    ],
+    "sources": [
+      {
+        "title": "PostgreSQL: Documentation: 18: 8.1. Numeric Types",
+        "url": "https://www.postgresql.org/docs/current/datatype-numeric.html"
+      },
+      {
+        "title": "Multiple Currency Facts | Kimball Dimensional Modeling Techniques",
+        "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/multiple-currencies/"
+      },
+      {
+        "title": "Error Event Schemas | Kimball Dimensional Modeling Techniques",
+        "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/error-event-schema/"
+      }
+    ],
+    "requiresVerification": false,
+    "verificationNotes": []
+  },
+  {
+    "slug": "percentage-points-versus-percentage-changes",
+    "title": "Percentage Points Versus Percentage Changes",
+    "description": "A worked guide for distinguishing percentage points from percentage changes when modeling, aggregating, and labeling rate metrics.",
+    "primaryKeyword": "Percentage points versus percentage changes",
+    "relatedKeywords": [
+      "Percentage points versus percentage changes"
+    ],
+    "category": "Data Modeling",
+    "level": "Beginner",
+    "readTime": "7 min",
+    "datePublished": "2026-10-26",
+    "dateModified": "2026-10-26",
+    "canonicalUrl": "https://jwatterson.com/writing/percentage-points-versus-percentage-changes",
+    "status": "published",
+    "sourceHash": "fbcb24e138c578c1",
+    "lead": "Rates are easy to calculate and easy to mislabel. If conversion moves from 5% to 6%, the absolute change is 1 percentage point, while the relative change is 20%. Both statements can be true, but they answer different questions. Data engineers need the distinction because a wrong label can turn a modest rate movement into an exaggerated business claim, or hide a large relative movement behind a small absolute number.",
+    "sections": [
+      {
+        "id": "the-two-calculations",
+        "heading": "The two calculations answer different questions",
+        "paragraphs": [
+          "A percentage point is an absolute difference between two percentages. If a rate changes from 5% to 6%, subtract the old rate from the new rate: 6% minus 5% equals 1 percentage point. The denominator of the rate is already baked into each percentage, so the percentage point calculation compares the two rate values directly.",
+          "A percentage change is a relative difference. It compares the change to the starting value: (new rate minus old rate) divided by old rate. In the same example, (6% minus 5%) divided by 5% equals 20%. The rate rose by 20% relative to where it started.",
+          "The most common error is mixing the labels. Moving from 5% to 6% is not a 1% increase. It is a 1 percentage point increase and a 20% increase. Moving from 80% to 82% is also a 2 percentage point increase, but only a 2.5% relative increase. The same absolute move can imply very different relative changes depending on the starting point.",
+          "Use these rules when naming metrics, columns, and dashboard annotations. A column named conversion_rate_delta_pp should contain new_rate minus old_rate, usually multiplied by 100 for display as percentage points. A column named conversion_rate_pct_change should contain (new_rate minus old_rate) divided by old_rate, usually multiplied by 100 for display as percent change."
+        ],
+        "bullets": [
+          "Absolute change in percentage points: new_rate - old_rate.",
+          "Relative percentage change: (new_rate - old_rate) / old_rate.",
+          "Display convention: a stored rate of 0.06 is 6%; a delta of 0.01 is 1 percentage point; a relative change of 0.20 is 20%.",
+          "If the baseline rate is zero, relative percentage change is undefined or not meaningful without a separate business rule."
+        ],
+        "codeExamples": []
+      },
+      {
+        "id": "worked-hypothetical-retail-example",
+        "heading": "Worked example: a hypothetical retail conversion metric",
+        "paragraphs": [
+          "Consider a hypothetical retail site that tracks daily product-page visitors and buyers. On Monday, 10,000 visitors produce 500 buyers. The conversion rate is 500 divided by 10,000, or 0.05, displayed as 5%. On Tuesday, 8,000 visitors produce 480 buyers. The conversion rate is 480 divided by 8,000, or 0.06, displayed as 6%.",
+          "The absolute rate movement is 6% minus 5%, which is 1 percentage point. The relative percentage change is (0.06 minus 0.05) divided by 0.05, which is 0.20, displayed as 20%. These are not interchangeable. A dashboard title saying conversion increased by 20 percentage points would be wrong. That would imply a move from 5% to 25%, not from 5% to 6%.",
+          "This example also shows why rate changes should not be read as count changes. Buyers fell from 500 to 480, a 4% decrease in buyer count. Conversion rate rose because the visitor denominator fell faster than the buyer numerator. A precise metric label should say what changed: buyer count, visitor count, conversion rate in percentage points, or conversion rate in relative percent.",
+          "The arithmetic is simple, but the modeling choice is important. Store numerator and denominator counts whenever possible. Compute the rate and the two change measures from those counts. Storing only the rounded percentage, such as 5% or 6%, throws away the evidence needed to validate the denominator, handle aggregation, and explain counterintuitive movements."
+        ],
+        "bullets": [
+          "Monday: 500 buyers / 10,000 visitors = 0.05 = 5%.",
+          "Tuesday: 480 buyers / 8,000 visitors = 0.06 = 6%.",
+          "Percentage point change: 0.06 - 0.05 = 0.01 = 1 percentage point.",
+          "Relative percentage change: (0.06 - 0.05) / 0.05 = 0.20 = 20%.",
+          "Buyer count change: (480 - 500) / 500 = -0.04 = -4%."
+        ],
+        "codeExamples": []
+      },
+      {
+        "id": "aggregation-counterexample",
+        "heading": "Counterexample: averaging segment changes can reverse the story",
+        "paragraphs": [
+          "The distinction becomes more dangerous when teams aggregate rates across stores, regions, products, or experiments. A rate is a ratio, so the correct aggregate rate is usually total numerator divided by total denominator, not the unweighted average of segment rates. The right choice depends on the question, but the two calculations should not be confused.",
+          "Use this hypothetical two-store fixture. North has 50 buyers from 1,000 sessions in the baseline period, then 60 buyers from 1,000 sessions in the current period. Its conversion rate moves from 5% to 6%, an increase of 1 percentage point. South has 900 buyers from 9,000 sessions in the baseline period, then 855 buyers from 9,000 sessions in the current period. Its conversion rate moves from 10% to 9.5%, a decrease of 0.5 percentage points.",
+          "If someone averages the two store rates without weighting by sessions, the baseline average is (5% plus 10%) divided by 2, or 7.5%. The current average is (6% plus 9.5%) divided by 2, or 7.75%. That unweighted calculation says the rate increased by 0.25 percentage points.",
+          "The aggregate customer-session view says the opposite. Baseline total buyers are 950 from 10,000 sessions, so the aggregate rate is 9.5%. Current total buyers are 915 from 10,000 sessions, so the aggregate rate is 9.15%. The aggregate change is 9.15% minus 9.5%, or negative 0.35 percentage points. The relative percentage change is negative 0.35 percentage points divided by 9.5%, which is about negative 3.68%.",
+          "Neither result is mathematically invalid by itself. They answer different questions. The unweighted average answers, roughly, how the typical store’s rate changed when every store has equal influence. The weighted aggregate answers how the overall customer-session conversion rate changed. A data model should make the intended weighting visible rather than burying it inside a generic column named conversion_change."
+        ],
+        "bullets": [
+          "Unweighted average baseline: (0.05 + 0.10) / 2 = 0.075 = 7.5%.",
+          "Unweighted average current: (0.06 + 0.095) / 2 = 0.0775 = 7.75%.",
+          "Unweighted absolute change: 0.0775 - 0.075 = 0.0025 = 0.25 percentage points.",
+          "Weighted aggregate baseline: (50 + 900) / (1,000 + 9,000) = 0.095 = 9.5%.",
+          "Weighted aggregate current: (60 + 855) / (1,000 + 9,000) = 0.0915 = 9.15%.",
+          "Weighted absolute change: 0.0915 - 0.095 = -0.0035 = -0.35 percentage points."
+        ],
+        "codeExamples": []
+      },
+      {
+        "id": "implementation-pattern-in-sql",
+        "heading": "Implementation pattern for numeric correctness",
+        "paragraphs": [
+          "For data modeling, prefer counts as source columns and derived rates as presentation or semantic-layer measures. Counts are additive. Percentages are usually not. This pattern makes the aggregation rule explicit and reduces the chance that downstream users average already-rounded percentages.",
+          "The following illustrative PostgreSQL 18 example uses numeric values and NULLIF guards. PostgreSQL documents numeric as an exact numeric type suitable when exact decimal behavior is needed, while aggregate functions such as sum and avg provide the building blocks for the calculations. This code is illustrative only; adapt names, precision, and denominator rules to the warehouse and metric definition in use.",
+          "There are two separate calculations in the query. The aggregate_rates common table expression computes the weighted rate for each period as sum(numerator) divided by sum(denominator). The final select computes the absolute percentage point difference and the relative percentage change from those two rates. The multiplication by 100 is a display choice: it turns 0.01 into 1 percentage point and 0.20 into 20 percent.",
+          "Notice the denominator guards. If the denominator for a rate is zero, the rate is null. If the baseline rate is zero, relative percentage change is null because there is no stable baseline for division. A team may choose a different display, such as “not applicable,” but it should not silently emit zero."
+        ],
+        "bullets": [],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "-- Illustrative PostgreSQL 18 example. No execution evidence is implied.\nWITH metric_snapshots(segment, period, numerator, denominator) AS (\n  VALUES\n    ('North', 'baseline', 50::numeric, 1000::numeric),\n    ('North', 'current',  60::numeric, 1000::numeric),\n    ('South', 'baseline', 900::numeric, 9000::numeric),\n    ('South', 'current',  855::numeric, 9000::numeric)\n),\naggregate_rates AS (\n  SELECT\n    period,\n    SUM(numerator) AS buyers,\n    SUM(denominator) AS sessions,\n    SUM(numerator) / NULLIF(SUM(denominator), 0) AS conversion_rate\n  FROM metric_snapshots\n  GROUP BY period\n),\npivoted AS (\n  SELECT\n    MAX(conversion_rate) FILTER (WHERE period = 'baseline') AS baseline_rate,\n    MAX(conversion_rate) FILTER (WHERE period = 'current') AS current_rate\n  FROM aggregate_rates\n)\nSELECT\n  baseline_rate,\n  current_rate,\n  (current_rate - baseline_rate) * 100 AS conversion_delta_percentage_points,\n  ((current_rate - baseline_rate) / NULLIF(baseline_rate, 0)) * 100 AS conversion_relative_percent_change\nFROM pivoted;"
+          }
+        ]
+      },
+      {
+        "id": "naming-and-review-checklist",
+        "heading": "A review checklist for metric definitions",
+        "paragraphs": [
+          "Most percentage point mistakes survive because the metric name is too vague. A field named conversion_change, lift, delta, or variance is not enough. It should reveal whether the value is a percentage point difference, a relative percentage change, a count change, or a ratio of ratios.",
+          "A practical rule is to require the unit in the column name and in the dashboard label. Use _rate for the rate itself, _delta_pp for percentage point differences, and _pct_change for relative changes. For example, conversion_rate, conversion_rate_delta_pp, and conversion_rate_pct_change are distinct measures. If a dashboard needs friendly labels, keep the same distinction in the label text: “conversion rate,” “change in conversion rate, percentage points,” and “relative change in conversion rate.”",
+          "Also document the aggregation grain. A store-level unweighted average and a session-weighted aggregate can tell different stories. If the decision is about customer-session outcomes, aggregate numerators and denominators first. If the decision is about the typical store, compute each store’s rate and then average stores with a deliberate weighting rule. The query should make that choice visible.",
+          "Finally, keep rounding out of the base metric. Rounding 0.095 to 9.5% for display is fine. Storing rounded display values as facts is not. It can distort small differences, make reconciliation harder, and hide whether a “0.3” value means 0.3%, 0.3 percentage points, or a 30% relative change."
+        ],
+        "bullets": [
+          "Ask: What is the numerator, denominator, and grain?",
+          "Ask: Is this an absolute difference in rates or a relative difference from a baseline?",
+          "Ask: Are percentages being averaged, or are numerators and denominators being aggregated first?",
+          "Ask: What happens when the denominator or baseline rate is zero?",
+          "Ask: Does the field name include the unit, such as _pp or _pct_change?",
+          "Ask: Is rounding limited to presentation rather than stored facts?"
+        ],
+        "codeExamples": []
+      },
+      {
+        "id": "when-to-use-each-measure",
+        "heading": "When to use percentage points versus percentage changes",
+        "paragraphs": [
+          "Use percentage points when the audience needs to compare rate levels directly. A move from 40% to 45% is a 5 percentage point gain. That is often the clearer expression for conversion rate, churn rate, completion rate, defect rate, click-through rate, or any other metric already expressed as a percentage.",
+          "Use relative percentage change when the audience needs scale relative to the starting point. Moving from 1% to 2% is only a 1 percentage point increase, but it doubles the rate. Moving from 50% to 51% is also a 1 percentage point increase, but only a 2% relative increase. Relative change is useful when the starting level matters to the interpretation.",
+          "When both measures are useful, show both and label them explicitly. For example: “conversion moved from 5.0% to 6.0%, up 1.0 percentage point, a 20.0% relative increase.” That sentence is longer than “conversion rose 20%,” but it prevents the reader from mistaking a relative comparison for an absolute movement in the rate.",
+          "The data engineering takeaway is not just grammatical. Metric storage, aggregation, and naming determine whether the correct sentence is easy to produce. Preserve counts, calculate rates with a documented denominator, choose weighted or unweighted aggregation deliberately, and label absolute and relative change as different measures."
+        ],
+        "bullets": [],
+        "codeExamples": []
+      }
+    ],
+    "takeaways": [
+      "A percentage point change is an absolute difference between two rates; a percentage change is that difference divided by the baseline rate.",
+      "Store numerators and denominators, not only rounded percentages, so aggregation and validation remain possible.",
+      "Never average percentages by accident. Decide whether the question needs an unweighted segment average or a weighted aggregate rate.",
+      "Use names such as rate_delta_pp and rate_pct_change so dashboards and downstream models do not blur the units.",
+      "When the baseline rate is zero, relative percentage change needs an explicit null or not-applicable rule."
+    ],
+    "sources": [
+      {
+        "title": "PostgreSQL: Documentation: 18: 8.1. Numeric Types",
+        "url": "https://www.postgresql.org/docs/current/datatype-numeric.html"
+      },
+      {
+        "title": "PostgreSQL: Documentation: 18: 9.21. Aggregate Functions",
+        "url": "https://www.postgresql.org/docs/current/functions-aggregate.html"
+      },
+      {
+        "title": "NIST/SEMATECH e-Handbook of Statistical Methods: Measures of Scale",
+        "url": "https://www.itl.nist.gov/div898/handbook/eda/section3/eda356.htm"
+      }
+    ],
+    "requiresVerification": false,
+    "verificationNotes": []
+  }
+]

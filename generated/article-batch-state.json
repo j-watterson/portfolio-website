@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "phase": "active",
+  "phase": "finalized",
   "batchId": "batch_6adfbf58d49481909c816c414ba48936",
   "inputFileId": "file-4H2viN5a1LDc2NqnXSvCmK",
   "model": "gpt-5.5",
@@ -20,11 +20,47 @@
     "percentage-points-versus-percentage-changes"
   ],
   "submittedAt": "2026-10-26T21:00:08.949Z",
-  "batchStatus": "validating",
-  "outputFileId": null,
+  "batchStatus": "completed",
+  "outputFileId": "file-A4fXtdoh6dBTtvSRWAz56e",
   "errorFileId": null,
-  "successfulCount": 0,
-  "failedCount": 0,
-  "publishedCount": 0,
-  "failures": []
+  "successfulCount": 10,
+  "failedCount": 6,
+  "publishedCount": 4,
+  "failures": [
+    {
+      "customId": "article-relational-division-for-analytical-questions",
+      "code": "editorial_retry",
+      "message": "Editor cited a source absent from its search evidence"
+    },
+    {
+      "customId": "article-floating-point-error-in-financial-analytics",
+      "code": "editorial_retry",
+      "message": "Editor cited a source absent from its search evidence"
+    },
+    {
+      "customId": "article-fixed-point-decimal-precision-and-scale",
+      "code": "editorial_retry",
+      "message": "Editor cited a source absent from its search evidence"
+    },
+    {
+      "customId": "article-integer-overflow-in-aggregate-calculations",
+      "code": "editorial_retry",
+      "message": "Editor cited a source absent from its search evidence"
+    },
+    {
+      "customId": "article-unit-conversions-in-analytical-models",
+      "code": "editorial_retry",
+      "message": "Editor cited a source absent from its search evidence"
+    },
+    {
+      "customId": "article-exchange-rate-direction-and-inversion",
+      "code": "editorial_retry",
+      "message": "Editor cited a source absent from its search evidence"
+    }
+  ],
+  "finalizedAt": "2026-10-27T00:14:05.047Z",
+  "automaticReview": true,
+  "retryCount": 6,
+  "reviewCount": 0,
+  "reviewSlugs": []
 }

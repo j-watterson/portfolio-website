@@ -21,15 +21,15 @@ Relational division for analytical questions,,ready,practitioners,never
 Temporal uniqueness constraints,https://jwatterson.com/writing/temporal-uniqueness-constraints,published,practitioners,never
 Floating-point error in financial analytics,,ready,practitioners,never
 Fixed-point decimal precision and scale,,ready,practitioners,never
-Rounding at ingestion versus presentation,,ready,practitioners,never
+Rounding at ingestion versus presentation,https://jwatterson.com/writing/rounding-at-ingestion-versus-presentation,published,practitioners,never
 Rounding residuals in proportional allocations,https://jwatterson.com/writing/rounding-residuals-in-proportional-allocations,published,practitioners,never
 Integer overflow in aggregate calculations,,ready,practitioners,never
 Division by zero in business ratios,https://jwatterson.com/writing/division-by-zero-in-business-ratios,published,practitioners,never
-Negative values in rate calculations,,ready,practitioners,never
+Negative values in rate calculations,https://jwatterson.com/writing/negative-values-in-rate-calculations,published,practitioners,never
 Unit conversions in analytical models,,ready,practitioners,never
-Currency conversion dates in reporting,,not written,practitioners,never
-Exchange-rate direction and inversion,,not written,practitioners,never
-Percentage points versus percentage changes,,not written,practitioners,never
+Currency conversion dates in reporting,https://jwatterson.com/writing/currency-conversion-dates-in-reporting,published,practitioners,never
+Exchange-rate direction and inversion,,ready,practitioners,never
+Percentage points versus percentage changes,https://jwatterson.com/writing/percentage-points-versus-percentage-changes,published,practitioners,never
 Approximate distinct counts and error bounds,,not written,practitioners,never
 Variance aggregation across partitions,,not written,practitioners,never
 Numerical stability in variance calculations,,not written,practitioners,never
