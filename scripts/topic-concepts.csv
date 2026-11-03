@@ -17,10 +17,10 @@ Associative entities for many-to-many relationships,https://jwatterson.com/writi
 Database constraints versus validation queries,https://jwatterson.com/writing/database-constraints-versus-validation-queries,published,practitioners,never
 Uniqueness with nullable business identifiers,https://jwatterson.com/writing/uniqueness-with-nullable-business-identifiers,published,practitioners,never
 Domain constraints for categorical data,https://jwatterson.com/writing/domain-constraints-for-categorical-data,published,practitioners,never
-Relational division for analytical questions,,ready,practitioners,never
+Relational division for analytical questions,https://jwatterson.com/writing/relational-division-for-analytical-questions,published,practitioners,never
 Temporal uniqueness constraints,https://jwatterson.com/writing/temporal-uniqueness-constraints,published,practitioners,never
 Floating-point error in financial analytics,,ready,practitioners,never
-Fixed-point decimal precision and scale,,ready,practitioners,never
+Fixed-point decimal precision and scale,https://jwatterson.com/writing/fixed-point-decimal-precision-and-scale,published,practitioners,never
 Rounding at ingestion versus presentation,https://jwatterson.com/writing/rounding-at-ingestion-versus-presentation,published,practitioners,never
 Rounding residuals in proportional allocations,https://jwatterson.com/writing/rounding-residuals-in-proportional-allocations,published,practitioners,never
 Integer overflow in aggregate calculations,,ready,practitioners,never
@@ -30,10 +30,10 @@ Unit conversions in analytical models,,ready,practitioners,never
 Currency conversion dates in reporting,https://jwatterson.com/writing/currency-conversion-dates-in-reporting,published,practitioners,never
 Exchange-rate direction and inversion,,ready,practitioners,never
 Percentage points versus percentage changes,https://jwatterson.com/writing/percentage-points-versus-percentage-changes,published,practitioners,never
-Approximate distinct counts and error bounds,,not written,practitioners,never
-Variance aggregation across partitions,,not written,practitioners,never
-Numerical stability in variance calculations,,not written,practitioners,never
-Geometric means for compounded growth,,not written,practitioners,never
+Approximate distinct counts and error bounds,https://jwatterson.com/writing/approximate-distinct-counts-and-error-bounds,published,practitioners,never
+Variance aggregation across partitions,https://jwatterson.com/writing/variance-aggregation-across-partitions,published,practitioners,never
+Numerical stability in variance calculations,https://jwatterson.com/writing/numerical-stability-in-variance-calculations,published,practitioners,never
+Geometric means for compounded growth,,ready,practitioners,never
 Logarithmic scales in operational metrics,,not written,practitioners,never
 Sign conventions for debits and credits in data,,not written,practitioners,never
 Precision loss in identifier conversions,,not written,practitioners,never
