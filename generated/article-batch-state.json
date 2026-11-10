@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "phase": "active",
+  "phase": "finalized",
   "batchId": "batch_6af261e8c09c8190940d39a98affd3b8",
   "inputFileId": "file-EWw3VT9Y2CUL9ie8dAASnn",
   "model": "gpt-5.5",
@@ -20,11 +20,42 @@
     "event-time-versus-processing-time"
   ],
   "submittedAt": "2026-11-10T00:14:32.885Z",
-  "batchStatus": "validating",
-  "outputFileId": null,
+  "batchStatus": "completed",
+  "outputFileId": "file-SduoJ4f8JfXNZbb7UQNKRv",
   "errorFileId": null,
-  "successfulCount": 0,
-  "failedCount": 0,
-  "publishedCount": 0,
-  "failures": []
+  "successfulCount": 10,
+  "failedCount": 5,
+  "publishedCount": 5,
+  "failures": [
+    {
+      "customId": "article-unit-conversions-in-analytical-models",
+      "code": "editorial_retry",
+      "message": "Editor cited a source absent from its search evidence"
+    },
+    {
+      "customId": "article-exchange-rate-direction-and-inversion",
+      "code": "editorial_retry",
+      "message": "Editor cited a source absent from its search evidence"
+    },
+    {
+      "customId": "article-geometric-means-for-compounded-growth",
+      "code": "editorial_retry",
+      "message": "Editor cited a source absent from its search evidence"
+    },
+    {
+      "customId": "article-missing-measurements-versus-measured-zero",
+      "code": "editorial_retry",
+      "message": "Editor cited a source absent from its search evidence"
+    },
+    {
+      "customId": "article-event-time-versus-processing-time",
+      "code": "editorial_retry",
+      "message": "Editor cited a source absent from its search evidence"
+    }
+  ],
+  "finalizedAt": "2026-11-10T04:28:43.224Z",
+  "automaticReview": true,
+  "retryCount": 5,
+  "reviewCount": 0,
+  "reviewSlugs": []
 }

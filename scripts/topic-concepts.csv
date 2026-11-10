@@ -19,11 +19,11 @@ Uniqueness with nullable business identifiers,https://jwatterson.com/writing/uni
 Domain constraints for categorical data,https://jwatterson.com/writing/domain-constraints-for-categorical-data,published,practitioners,never
 Relational division for analytical questions,https://jwatterson.com/writing/relational-division-for-analytical-questions,published,practitioners,never
 Temporal uniqueness constraints,https://jwatterson.com/writing/temporal-uniqueness-constraints,published,practitioners,never
-Floating-point error in financial analytics,,ready,practitioners,never
+Floating-point error in financial analytics,https://jwatterson.com/writing/floating-point-error-in-financial-analytics,published,practitioners,never
 Fixed-point decimal precision and scale,https://jwatterson.com/writing/fixed-point-decimal-precision-and-scale,published,practitioners,never
 Rounding at ingestion versus presentation,https://jwatterson.com/writing/rounding-at-ingestion-versus-presentation,published,practitioners,never
 Rounding residuals in proportional allocations,https://jwatterson.com/writing/rounding-residuals-in-proportional-allocations,published,practitioners,never
-Integer overflow in aggregate calculations,,ready,practitioners,never
+Integer overflow in aggregate calculations,https://jwatterson.com/writing/integer-overflow-in-aggregate-calculations,published,practitioners,never
 Division by zero in business ratios,https://jwatterson.com/writing/division-by-zero-in-business-ratios,published,practitioners,never
 Negative values in rate calculations,https://jwatterson.com/writing/negative-values-in-rate-calculations,published,practitioners,never
 Unit conversions in analytical models,,ready,practitioners,never
@@ -34,11 +34,11 @@ Approximate distinct counts and error bounds,https://jwatterson.com/writing/appr
 Variance aggregation across partitions,https://jwatterson.com/writing/variance-aggregation-across-partitions,published,practitioners,never
 Numerical stability in variance calculations,https://jwatterson.com/writing/numerical-stability-in-variance-calculations,published,practitioners,never
 Geometric means for compounded growth,,ready,practitioners,never
-Logarithmic scales in operational metrics,,not written,practitioners,never
-Sign conventions for debits and credits in data,,not written,practitioners,never
-Precision loss in identifier conversions,,not written,practitioners,never
-Missing measurements versus measured zero,,not written,practitioners,never
-Event time versus processing time,,not written,practitioners,never
+Logarithmic scales in operational metrics,https://jwatterson.com/writing/logarithmic-scales-in-operational-metrics,published,practitioners,never
+Sign conventions for debits and credits in data,https://jwatterson.com/writing/sign-conventions-for-debits-and-credits-in-data,published,practitioners,never
+Precision loss in identifier conversions,https://jwatterson.com/writing/precision-loss-in-identifier-conversions,published,practitioners,never
+Missing measurements versus measured zero,,ready,practitioners,never
+Event time versus processing time,,ready,practitioners,never
 UTC storage and local reporting boundaries,,not written,practitioners,never
 Daylight-saving gaps and repeated hours,,not written,practitioners,never
 Half-open time intervals,,not written,practitioners,never

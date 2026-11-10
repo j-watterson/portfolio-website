@@ -1,493 +1,124 @@
 [
   {
-    "slug": "relational-division-for-analytical-questions",
-    "title": "Relational division for analytical questions",
-    "description": "A practical guide to finding entities that satisfy every requirement in a reference set, using a small hypothetical dataset, counterexamples, and SQL patterns for relational division.",
-    "primaryKeyword": "Relational division for analytical questions",
+    "slug": "floating-point-error-in-financial-analytics",
+    "title": "Floating-point error in financial analytics",
+    "description": "A practical counterexample showing how repeated decimal arithmetic creates representation error when financial analytics use binary floating-point numbers.",
+    "primaryKeyword": "Floating-point error in financial analytics",
     "relatedKeywords": [
-      "Relational division for analytical questions"
+      "Floating-point error in financial analytics"
     ],
     "category": "Data Modeling",
     "level": "Intermediate",
-    "readTime": "8 min",
-    "datePublished": "2026-11-02",
-    "dateModified": "2026-11-03",
-    "canonicalUrl": "https://jwatterson.com/writing/relational-division-for-analytical-questions",
+    "readTime": "7 min read",
+    "datePublished": "2026-11-10",
+    "dateModified": "2026-11-10",
+    "canonicalUrl": "https://jwatterson.com/writing/floating-point-error-in-financial-analytics",
     "status": "published",
-    "sourceHash": "0bf1dbb243c1cbdb",
-    "lead": "Some analytical questions are not asking whether an entity matches any condition. They are asking whether it matches every requirement in a reference set. Relational division is the relational pattern behind questions like: which customers bought every required category, which stores carry every mandatory item, or which accounts completed every onboarding step?",
+    "sourceHash": "b1eff4cf3ad25658",
+    "lead": "Financial analytics often repeat simple decimal arithmetic: add ten-cent credits, total transaction fees, compute refund adjustments, or compare calculated amounts to thresholds. The danger is not that every floating-point total becomes visibly wrong. The danger is that decimal business quantities can be represented by nearby binary values, and repeated arithmetic makes that fact observable in totals, comparisons, and reconciliation checks. This guide uses a small hypothetical retail example to demonstrate representation error directly, without turning the topic into tax, accounting, or rounding policy advice.",
     "sections": [
       {
-        "id": "the-question-relational-division-answers",
-        "heading": "The question relational division answers",
+        "id": "the-specific-problem",
+        "heading": "The specific problem: repeated decimal values stored as binary floats",
         "paragraphs": [
-          "Relational division answers a precise question: given a set of candidate entities and a set of required values, which entities are associated with all required values? The word all is the important part. A normal join is good at finding matches. Relational division is about proving that there are no missing required matches.",
-          "In relational algebra, division is the operation used for questions where one relation must be matched against every tuple in another relation. SQL does not provide a portable DIVIDE BY operator, so practitioners usually express the same idea with ordinary SQL constructs such as NOT EXISTS, set difference, or grouping with aggregates.",
-          "In analytical work, this pattern appears more often than the name suggests. Examples include customers who purchased every product category in a campaign, warehouses that stocked every required SKU, employees who completed every required training module, vendors that passed every required certification, and devices that emitted every expected event type during a test window.",
-          "The input shape has three logical parts. First, a candidate entity set, such as customers. Second, a reference set of requirements, such as required categories. Third, an association relation that records which entity has which value, such as customer-category purchases. The output is the subset of candidate entities for which every requirement has a corresponding association row.",
-          "This article uses a small hypothetical retail dataset. The goal is not to tune a specific SQL engine. The goal is to make the relational semantics visible, including counterexamples that commonly produce wrong analytical results."
+          "A decimal such as 0.10 feels exact because it has a short written form in base ten. A binary floating-point type stores numbers in base two. Fractions whose reduced denominator contains any prime factor other than 2 do not have a finite binary expansion. One tenth is 1 divided by 10, and 10 factors into 2 times 5, so 0.10 cannot be represented exactly as a finite binary fraction.",
+          "This matters in financial analytics because many datasets contain repeated decimal quantities: item prices, fees, credits, rates, and per-event adjustments. If those values are stored or computed as binary floating-point values, the analytic total is not the sum of the decimal values users see. It is the sum of nearby binary approximations, plus whatever additional rounding happens during arithmetic.",
+          "PostgreSQL 18 documents the modeling distinction explicitly: numeric is an exact numeric type of selectable precision, while real and double precision are inexact, variable-precision numeric types implemented as IEEE 754 binary floating point on supported platforms. PostgreSQL 18 also documents that sum(numeric) returns numeric, sum(real) returns real, and sum(double precision) returns double precision. The engineering question is not whether floating point is bad in general. The question is whether an inexact binary approximation is acceptable for the specific financial analytic being produced."
         ],
         "bullets": [],
         "codeExamples": []
       },
       {
-        "id": "hypothetical-retail-fixture",
-        "heading": "A hypothetical retail fixture",
+        "id": "worked-counterexample",
+        "heading": "Worked counterexample: a hypothetical ten-cent loyalty credit",
         "paragraphs": [
-          "Assume a retailer defines a starter-kit promotion. A customer qualifies only if they bought at least one item from each required category: batteries, charger, and case. Buying extra categories is allowed. Buying the same qualifying category more than once should not compensate for a missing category.",
-          "The relations below are intentionally small. The customer table defines the candidate entities. The required_categories relation defines the divisor, or the set of requirements. The customer_category_purchases relation defines observed associations between customers and categories. In a durable model, candidate keys should protect the grains that matter: one customer row per customer, one required row per program and category, and purchase or event rows at their actual event grain. The article on candidate keys and alternate keys is useful background for that modeling prerequisite.",
-          "The SQL is illustrative and written in a PostgreSQL-style common table expression form. It is meant to show the semantics; it is not presented as code executed against a live database."
-        ],
-        "bullets": [
-          "Customer 201 bought all three required categories and should qualify.",
-          "Customer 202 has three qualifying-looking purchase rows but is missing case, so should not qualify.",
-          "Customer 203 bought all three required categories plus headphones; extra categories should not disqualify the customer.",
-          "Customer 204 is missing charger and should not qualify.",
-          "Customer 205 bought all three required categories with a duplicate case row and should qualify.",
-          "Customer 206 has no purchases and should not qualify while the requirement set is non-empty."
-        ],
-        "codeExamples": [
-          {
-            "language": "sql",
-            "code": "WITH\ncustomers(customer_id) AS (\n  VALUES (201), (202), (203), (204), (205), (206)\n),\nrequired_categories(category) AS (\n  VALUES ('batteries'), ('charger'), ('case')\n),\ncustomer_category_purchases(customer_id, category) AS (\n  VALUES\n    (201, 'batteries'),\n    (201, 'charger'),\n    (201, 'case'),\n\n    (202, 'batteries'),\n    (202, 'batteries'),\n    (202, 'charger'),\n\n    (203, 'batteries'),\n    (203, 'charger'),\n    (203, 'case'),\n    (203, 'headphones'),\n\n    (204, 'batteries'),\n    (204, 'case'),\n\n    (205, 'case'),\n    (205, 'charger'),\n    (205, 'batteries'),\n    (205, 'case')\n)\nSELECT *\nFROM customers;"
-          }
-        ]
-      },
-      {
-        "id": "why-any-match-is-not-enough",
-        "heading": "Why any-match logic is not enough",
-        "paragraphs": [
-          "The most common mistake is to convert an all-requirements question into an any-match query. For example, a join from purchases to required categories finds customers who bought at least one required category. That is useful for a funnel entry question, but it is not relational division.",
-          "In the hypothetical data, customers 201, 202, 203, 204, and 205 all bought at least one required category. Only 201, 203, and 205 bought every required category. If a dashboard labels the any-match result as qualified customers, it will overcount by including 202 and 204.",
-          "A second common mistake is counting rows instead of counting distinct requirements satisfied. Customer 202 has three purchase rows that match the required set: batteries, batteries, and charger. A naive count can make 202 look complete because three rows match three required categories. But the missing category is case. Multiplicity is not coverage.",
-          "This is why the grain of the association relation matters. Purchases are events. Requirements are categories. A customer can have many events for the same category, but the qualification rule is about distinct required categories covered by each customer."
-        ],
-        "bullets": [],
-        "codeExamples": [
-          {
-            "language": "sql",
-            "code": "WITH\ncustomers(customer_id) AS (\n  VALUES (201), (202), (203), (204), (205), (206)\n),\nrequired_categories(category) AS (\n  VALUES ('batteries'), ('charger'), ('case')\n),\ncustomer_category_purchases(customer_id, category) AS (\n  VALUES\n    (201, 'batteries'), (201, 'charger'), (201, 'case'),\n    (202, 'batteries'), (202, 'batteries'), (202, 'charger'),\n    (203, 'batteries'), (203, 'charger'), (203, 'case'), (203, 'headphones'),\n    (204, 'batteries'), (204, 'case'),\n    (205, 'case'), (205, 'charger'), (205, 'batteries'), (205, 'case')\n)\nSELECT p.customer_id\nFROM customer_category_purchases p\nJOIN required_categories r\n  ON r.category = p.category\nGROUP BY p.customer_id\nHAVING COUNT(*) >= (SELECT COUNT(*) FROM required_categories)\nORDER BY p.customer_id;\n\n-- This naive row-count pattern would include customer 202,\n-- even though customer 202 is missing the required category 'case'."
-          }
-        ]
-      },
-      {
-        "id": "the-not-exists-pattern",
-        "heading": "The NOT EXISTS pattern",
-        "paragraphs": [
-          "A direct way to express relational division in SQL is a double NOT EXISTS predicate. Read it in plain language: return customers for whom there does not exist a required category for which there does not exist a matching purchase. In shorter terms: there is no missing requirement.",
-          "This pattern keeps the universal condition visible. The inner NOT EXISTS asks whether a specific required category is missing for a specific customer. The outer NOT EXISTS keeps only customers for whom that missing-requirement search finds nothing.",
-          "For the hypothetical fixture, the expected result is customers 201, 203, and 205. Customer 201 has batteries, charger, and case. Customer 203 has batteries, charger, and case; headphones is irrelevant because it is not in the requirement set. Customer 205 has all three required categories; the duplicate case row does not matter. Customers 202, 204, and 206 each have at least one missing requirement.",
-          "This formulation also makes the empty-reference-set behavior explicit. If required_categories is empty, the outer NOT EXISTS condition is true for every candidate customer because there is no required category to be missing. That is the usual formal interpretation of an all-requirements predicate over an empty requirement set. A business process may still decide that an empty requirement set is a configuration error, but that is a separate rule."
-        ],
-        "bullets": [],
-        "codeExamples": [
-          {
-            "language": "sql",
-            "code": "WITH\ncustomers(customer_id) AS (\n  VALUES (201), (202), (203), (204), (205), (206)\n),\nrequired_categories(category) AS (\n  VALUES ('batteries'), ('charger'), ('case')\n),\ncustomer_category_purchases(customer_id, category) AS (\n  VALUES\n    (201, 'batteries'), (201, 'charger'), (201, 'case'),\n    (202, 'batteries'), (202, 'batteries'), (202, 'charger'),\n    (203, 'batteries'), (203, 'charger'), (203, 'case'), (203, 'headphones'),\n    (204, 'batteries'), (204, 'case'),\n    (205, 'case'), (205, 'charger'), (205, 'batteries'), (205, 'case')\n)\nSELECT c.customer_id\nFROM customers c\nWHERE NOT EXISTS (\n  SELECT 1\n  FROM required_categories r\n  WHERE NOT EXISTS (\n    SELECT 1\n    FROM customer_category_purchases p\n    WHERE p.customer_id = c.customer_id\n      AND p.category = r.category\n  )\n)\nORDER BY c.customer_id;\n\n-- Expected customer_id values: 201, 203, 205"
-          }
-        ]
-      },
-      {
-        "id": "the-count-distinct-pattern",
-        "heading": "The COUNT DISTINCT pattern",
-        "paragraphs": [
-          "Another common formulation groups by entity and compares the number of distinct required values satisfied with the number of required values. For many analytical readers, this is easier to inspect than the double negative. It also makes the distinction between row count and requirement coverage explicit.",
-          "The key is to count distinct required categories after joining observed values to the reference set. Counting purchase rows is wrong when duplicates exist. Counting distinct purchased categories without joining to the reference set can also be wrong if extra categories are present. The count should represent required categories covered, not all categories observed.",
-          "The version below starts from the candidate customer set rather than from the purchase table, then left joins the observed associations. That keeps no-purchase candidates visible while the HAVING clause decides whether they qualify. For this fixture, the expected customers are 201, 203, and 205.",
-          "The example also deduplicates the requirement set in a required_values common table expression. In a production model, that should not be a substitute for proper constraints: the requirement relation should be unique at the intended grain. The deduplication step is included here so the aggregate logic clearly counts coverage of distinct required values."
-        ],
-        "bullets": [
-          "Use COUNT(DISTINCT r.category), not COUNT(*), when event duplicates are possible.",
-          "Join observed values to the requirement set before counting, so extra categories do not inflate coverage.",
-          "Start from the candidate set if candidates with no associations must be evaluated.",
-          "Handle the empty-reference-set case deliberately."
-        ],
-        "codeExamples": [
-          {
-            "language": "sql",
-            "code": "WITH\ncustomers(customer_id) AS (\n  VALUES (201), (202), (203), (204), (205), (206)\n),\nrequired_categories(category) AS (\n  VALUES ('batteries'), ('charger'), ('case')\n),\ncustomer_category_purchases(customer_id, category) AS (\n  VALUES\n    (201, 'batteries'), (201, 'charger'), (201, 'case'),\n    (202, 'batteries'), (202, 'batteries'), (202, 'charger'),\n    (203, 'batteries'), (203, 'charger'), (203, 'case'), (203, 'headphones'),\n    (204, 'batteries'), (204, 'case'),\n    (205, 'case'), (205, 'charger'), (205, 'batteries'), (205, 'case')\n),\nrequired_values AS (\n  SELECT DISTINCT category\n  FROM required_categories\n),\nrequired_count AS (\n  SELECT COUNT(*) AS n_required\n  FROM required_values\n)\nSELECT c.customer_id\nFROM customers c\nLEFT JOIN customer_category_purchases p\n  ON p.customer_id = c.customer_id\nLEFT JOIN required_values r\n  ON r.category = p.category\nCROSS JOIN required_count rc\nGROUP BY c.customer_id, rc.n_required\nHAVING rc.n_required > 0\n   AND COUNT(DISTINCT r.category) = rc.n_required\nORDER BY c.customer_id;\n\n-- Expected customer_id values for this non-empty requirement set: 201, 203, 205"
-          }
-        ]
-      },
-      {
-        "id": "diagnose-missing-requirements",
-        "heading": "Diagnose missing requirements before publishing the metric",
-        "paragraphs": [
-          "A relational division query returns the entities that pass. Before publishing the metric, it is often more useful to inspect the entities that fail and the specific requirements they are missing. The diagnostic query is the complement: create every candidate-requirement pair, then remove the pairs that have a matching association row.",
-          "A CROSS JOIN is the natural SQL expression for the first half of that diagnostic because it deliberately creates every possible candidate-requirement combination. The NOT EXISTS predicate then filters that grid down to the pairs with no supporting association row.",
-          "For the fixture, the missing pairs are straightforward. Customer 202 is missing case. Customer 204 is missing charger. Customer 206 is missing batteries, case, and charger. Customers 201, 203, and 205 have no missing required categories.",
-          "This diagnostic is also a modeling check. If the missing list is surprisingly large, the issue might be a real business outcome, but it might also be a grain mismatch, a category mapping problem, a stale reference set, or an association table that is filtered to the wrong time window. Relational division makes these assumptions visible because the query must name the candidate set, the requirement set, and the association relation."
-        ],
-        "bullets": [],
-        "codeExamples": [
-          {
-            "language": "sql",
-            "code": "WITH\ncustomers(customer_id) AS (\n  VALUES (201), (202), (203), (204), (205), (206)\n),\nrequired_categories(category) AS (\n  VALUES ('batteries'), ('charger'), ('case')\n),\ncustomer_category_purchases(customer_id, category) AS (\n  VALUES\n    (201, 'batteries'), (201, 'charger'), (201, 'case'),\n    (202, 'batteries'), (202, 'batteries'), (202, 'charger'),\n    (203, 'batteries'), (203, 'charger'), (203, 'case'), (203, 'headphones'),\n    (204, 'batteries'), (204, 'case'),\n    (205, 'case'), (205, 'charger'), (205, 'batteries'), (205, 'case')\n)\nSELECT c.customer_id, r.category AS missing_category\nFROM customers c\nCROSS JOIN required_categories r\nWHERE NOT EXISTS (\n  SELECT 1\n  FROM customer_category_purchases p\n  WHERE p.customer_id = c.customer_id\n    AND p.category = r.category\n)\nORDER BY c.customer_id, r.category;\n\n-- Expected missing pairs:\n-- 202, case\n-- 204, charger\n-- 206, batteries\n-- 206, case\n-- 206, charger"
-          }
-        ]
-      },
-      {
-        "id": "modeling-assumptions-that-change-the-answer",
-        "heading": "Modeling assumptions that change the answer",
-        "paragraphs": [
-          "Relational division is simple only after the relations are well defined. Most wrong answers come from unclear inputs, not from the SQL pattern itself.",
-          "The first assumption is the candidate set. If the query starts from the purchase table, customers with no purchases disappear before the all-requirements logic runs. That may be acceptable for some questions, but it is not equivalent to starting from all eligible customers. In the example, customer 206 must be present in the candidate set to be correctly evaluated as not qualified while the requirement set is non-empty.",
-          "The second assumption is the requirement set. Requirements should be unique at the intended grain. If the same required category appears twice for the same program, count-based formulations can become ambiguous unless the query explicitly deduplicates the requirement set. A primary key or unique constraint on the requirement grain is the modeling protection. PostgreSQL documentation describes unique constraints, primary keys, and foreign keys as mechanisms for enforcing table-level rules; the same design idea applies regardless of the specific database product.",
-          "The third assumption is the association grain. If the association table records purchase events, duplicates are expected and should not imply additional coverage. If the association table is already a deduplicated customer-category bridge, the division query becomes simpler, but the bridge must be built with a clear grain. Normalization guidance is relevant here because it asks which attributes depend on which keys and encourages tables whose rows have a well-defined meaning.",
-          "The fourth assumption is the comparison value. Category names, codes, or identifiers must be comparable between the requirement relation and the association relation. If one table uses product category names and another uses SKU-level events, an intermediate mapping is needed before relational division is meaningful. That mapping problem is separate from the division operation itself.",
-          "Finally, define the treatment of nulls and unknowns before relying on the result. A null category is not evidence that a customer satisfied a specific required category, because it does not equal a named required value in the predicate. If unknown, invalid, and not-applicable values have business meaning, they should be modeled deliberately rather than allowed to leak into the division predicate."
+          "Consider a hypothetical retail events table where each qualifying event earns a customer a 0.10 dollar loyalty credit. Suppose an analytics workflow stores that amount in a common binary64 floating-point representation, the format commonly associated with double precision binary floating point.",
+          "In binary64, the decimal value 0.1 is represented by the nearby rational value 3602879701896397 divided by 36028797018963968. Python’s official floating-point tutorial uses this same fraction to explain representation error for 0.1. The representation error is not a display-formatting problem; it exists before the value is printed.",
+          "The exact error for a single stored 0.10 can be calculated with rational arithmetic. The stored value is 3602879701896397 / 36028797018963968. The intended decimal value is 1 / 10. Subtract the intended value from the stored value:",
+          "(3602879701896397 / 36028797018963968) - (1 / 10) = (36028797018963970 - 36028797018963968) / 360287970189639680 = 2 / 360287970189639680 = 1 / 180143985094819840.",
+          "That is approximately 0.000000000000000005551115123125783 dollars per event. For one event, this is far below a cent. The important conclusion is not the size; it is the proof that the stored value is not the exact decimal amount.",
+          "Now repeat the value. If 100,000 hypothetical events each store this binary approximation of 0.10, then even before considering rounding from each floating-point addition step, the represented values sum to the intended total plus 100,000 times the single-value representation error. The intended decimal total is 10,000.00 dollars. The representation-only excess is approximately 0.0000000000005551115123125783 dollars.",
+          "That still does not round to a cent in this example. This is why floating-point errors can be dismissed too casually: a simple total may appear harmless at ordinary display precision. But the counterexample proves a more general rule. A financial pipeline that uses binary floating point for repeated decimal amounts is operating on approximations, not on the decimal business quantities themselves. Whether that difference becomes visible depends on row count, arithmetic sequence, grouping, comparisons, downstream rounding, and tolerance rules."
         ],
         "bullets": [],
         "codeExamples": []
       },
       {
-        "id": "when-to-use-this-pattern",
-        "heading": "When to use this pattern",
+        "id": "comparison-counterexample",
+        "heading": "A comparison counterexample: three tenths are not the same stored value as 0.3",
         "paragraphs": [
-          "Use relational division when the English version of the requirement says every, all, each, complete, covered, or no missing. It is especially useful for eligibility, compliance, coverage, and completion metrics.",
-          "Do not use it when the question is about any activity, the first matching event, the most recent status, or a threshold that does not require coverage of a named reference set. A customer who bought at least three items is not the same as a customer who bought one item from each of three required categories. A store with ten stocked SKUs is not necessarily a store with every mandatory SKU.",
-          "A good practical test is to ask whether you can produce a missing-requirements report. If the answer is yes, the problem likely has a relational division shape. If there is no meaningful list of missing requirements, a simpler join, aggregation, or ranking query may be the better model."
+          "Aggregation is not the only place representation error appears. Equality checks, joins, thresholds, and bucket boundaries can expose it even when totals look normal.",
+          "Using the same binary64 representation, the stored value for 0.1 is 3602879701896397 / 36028797018963968. If you take three of those represented one-tenth values and add them as exact rational quantities for demonstration, the result is 10808639105689191 / 36028797018963968.",
+          "The nearest binary64 representation of decimal 0.3 is 5404319552844595 / 18014398509481984. With the same denominator as the previous expression, that is 10808639105689190 / 36028797018963968.",
+          "Those two quantities differ by 1 / 36028797018963968, approximately 0.000000000000000027755575615628914. In other words, the represented value obtained from three stored tenths is not the same rational value as the stored representation of 0.3.",
+          "The practical warning is simple: do not build financial analytics logic that depends on exact equality between binary floating-point results and decimal-looking thresholds. A hypothetical rule such as calculated_credit = 0.30 can be fragile if calculated_credit was produced from repeated floating-point operations. The exact observed behavior depends on the system, expression order, and formatting, but the representation mismatch is enough to justify avoiding exact float equality for money-like quantities."
         ],
         "bullets": [
-          "Name the candidate entity set.",
-          "Name the requirement set.",
-          "Name the association relation that can prove coverage.",
-          "Return entities with no missing required associations.",
-          "Keep a diagnostic query that shows the missing associations."
+          "Bad pattern: compare a computed floating-point amount directly to a decimal-looking threshold.",
+          "Safer pattern: store and compare exact decimal values or integer minor units when the business quantity is money-like.",
+          "If a floating-point value is unavoidable for a non-financial analytic measure, compare with an explicit tolerance that is meaningful for that measure, not with exact equality."
         ],
         "codeExamples": []
+      },
+      {
+        "id": "diagnostic-for-existing-models",
+        "heading": "A diagnostic for existing analytics schemas",
+        "paragraphs": [
+          "A useful diagnostic is to look for columns whose names imply money, prices, fees, credits, balances, rates, or adjustments while their storage type is binary floating point. This does not prove a bug by itself. It identifies places where a data engineer should ask whether decimal exactness is required.",
+          "The following SQL is illustrative for PostgreSQL-style catalogs and has not been executed here. It is meant as a schema review pattern, not as a claim about any specific production system. Column naming conventions vary, so adapt the patterns to the warehouse or application schema being reviewed.",
+          "After finding candidate columns, inspect how they are produced and consumed. A float column that stores a machine-learning score is different from a float column that stores a posted transaction amount. The first may be a legitimate approximate measure. The second is likely to create avoidable reconciliation and comparison risk."
+        ],
+        "bullets": [
+          "Trace the source: was the value parsed from a decimal text field, computed from other amounts, or loaded from an upstream float?",
+          "Trace the consumers: is the column used in financial totals, equality joins, audit extracts, customer-facing reports, or threshold rules?",
+          "Trace the arithmetic: is the value repeatedly added, subtracted, multiplied by counts, or grouped across large partitions?",
+          "Trace the display: are downstream dashboards hiding extra digits while automated checks use the unrounded stored value?"
+        ],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "-- Illustrative PostgreSQL schema review query.\n-- This has not been executed here. Adapt the schemas and naming patterns before use.\nselect\n    table_schema,\n    table_name,\n    column_name,\n    data_type\nfrom information_schema.columns\nwhere table_schema not in ('pg_catalog', 'information_schema')\n  and data_type in ('real', 'double precision')\n  and (\n        column_name ~* '(amount|price|fee|cost|credit|debit|balance|refund|rate|revenue)'\n      )\norder by table_schema, table_name, column_name;"
+          }
+        ]
+      },
+      {
+        "id": "calculation-rules",
+        "heading": "Rules for demonstrating the error without exaggerating it",
+        "paragraphs": [
+          "The goal of a counterexample is to be precise, not dramatic. Floating-point representation error is real, but the right engineering conclusion depends on the quantity and the business use. Use these rules when explaining the issue to analysts, reviewers, or stakeholders.",
+          "First, separate representation error from arithmetic-operation error. The loyalty credit example above starts with the exact rational value stored for 0.1 and multiplies the single-value error by the number of rows. That isolates the fact that the stored value differs from the intended decimal. Actual floating-point aggregation can add further rounding because floating-point operations can introduce new rounding error.",
+          "Second, do not claim that every float total will be wrong by a cent. Many examples remain far below the displayed cent, especially for simple sums. The stronger and more durable claim is that the computation is not exact decimal arithmetic. That is enough to reject binary floating point for values that must reconcile as decimal money.",
+          "Third, distinguish money-like facts from approximate analytic measures. A transaction amount, posted fee, invoice balance, or refund amount usually needs exact decimal behavior. A model score, sensor-derived estimate, or exploratory statistic may tolerate approximate floating-point arithmetic. NIST’s discussion of measures of scale is a useful reminder that analytics often compute derived summaries, not only sums; the required numeric representation should follow the meaning and required tolerance of the measure.",
+          "Fourth, prefer explicit modeling choices. For financial facts, common choices are exact decimal types or integer minor units such as cents, depending on the domain. The separate precision-and-scale question is how much capacity to allocate for stored and intermediate values; the point here is narrower: do not accidentally choose binary floating point when the business quantity is decimal and exactness matters."
+        ],
+        "bullets": [],
+        "codeExamples": []
+      },
+      {
+        "id": "practical-implementation-pattern",
+        "heading": "A practical implementation pattern",
+        "paragraphs": [
+          "For an analytics table that stores financial facts, define the decimal contract close to ingestion and keep it visible. The contract should say which fields are exact amounts, which unit they use, and which fields are approximate measures. That lets reviewers distinguish a deliberate approximate metric from an accidental floating-point money column.",
+          "The following illustrative table definition shows the shape of that contract in PostgreSQL and has not been executed here. It uses numeric for exact transaction amounts and leaves a separate approximate column for a non-money analytic score. This is not advice about the right precision and scale for every domain; capacity planning for decimal precision is a separate modeling decision."
+        ],
+        "bullets": [
+          "Use exact decimal or integer minor-unit storage for posted financial facts.",
+          "Avoid exact equality comparisons on computed binary floating-point values.",
+          "When reviewing totals, check both storage type and calculation path.",
+          "Document any approximate numeric field so future users do not treat it as an exact financial amount."
+        ],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "-- Illustrative PostgreSQL table shape for a hypothetical retail order fact.\n-- This has not been executed here.\ncreate table analytics_order_fact (\n    order_id bigint primary key,\n    customer_id bigint not null,\n    order_date date not null,\n    posted_amount numeric(18, 2) not null,\n    loyalty_credit_amount numeric(18, 2) not null,\n    churn_model_score double precision null\n);\n\n-- Exact decimal aggregation for money-like fields.\nselect\n    order_date,\n    sum(posted_amount) as posted_amount_total,\n    sum(loyalty_credit_amount) as loyalty_credit_total\nfrom analytics_order_fact\ngroup by order_date;"
+          }
+        ]
       }
     ],
     "takeaways": [
-      "Relational division finds entities associated with every value in a reference set; it is the right pattern for all-requirements questions.",
-      "Counting rows is a common counterexample failure because duplicate events can hide missing requirements. Count distinct required values or use a no-missing-requirements predicate.",
-      "A missing-requirements diagnostic is the best companion to the final qualified-entities query because it exposes grain, reference-set, and mapping problems before a metric is published."
-    ],
-    "sources": [
-      {
-        "title": "CS 304: CS 304 Division",
-        "url": "https://cs.wellesley.edu/~cs304flask/lectures/relational-algebra/division.html"
-      },
-      {
-        "title": "8.3 Relational Database Management Systems - Introduction to Computer Science | OpenStax",
-        "url": "https://openstax.org/books/introduction-computer-science/pages/8-3-relational-database-management-systems"
-      },
-      {
-        "title": "Chapter 10 Relational Algebra, Relational Calculus, and Relational Theory – Database Design – 3rd Edition",
-        "url": "https://pressbooks.bccampus.ca/nelson/chapter/chapter10thirdedition/"
-      },
-      {
-        "title": "Chapter 8. Data Normalisation",
-        "url": "https://www.cs.uct.ac.za/mit_notes/database/htmls/chp08.html"
-      },
-      {
-        "title": "PostgreSQL: Documentation: 18: 5.5. Constraints",
-        "url": "https://www.postgresql.org/docs/current/ddl-constraints.html"
-      },
-      {
-        "title": "PostgreSQL: Documentation: 18: 7.2. Table Expressions",
-        "url": "https://www.postgresql.org/docs/current/queries-table-expressions.html"
-      }
-    ],
-    "requiresVerification": false,
-    "verificationNotes": []
-  },
-  {
-    "slug": "fixed-point-decimal-precision-and-scale",
-    "title": "Fixed-point decimal precision and scale",
-    "description": "A practical guide to choosing decimal precision and scale for stored facts and intermediate calculations, with capacity rules and a worked hypothetical retail example.",
-    "primaryKeyword": "Fixed-point decimal precision and scale",
-    "relatedKeywords": [
-      "Fixed-point decimal precision and scale"
-    ],
-    "category": "Data Modeling",
-    "level": "Intermediate",
-    "readTime": "8 min",
-    "datePublished": "2026-11-02",
-    "dateModified": "2026-11-03",
-    "canonicalUrl": "https://jwatterson.com/writing/fixed-point-decimal-precision-and-scale",
-    "status": "published",
-    "sourceHash": "08d0c3b0813061ab",
-    "lead": "Fixed-point decimal types are usually chosen to avoid binary floating-point surprises, but exact representation is only half of the problem. Data engineers also have to choose enough precision and scale for values that are stored, multiplied, subtracted, and aggregated later. The common mistake is sizing a column for a single row while forgetting the larger intermediate values created by calculations.",
-    "sections": [
-      {
-        "id": "what-precision-and-scale-control",
-        "heading": "What precision and scale actually control",
-        "paragraphs": [
-          "For the ordinary fixed-point shape used in this article, DECIMAL(p, s), precision p is the total number of significant decimal digits and scale s is the number of digits to the right of the decimal point. The number of digits available to the left of the decimal point is p minus s. DECIMAL(12, 2), for example, can represent two fractional digits and up to ten integer digits, so values such as 9999999999.99 are within that declared shape while 10000000000.00 is not.",
-          "That p minus s rule is the starting point for capacity planning. Scale answers the question: how small is the unit I need to preserve? Precision answers a wider question: how many total digits must fit after I reserve those fractional digits? If the business process produces large whole-number totals and also needs fine fractional detail, both sides compete for the same precision budget.",
-          "Database engines are not identical. PostgreSQL 18 documents numeric and decimal as equivalent exact numeric types, supports unconstrained numeric declarations, and also supports nonstandard declarations such as negative scale and scale greater than precision. This guide focuses on the common portable form where scale is nonnegative and no larger than precision. For engine-specific behavior, especially rounding on assignment, overflow, aggregate result types, and storage cost, check the target database documentation rather than assuming every DECIMAL implementation behaves the same way.",
-          "This article is about sizing, not accounting policy. It does not decide whether a discount, fee, tax, or allocation should be rounded at a particular business stage. The narrower engineering question is: once the required unit and business maximum are known, what decimal capacity should the stored columns and intermediate expressions have?"
-        ],
-        "bullets": [
-          "Use scale for the required fractional unit: cents require scale 2; basis-point-like rates often require scale 4; derived ratios may need more.",
-          "Use integer digits for the largest expected magnitude before the decimal point.",
-          "Use precision as the sum of those two capacities: required precision equals integer digits plus scale.",
-          "Do not size only for today’s observed maximum. Size for the documented domain, contractual limit, source-system limit, or an explicit operational cap."
-        ],
-        "codeExamples": []
-      },
-      {
-        "id": "capacity-rules-for-common-expressions",
-        "heading": "Capacity rules for common expressions",
-        "paragraphs": [
-          "A useful planning model is to track two numbers for every value: i for integer digits and s for fractional digits. A DECIMAL(p, s) in the ordinary form has i = p - s. You can then reason about expression capacity before choosing the final column type.",
-          "For addition and subtraction, align to the larger scale. If two same-sign values can be added, allow one extra integer digit for carry. A conservative rule for a + b is: result scale equals max(sa, sb), and result integer digits equal max(ia, ib) + 1. If business constraints prove the result cannot grow, you may use a smaller bound, but the constraint should be real and documented. For example, gross minus a discount bounded between zero and gross does not need a carry digit for the business result, even if a SQL engine may allocate a different internal result shape for the expression.",
-          "For multiplication, fractional scale is the sum of operand scales before any later rounding or casting. Integer capacity can be derived from operand bounds. A conservative type-only rule is: result scale equals sa + sb, and result integer digits are at most ia + ib. This upper bound is sometimes wider than the real business domain, especially when multiplying by a rate constrained between 0 and 1.",
-          "For aggregation, the important mistake is forgetting row count. If the maximum positive row value has i integer digits and you may sum up to n positive rows, the sum can require i + ceil(log10(n)) integer digits. This is a safe design rule for positive values of the same sign. It can be conservative at exact powers of ten or when the row maximum is far below the largest value with i digits, but it is useful because it connects capacity to a stated maximum group size.",
-          "Averages are not exempt. The final average may be smaller than the sum, but the sum used to compute it still needs aggregate capacity. If an engine computes AVG through an internal sum and count, the intermediate sum shape matters even when the output is later cast to a smaller display type."
-        ],
-        "bullets": [
-          "Addition or subtraction: keep the larger scale; add an integer carry digit unless constraints rule it out.",
-          "Multiplication: add scales; bound the integer side from operand maxima, not from typical values.",
-          "Sum: add enough integer digits for the maximum number of rows in the group.",
-          "Average: size the intermediate sum and choose a deliberate output scale for the average."
-        ],
-        "codeExamples": []
-      },
-      {
-        "id": "worked-hypothetical-retail-example",
-        "heading": "Worked example: hypothetical retail order lines",
-        "paragraphs": [
-          "Consider a hypothetical retail order-line fact table. The example is intentionally small enough to audit by hand, but the maxima are large enough to show why intermediate capacity matters.",
-          "Assume quantity is a whole number from 0 through 9,999. That needs four integer digits and scale zero, so DECIMAL(4, 0) is sufficient for the stored quantity. Assume unit_price is from 0.00 through 999999.99. That needs six integer digits and two fractional digits, so DECIMAL(8, 2) is sufficient for the stored price.",
-          "The gross line amount is quantity multiplied by unit_price. The largest possible value is 9,999 multiplied by 999,999.99, which equals 9,998,999,900.01. That result has ten integer digits and two fractional digits. The multiplication rule also gives scale 0 + 2 = 2 and at most 4 + 6 = 10 integer digits. Therefore DECIMAL(12, 2) is the minimum shape for this gross amount under the stated assumptions.",
-          "Now add a discount_rate stored as DECIMAL(5, 4), with a business constraint that it must be between 0.0000 and 1.0000. The type shape describes the digits, but the range constraint is what makes it a rate rather than an arbitrary scale-4 number. The exact discount amount before any final presentation rounding is gross_amount multiplied by discount_rate. The fractional scale is 2 + 4 = 6. Because the rate is bounded at 1.0000, the discount cannot exceed the gross amount. It needs ten integer digits and six fractional digits, or DECIMAL(16, 6).",
-          "The net amount is gross_amount minus discount_amount. With the stated constraint that discount is between zero and gross, net is also between zero and gross. To preserve the six fractional digits introduced by the rate multiplication, a stored exact net such as line_net_exact should be DECIMAL(16, 6). If a downstream mart also stores a cents-level net amount, that smaller value is a separate presentation, settlement, or reporting decision, not a reason to under-size the calculation field.",
-          "Finally, consider a daily revenue aggregate that may include up to 2,000,000 positive order lines. The largest line_net_exact is less than or equal to 9,998,999,900.010000. The line value needs ten integer digits. The maximum row count adds ceil(log10(2,000,000)) = 7 more integer digits. A daily sum therefore needs 17 integer digits and six fractional digits: DECIMAL(23, 6). The arithmetic check is 9,998,999,900.01 multiplied by 2,000,000, which equals 19,997,999,800,020,000.00, a 17-digit integer part.",
-          "If the monthly aggregate can include 62,000,000 lines, the row-count term is ceil(log10(62,000,000)) = 8. The monthly sum needs 18 integer digits and six fractional digits, or DECIMAL(24, 6). The maximum gross arithmetic is 9,998,999,900.01 multiplied by 62,000,000, which equals 619,937,993,800,620,000.00, an 18-digit integer part."
-        ],
-        "bullets": [
-          "quantity: DECIMAL(4, 0), because the maximum is 9,999.",
-          "unit_price: DECIMAL(8, 2), because the maximum is 999999.99.",
-          "gross_amount: DECIMAL(12, 2), because 9,999 x 999,999.99 = 9,998,999,900.01.",
-          "line_discount_exact: DECIMAL(16, 6), because multiplying by a scale-4 rate creates six fractional digits and the enforced rate bound keeps the integer side no larger than gross.",
-          "daily_revenue_exact for up to 2,000,000 lines: DECIMAL(23, 6).",
-          "monthly_revenue_exact for up to 62,000,000 lines: DECIMAL(24, 6)."
-        ],
-        "codeExamples": [
-          {
-            "language": "text",
-            "code": "Hypothetical capacity worksheet\n\nStored values:\nquantity           max 9,999        shape DECIMAL(4,0)\nunit_price         max 999,999.99   shape DECIMAL(8,2)\ndiscount_rate      max 1.0000       shape DECIMAL(5,4) plus a constraint limiting values to 0.0000 through 1.0000\n\nDerived values:\ngross_amount       9,999 * 999,999.99 = 9,998,999,900.01\n                   integer digits 10, scale 2, shape DECIMAL(12,2)\n\nline_discount      gross_amount * discount_rate\n                   scale 2 + 4 = 6\n                   max is gross_amount because rate <= 1.0000\n                   integer digits 10, scale 6, shape DECIMAL(16,6)\n\nline_net_exact     gross_amount - line_discount\n                   bounded from 0 through gross_amount\n                   integer digits 10, scale 6, shape DECIMAL(16,6)\n\nDaily sum capacity:\nmax rows           2,000,000\nextra digits       ceil(log10(2,000,000)) = 7\nsum integer digits 10 + 7 = 17\nsum scale          6\nshape              DECIMAL(23,6)"
-          }
-        ]
-      },
-      {
-        "id": "counterexamples-that-catch-bad-sizing",
-        "heading": "Counterexamples that catch bad sizing",
-        "paragraphs": [
-          "Counterexample one: using the row type for the aggregate. If gross_amount is DECIMAL(12, 2), a daily sum of gross_amount is not safely DECIMAL(12, 2). The row type can hold up to 9,998,999,900.01, but two million such rows can sum to 19,997,999,800,020,000.00. That requires 17 integer digits. A DECIMAL(12, 2) aggregate target has only ten integer digits and is off by seven digits.",
-          "Counterexample two: choosing DECIMAL(18, 2) because it looks large. DECIMAL(18, 2) has 16 integer digits. The hypothetical monthly gross maximum above has 18 integer digits. The declaration has many total digits, but not enough digits on the left side of the decimal point. This is why p alone is not meaningful; p minus s is the capacity that protects magnitude.",
-          "Counterexample three: multiplying by a rate and keeping only the money scale. Gross amount has scale 2 and discount_rate has scale 4, so the exact product has scale 6 before later rounding or casting. If a pipeline casts the product directly into DECIMAL(12, 2), it may fit many ordinary rows but it has discarded four fractional digits from the calculation. Whether those digits should survive into a final reported amount is a separate rounding policy, but the intermediate shape should be chosen deliberately.",
-          "Counterexample four: trusting the declared rate type without enforcing the business domain. DECIMAL(5, 4) can describe a scale-4 value, but the type by itself does not express that a discount rate must be between zero and one. If the calculation relies on that bound to size discount_amount as DECIMAL(16, 6), then the bound belongs in validation, a check constraint, a data contract, or an upstream test. Otherwise the engineering assumption and the stored data can diverge."
-        ],
-        "bullets": [],
-        "codeExamples": []
-      },
-      {
-        "id": "a-repeatable-sizing-procedure",
-        "heading": "A repeatable sizing procedure",
-        "paragraphs": [
-          "The practical procedure is to size from the domain outward. Start with the smallest stored facts, then work through the expressions and aggregates they feed. Keep a short worksheet next to the model definition so a reviewer can see why each DECIMAL shape exists.",
-          "First, write the maximum magnitude and required fractional unit for every stored input. Avoid deriving this only from current data profiles. Observed maxima are useful diagnostics, but they are not capacity requirements unless the source system physically prevents larger values.",
-          "Second, write the expressions that create derived fields. For each expression, carry integer digits and scale through the operation. Multiplication is the expression most likely to surprise teams because the fractional scales add. Aggregation is the other common failure because row count becomes part of numeric capacity.",
-          "Third, separate storage shapes from calculation shapes. A source column, an intermediate expression, a fact-table field, and a dashboard output may all need different shapes. Narrowing a final output can be reasonable. Narrowing an intermediate value just because the final report shows fewer digits is a common source of reconciliation problems.",
-          "Fourth, document the operational cap used for aggregates. A daily table might be sized for the maximum order lines per day, while a customer lifetime table might be sized for the maximum retained history per customer. Duration and lag facts have the same general modeling issue: a value that is safe for one process step may need a different shape when it is subtracted, accumulated, or aggregated across a long-running process.",
-          "Finally, add diagnostics that compare declared capacity to the model’s assumptions. The following SQL is illustrative, not execution evidence. It shows the kind of metadata query a PostgreSQL-oriented review might use to list decimal columns and their integer-digit capacity. PostgreSQL 18 documents information_schema.columns fields such as data_type, numeric_precision, numeric_precision_radix, and numeric_scale; the query filters to declared base-10 numeric precision and scale so unconstrained numeric declarations do not produce misleading arithmetic."
-        ],
-        "bullets": [
-          "For every decimal value, record maximum magnitude, scale, and the reason for both.",
-          "For every multiplication, add operand scales before choosing an intermediate type.",
-          "For every sum, include the maximum number of rows per group.",
-          "For every capacity assumption, decide whether it is enforced by a type, constraint, source contract, or validation test.",
-          "For every cast to a narrower decimal, name whether it is a storage limit, calculation limit, or presentation limit."
-        ],
-        "codeExamples": [
-          {
-            "language": "sql",
-            "code": "-- Illustrative PostgreSQL-oriented metadata diagnostic.\n-- Purpose: list declared base-10 numeric shapes and integer digit capacity.\n-- This does not prove the columns are correctly sized; it only exposes declared capacity.\n\nselect\n    table_schema,\n    table_name,\n    column_name,\n    numeric_precision as precision_digits,\n    numeric_scale as scale_digits,\n    numeric_precision - numeric_scale as integer_digits\nfrom information_schema.columns\nwhere data_type = 'numeric'\n  and numeric_precision_radix = 10\n  and numeric_precision is not null\n  and numeric_scale is not null\norder by table_schema, table_name, column_name;"
-          }
-        ]
-      },
-      {
-        "id": "tradeoffs-and-review-questions",
-        "heading": "Tradeoffs and review questions",
-        "paragraphs": [
-          "Oversizing every decimal is not a free design principle. Wider numeric declarations can make schemas harder to reason about, can hide invalid upstream values, and may have storage or execution consequences depending on the database engine. PostgreSQL, for example, documents numeric storage in groups of decimal digits plus overhead, and notes that calculations on numeric values are slower than integer or floating-point operations. Other engines use their own storage and execution rules. The goal is not maximum width; it is justified width.",
-          "The review question for a decimal column should not be only, will today’s data fit? Better questions are: what is the largest valid value, what intermediate expression can create a wider value, what is the largest group being summed, and what constraint enforces the bound? These questions turn precision and scale from guesswork into a small capacity model.",
-          "The word scale can mean different things in different technical contexts. In statistics, NIST describes measures of scale as ways to estimate variability or spread. In fixed-point decimal modeling, scale has the more mechanical meaning used here: the number of decimal digits to the right of the decimal point. Keeping those meanings separate avoids a common vocabulary trap when statistical measures and database columns appear in the same model review.",
-          "The safest habit is to keep capacity decisions close to the model. A comment, design note, or data contract entry that says daily_revenue_exact is DECIMAL(23, 6) because max line integer digits are 10, max rows are 2,000,000, and scale is 6 is much more useful than a bare DECIMAL(23, 6) with no rationale. Future maintainers can then update the type when the business maximum changes, instead of rediscovering the arithmetic during an incident."
-        ],
-        "bullets": [],
-        "codeExamples": []
-      }
-    ],
-    "takeaways": [
-      "For ordinary DECIMAL(p, s), integer capacity is p minus s; always evaluate both sides of the decimal point.",
-      "Intermediate calculations can require wider shapes than stored source values, especially multiplication and aggregation.",
-      "For sums of positive values, include maximum group row count: integer digits need the row value’s integer digits plus ceil(log10(max rows)).",
-      "Business bounds such as discount_rate between 0 and 1 must be enforced somewhere if they are used to justify a smaller decimal type.",
-      "Document the arithmetic behind each important decimal declaration so capacity changes are intentional rather than accidental."
-    ],
-    "sources": [
-      {
-        "title": "PostgreSQL: Documentation: 18: 8.1. Numeric Types",
-        "url": "https://www.postgresql.org/docs/18/datatype-numeric.html"
-      },
-      {
-        "title": "PostgreSQL: Documentation: 18: 35.17. columns",
-        "url": "https://www.postgresql.org/docs/18/infoschema-columns.html"
-      },
-      {
-        "title": "1.3.5.6. Measures of Scale",
-        "url": "https://itl.nist.gov/div898/handbook/eda/section3/eda356.htm"
-      },
-      {
-        "title": "Lag/Duration Facts - Kimball Group",
-        "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/lag-duration-fact/"
-      }
-    ],
-    "requiresVerification": false,
-    "verificationNotes": []
-  },
-  {
-    "slug": "approximate-distinct-counts-and-error-bounds",
-    "title": "Approximate distinct counts and error bounds",
-    "description": "A practical guide to presenting approximate distinct counts as estimates, with explicit interval rules, threshold checks, and counterexamples that prevent approximate metrics from being treated as exact.",
-    "primaryKeyword": "Approximate distinct counts and error bounds",
-    "relatedKeywords": [
-      "Approximate distinct counts and error bounds"
-    ],
-    "category": "Data Modeling",
-    "level": "Intermediate",
-    "readTime": "8 min",
-    "datePublished": "2026-11-02",
-    "dateModified": "2026-11-03",
-    "canonicalUrl": "https://jwatterson.com/writing/approximate-distinct-counts-and-error-bounds",
-    "status": "published",
-    "sourceHash": "1183772f39f3ae76",
-    "lead": "Approximate distinct counts are useful because exact distinct counts can be expensive at large scale. The risk is not the approximation itself. The risk is publishing a number that looks exact, then letting readers make threshold, ranking, or eligibility decisions from a point estimate alone. The fix is to model the estimate, its error language, and the decision rule together.",
-    "sections": [
-      {
-        "id": "the-problem-is-false-precision",
-        "heading": "The problem is false precision",
-        "paragraphs": [
-          "A distinct count answers a deceptively simple question: how many different customers, devices, sessions, orders, or accounts appear in a set of records? Exact distinct counts are sometimes the right answer. PostgreSQL 18 documents aggregate functions such as count for counting input rows, and it documents numeric as an exact, selectable-precision decimal type. Those details matter when a reported metric is supposed to be repeatable and exact.",
-          "At larger scale, many platforms also offer approximate distinct-count functions backed by probabilistic cardinality estimators. BigQuery documents APPROX_COUNT_DISTINCT as returning a statistical estimate rather than necessarily the actual value, and Snowflake documents APPROX_COUNT_DISTINCT as a HyperLogLog approximation of COUNT(DISTINCT). These functions can be useful for dashboards, alerting, exploration, and coarse capacity planning. They are not a license to print an estimate as if it were an observed fact.",
-          "The modeling mistake is usually visible in the column name. A field called active_customers implies an exact count. A field called estimated_active_customers is better, but still incomplete. A defensible analytical model needs at least four pieces: the estimate, the error definition, the confidence or contract language if one exists, and the rule for using the number in decisions.",
-          "This article uses hypothetical retail and customer-event examples. The arithmetic is self-contained and intentionally independent of any specific approximate-count implementation. If a warehouse, library, or sketching system defines error differently, use that system’s definition rather than copying these formulas blindly."
-        ],
-        "bullets": [],
-        "codeExamples": []
-      },
-      {
-        "id": "separate-the-estimate-from-the-decision",
-        "heading": "Separate the estimate from the decision",
-        "paragraphs": [
-          "Let E be an approximate distinct-count estimate. Let e be the relative error bound or tolerance you are willing to use for reporting. If the system defines the error relative to the true value T, the contract is: the absolute value of E minus T is less than or equal to e times T. Rearranging that inequality gives a possible interval for T from the published estimate: T is at least E divided by 1 plus e, and at most E divided by 1 minus e.",
-          "For example, suppose a hypothetical retail dashboard estimates 50,000 distinct active customers for a day, with a stated relative error of 2% relative to the true count. The possible true count is not simply 50,000 plus or minus exactly 1,000 unless the system defines the bound relative to the estimate. Under the true-value-relative definition, the interval is 50,000 divided by 1.02 through 50,000 divided by 0.98, or approximately 49,019.61 through 51,020.41. If distinct customers must be whole people, the integer interval is 49,020 through 51,020.",
-          "That distinction is important. Some documentation gives a statistical estimate without a configurable precision. Some systems describe average relative error. Some give relative standard error. Some give a confidence interval or a tunable sketch precision. These are not interchangeable. If a team cannot say whether its error is relative to the estimate, relative to the unknown true value, a relative standard error, an average error, or a high-confidence bound, it should not describe the point estimate as reliable to a fixed percentage.",
-          "A practical reporting rule is: publish the point estimate for readability, publish the interval for decision-making when an interval is supported, and publish the error definition close enough that a reader cannot miss it."
-        ],
-        "bullets": [
-          "If the error is defined relative to the true value, use lower bound E / (1 + e) and upper bound E / (1 - e).",
-          "If the error is defined relative to the estimate, use lower bound E × (1 - e) and upper bound E × (1 + e).",
-          "If the system only gives a relative standard error or average relative error, do not call it a hard error bound unless the documentation explicitly supports that interpretation.",
-          "If no error definition is available, treat the number as an unlabeled estimate and keep it out of irreversible threshold decisions."
-        ],
-        "codeExamples": []
-      },
-      {
-        "id": "worked-threshold-example",
-        "heading": "Worked example: a threshold decision",
-        "paragraphs": [
-          "Assume a hypothetical retail loyalty program has a reporting threshold: a promotion should be described as reaching at least 100,000 distinct customers only when the metric supports that claim. The approximate distinct-count estimate for a campaign is 101,000 customers. The stated relative error tolerance is 2%, defined relative to the true count.",
-          "The lower bound is 101,000 divided by 1.02, which is approximately 99,019.61. Rounded to whole customers, the lowest possible integer true count under this rule is 99,020. The upper bound is 101,000 divided by 0.98, which is approximately 103,061.22, giving an integer upper bound of 103,061. The estimate is above 100,000, but the lower bound is below 100,000. The safe conclusion is not “the campaign reached 101,000 customers.” It is “the campaign estimate is 101,000, with a decision interval that crosses the 100,000 threshold.”",
-          "The explicit threshold rule is simple. To assert that the true count is at least K, require the lower bound to be at least K. With a true-value-relative error definition, that means E divided by 1 plus e must be greater than or equal to K. Rearranged, E must be at least K times 1 plus e. For K = 100,000 and e = 0.02, the estimate must be at least 102,000 before the lower bound reaches 100,000.",
-          "This is the main behavioral change approximate counts require. The decision rule should be stricter than the display rule. A dashboard can show 101,000 as an estimate. A decision workflow that needs to prove at least 100,000 should wait for an estimate of at least 102,000, use an exact count, or accept an explicit risk policy."
-        ],
-        "bullets": [],
-        "codeExamples": [
-          {
-            "language": "sql",
-            "code": "-- Illustrative PostgreSQL-style arithmetic, not an execution report.\n-- Assumption: rel_error is a true-value-relative bound.\nWITH campaign_estimates(campaign_id, estimated_customers, rel_error, threshold) AS (\n  VALUES\n    ('fall_promo'::text, 101000::numeric, 0.02::numeric, 100000::numeric),\n    ('winter_promo'::text, 102000::numeric, 0.02::numeric, 100000::numeric)\n), intervals AS (\n  SELECT\n    campaign_id,\n    estimated_customers,\n    rel_error,\n    threshold,\n    CEIL(estimated_customers / (1 + rel_error)) AS lower_possible_customers,\n    FLOOR(estimated_customers / (1 - rel_error)) AS upper_possible_customers\n  FROM campaign_estimates\n)\nSELECT\n  campaign_id,\n  estimated_customers,\n  lower_possible_customers,\n  upper_possible_customers,\n  CASE\n    WHEN lower_possible_customers >= threshold THEN 'supports_at_least_threshold'\n    WHEN upper_possible_customers < threshold THEN 'supports_below_threshold'\n    ELSE 'uncertain_at_threshold'\n  END AS threshold_conclusion\nFROM intervals;"
-          }
-        ]
-      },
-      {
-        "id": "worked-comparison-example",
-        "heading": "Worked example: comparing two estimates",
-        "paragraphs": [
-          "Approximate distinct counts also create ranking mistakes. Suppose a hypothetical customer-events table produces these two daily estimates for distinct active customers: Monday has E = 50,000 and Tuesday has E = 50,600. Both use the same 2% true-value-relative error tolerance.",
-          "Monday’s possible interval is 50,000 divided by 1.02 through 50,000 divided by 0.98, or approximately 49,019.61 through 51,020.41. Tuesday’s interval is 50,600 divided by 1.02 through 50,600 divided by 0.98, or approximately 49,607.84 through 51,632.65.",
-          "The point estimates suggest Tuesday is higher by 600 customers, or 1.2% relative to Monday’s estimate. But the intervals overlap. Tuesday’s lower possible value is below Monday’s upper possible value. A safe comparison rule is: claim B is greater than A only when B’s lower bound is greater than A’s upper bound. Here, 49,607.84 is not greater than 51,020.41, so the data does not support a directional claim from the approximate estimates alone.",
-          "You can also express the uncertainty as a possible ratio range. The lowest plausible Tuesday-to-Monday ratio uses Tuesday’s lower bound divided by Monday’s upper bound, approximately 49,607.84 divided by 51,020.41, or 0.9723. The highest plausible ratio uses Tuesday’s upper bound divided by Monday’s lower bound, approximately 51,632.65 divided by 49,019.61, or 1.0533. In plain language, the approximate estimates are compatible with anything from about a 2.8% decrease to about a 5.3% increase. The point estimate alone hides that ambiguity.",
-          "This is not an argument against approximate counts. It is an argument against over-reading them. Approximate distinct counts are useful for saying “these values are in the same neighborhood” or “this metric moved enough to investigate.” They are weaker for saying “this day beat that day” when the movement is smaller than the uncertainty interval."
-        ],
-        "bullets": [],
-        "codeExamples": []
-      },
-      {
-        "id": "counterexamples-that-catch-bad-models",
-        "heading": "Counterexamples that catch bad models",
-        "paragraphs": [
-          "The first counterexample is the exact-looking estimate. A dashboard tile says “Active customers: 50,000.” A stakeholder exports the number and uses it as if it were exact. The metric may have been computed by an approximate distinct-count function, but that fact disappeared at the presentation layer. The fix is not just renaming the tile. Store and expose estimate metadata so downstream models can decide whether the value is fit for use.",
-          "The second counterexample is the additive weekly total. Suppose a hypothetical retailer has 1,000 distinct customers on Monday and 1,000 distinct customers on Tuesday. If 700 of Tuesday’s customers also appeared on Monday, the exact two-day distinct count is 1,300, not 2,000. Approximation error is not the only issue; distinct counts have set semantics. Summing daily distinct counts produces a customer-day count, not a weekly customer count, unless the daily sets are known to be disjoint by construction.",
-          "The third counterexample is mixing approximation error with grain error. If one pipeline counts distinct user_id and another counts distinct device_id, an interval around each estimate does not make them comparable. The model must first define the entity being counted, the time window, inclusion rules, and deduplication key. Only then does the approximate-count error bound have a meaningful interpretation.",
-          "These counterexamples are useful diagnostics. If a proposed metric cannot answer “what entity is distinct?”, “what window is being counted?”, “what error definition applies?”, and “what decisions may use this number?”, the issue is not a sketching algorithm. It is an incomplete metric contract."
-        ],
-        "bullets": [],
-        "codeExamples": []
-      },
-      {
-        "id": "a-minimal-modeling-pattern",
-        "heading": "A minimal modeling pattern",
-        "paragraphs": [
-          "A durable pattern is to treat approximate distinct counts as measured estimates, not as ordinary integers. The metric record should carry both the estimate and the uncertainty fields. For a small dashboard table, that can be as simple as estimated_value, relative_error, error_basis, lower_bound, upper_bound, method_name, entity_key, time_window_start, and time_window_end.",
-          "The bounds can be computed at ingestion time if the error contract is stable, or at query time if different consumers apply different policies. Storing the raw estimate and error metadata is usually safer than storing only pre-rendered text such as “about 50k.” It allows a BI layer, notebook, or decision service to apply consistent threshold logic.",
-          "The following illustrative query uses PostgreSQL-style numeric arithmetic. It is not evidence of execution, and it does not call a real approximate-count function. Its purpose is to show the downstream calculation once an estimate and error definition already exist. PostgreSQL 18 documents numeric as exact selectable-precision decimal arithmetic, which is appropriate for repeatable reporting calculations of this kind. That exact arithmetic does not make the upstream approximate estimate exact; it only keeps the interval calculation itself from adding avoidable decimal representation ambiguity."
-        ],
-        "bullets": [
-          "Use exact counts when the decision requires exactness, when the entity count is small enough to compute directly, or when the result has contractual, compliance, or customer-specific consequences.",
-          "Use approximate counts when the decision can tolerate a stated interval, especially for exploratory analytics, monitoring, and large-scale trend reporting.",
-          "Never hide the approximation in a column name, dashboard label, or exported CSV that downstream users will read as exact."
-        ],
-        "codeExamples": [
-          {
-            "language": "sql",
-            "code": "-- Illustrative metric-contract table shape, not an execution report.\n-- The approximate-count estimate is assumed to be produced upstream.\nWITH approximate_metric(metric_date, entity, estimated_value, rel_error, error_basis) AS (\n  VALUES\n    ('2026-10-01'::date, 'distinct_active_customers'::text, 50000::numeric, 0.02::numeric, 'relative_to_true_value'::text),\n    ('2026-10-02'::date, 'distinct_active_customers'::text, 50600::numeric, 0.02::numeric, 'relative_to_true_value'::text)\n)\nSELECT\n  metric_date,\n  entity,\n  estimated_value,\n  rel_error,\n  error_basis,\n  CEIL(estimated_value / (1 + rel_error)) AS lower_bound_customers,\n  FLOOR(estimated_value / (1 - rel_error)) AS upper_bound_customers,\n  'Report as estimate plus interval; do not report as exact' AS presentation_rule\nFROM approximate_metric;"
-          }
-        ]
-      },
-      {
-        "id": "tool-specific-limitations",
-        "heading": "Tool-specific limitations belong in the metric contract",
-        "paragraphs": [
-          "Do not treat “approximate distinct count” as a single universal contract. BigQuery’s APPROX_COUNT_DISTINCT documentation says the function returns a statistical estimate and notes that these approximate aggregate functions do not let the caller specify precision. Snowflake’s documentation says its APPROX_COUNT_DISTINCT uses HyperLogLog, and its HyperLogLog guide gives an average relative error for that implementation. Those are different kinds of product documentation, and neither should be silently converted into a stronger guarantee than the source provides.",
-          "A metric contract should therefore name the function or method, the platform, and the exact wording of the error basis the team is willing to rely on. If the platform exposes sketch state, precision, or merge functions, the contract should also say whether the metric stores mergeable states or only final estimates. This matters because a final daily estimate is not the same modeling object as a mergeable sketch of that day’s underlying set.",
-          "The safest default is conservative language: estimate, approximate, method-dependent, and suitable only for decisions whose tolerance is wider than the uncertainty. If the underlying documentation gives a confidence interpretation, include it. If it gives only typical, average, or relative standard error language, do not rewrite that as a hard maximum error bound."
-        ],
-        "bullets": [],
-        "codeExamples": []
-      },
-      {
-        "id": "how-to-explain-it-to-readers",
-        "heading": "How to explain it to readers",
-        "paragraphs": [
-          "The clearest explanation is usually short: “This is an approximate distinct count. The point estimate is 50,000. Under the metric’s 2% true-value-relative error rule, the decision interval is about 49,020 to 51,020. Use the interval, not only the point estimate, for threshold and ranking decisions.”",
-          "That sentence does three jobs. It says the value is approximate. It gives the useful point estimate. It also prevents a reader from treating the value as exact when the distinction matters. If the documentation for the underlying estimator gives a confidence level, include it. If it gives only a typical error, average relative error, or relative standard error, keep that wording instead of upgrading it into a guarantee.",
-          "The engineering work is therefore partly mathematical and partly editorial. The mathematical part is converting an estimate and an error definition into a decision interval when the error definition supports one. The editorial part is refusing to publish approximate numbers with exact-looking labels. Both are necessary for a trustworthy metric layer."
-        ],
-        "bullets": [],
-        "codeExamples": []
-      }
-    ],
-    "takeaways": [
-      "An approximate distinct count should be modeled as an estimate plus an error definition, not as an ordinary exact integer.",
-      "For a true-value-relative error bound, convert estimate E and relative error e into a possible true-count interval with E / (1 + e) and E / (1 - e).",
-      "Threshold decisions should use interval logic: assert “at least K” only when the lower bound is at least K.",
-      "Small differences between approximate distinct-count estimates do not support ranking claims when their intervals overlap.",
-      "Approximation error does not fix grain, identity, or set-semantics mistakes; define the entity and time window before interpreting the interval."
+      "A short decimal such as 0.10 is not necessarily exact in binary floating point; one tenth has no finite binary expansion.",
+      "Repeated decimal arithmetic can expose representation error in totals, equality checks, joins, and thresholds, even when ordinary display formatting hides the difference.",
+      "For money-like analytics facts, choose exact decimal or integer minor-unit representations deliberately; reserve binary floating point for approximate measures where that tradeoff is acceptable."
     ],
     "sources": [
       {
@@ -499,324 +130,617 @@
         "url": "https://www.postgresql.org/docs/18/functions-aggregate.html"
       },
       {
-        "title": "Approximate aggregate functions | BigQuery | Google Cloud Documentation",
-        "url": "https://docs.cloud.google.com/bigquery/docs/reference/standard-sql/approximate_aggregate_functions"
+        "title": "Python 3.11.18 Documentation: Floating Point Arithmetic: Issues and Limitations",
+        "url": "https://docs.python.org/3.11/tutorial/floatingpoint.html"
       },
       {
-        "title": "APPROX_COUNT_DISTINCT | Snowflake Documentation",
-        "url": "https://docs.snowflake.com/en/sql-reference/functions/approx_count_distinct"
-      },
-      {
-        "title": "Estimating the Number of Distinct Values | Snowflake Documentation",
-        "url": "https://docs.snowflake.com/en/en/user-guide/querying-approximate-cardinality"
-      },
-      {
-        "title": "1.3.5.1. Measures of Location",
-        "url": "https://itl.nist.gov/div898/handbook/eda/section3/eda351.htm"
+        "title": "NIST/SEMATECH e-Handbook of Statistical Methods: Measures of Scale",
+        "url": "https://www.itl.nist.gov/div898/handbook/eda/section3/eda356.htm"
       }
     ],
     "requiresVerification": false,
     "verificationNotes": []
   },
   {
-    "slug": "variance-aggregation-across-partitions",
-    "title": "Variance aggregation across partitions",
-    "description": "A practical guide to combining group variance statistics correctly by carrying count, mean, and within-group squared deviation instead of averaging variances.",
-    "primaryKeyword": "Variance aggregation across partitions",
+    "slug": "integer-overflow-in-aggregate-calculations",
+    "title": "Integer overflow in aggregate calculations",
+    "description": "A practical guide to estimating intermediate numeric bounds for aggregates, so data engineers can size accumulators and aggregate fact tables before overflow appears in production results.",
+    "primaryKeyword": "Integer overflow in aggregate calculations",
     "relatedKeywords": [
-      "Variance aggregation across partitions"
+      "Integer overflow in aggregate calculations"
     ],
     "category": "Data Modeling",
     "level": "Intermediate",
     "readTime": "7 min",
-    "datePublished": "2026-11-02",
-    "dateModified": "2026-11-03",
-    "canonicalUrl": "https://jwatterson.com/writing/variance-aggregation-across-partitions",
+    "datePublished": "2026-11-10",
+    "dateModified": "2026-11-10",
+    "canonicalUrl": "https://jwatterson.com/writing/integer-overflow-in-aggregate-calculations",
     "status": "published",
-    "sourceHash": "0113dbcf9e4c0523",
-    "lead": "Variance is not an additive fact. If a dashboard averages store-level, channel-level, or daily variances, the result is usually not the variance of the underlying orders or events. The fix is to carry compatible aggregate state: count, mean, and a within-partition squared-deviation term. From those three values, partitions can be combined without returning to the raw rows.",
+    "sourceHash": "7bbd1747880a0fdb",
+    "lead": "Checking that each input value fits a column type is not enough. Aggregate calculations create larger intermediate values: products before sums, sums before averages, partial totals before final totals, and stored aggregate facts after rollups. The safe question is not only “Can one row fit?” It is “Can the largest plausible intermediate result fit?”",
     "sections": [
       {
-        "id": "the-problem-with-averaging-variance",
-        "heading": "The problem with averaging variance",
+        "id": "the-overflow-mistake",
+        "heading": "The overflow mistake: validating rows instead of calculations",
         "paragraphs": [
-          "Variance answers a question about individual observations: how far do values tend to sit from their overall mean? A partition-level variance answers that question inside one partition. It does not, by itself, answer the question across several partitions.",
-          "Consider a hypothetical retail-order dataset split into two partitions. Partition A has two orders: 10 and 10. Partition B has two orders: 20 and 20. The sample variance inside each partition is 0 because neither partition varies internally. If a report averages the two variances, it returns 0.",
-          "But the combined dataset is 10, 10, 20, 20. Its mean is 15. The squared deviations are 25, 25, 25, and 25, for a total squared deviation of 100. The combined population variance is 100 / 4 = 25. The combined sample variance is 100 / 3 = 33.333333. Averaging the partition variances erased the difference between partition means.",
-          "This failure mode appears because sums and counts behave differently from variance. Revenue by day can be summed into revenue by month. Order counts by channel can be summed into total order count. Variance has already used a mean, and when partitions have different means, a new overall mean changes every observation’s deviation."
+          "Integer overflow in aggregate calculations often starts with a true but incomplete statement: every source value fits its declared type. A quantity fits in a small integer. A price in cents fits in a 32-bit integer. A single order line total fits in a 32-bit integer. Then a monthly aggregate, a dashboard rollup, or an aggregate fact table exceeds the range of the accumulator or destination column.",
+          "The mistake is treating the input range as the calculation range. Aggregates do not preserve the maximum size of their inputs. SUM can grow with row count. AVG returns an average, but the calculation still depends on a total and a count; if your pipeline materializes that total separately, the total needs its own bound. Multiplication before aggregation can create a larger term than either operand. Joins can multiply rows before the aggregate sees them. Rollups and cubes intentionally collapse many base facts into fewer, larger facts.",
+          "PostgreSQL 18’s documentation is useful background because it makes type ranges and aggregate return types visible. It documents signed ranges for smallint, integer, and bigint, and its aggregate documentation specifies wider return types for some sums, such as sum(integer) returning bigint and sum(bigint) returning numeric. That behavior is protective for those specific PostgreSQL aggregates, but it does not remove the modeling task. Expressions, casts, destination tables, intermediate pipeline steps, other engines, exported files, and aggregate fact tables can still be narrower than the bound required by the calculation."
         ],
         "bullets": [],
         "codeExamples": []
       },
       {
-        "id": "the-state-you-need-to-carry",
-        "heading": "The state you need to carry",
+        "id": "a-counterexample-with-cents",
+        "heading": "A hypothetical retail counterexample",
         "paragraphs": [
-          "To combine variance across partitions, store or compute a small aggregate state for each partition. The useful state is n, mean, and M2. Here, n is the number of observations, mean is the partition mean, and M2 is the sum of squared deviations from that partition mean.",
-          "For a partition with raw values x, M2 is sum((x - partition_mean)^2). If the partition stores sample variance, convert it back to M2 with M2 = (n - 1) × sample_variance. If the partition stores population variance, use M2 = n × population_variance. This distinction matters because sample and population variance use different denominators. PostgreSQL, for example, exposes separate aggregate functions for var_samp and var_pop, and its variance aggregate is a historical alias for sample variance.",
-          "Once every partition has n, mean, and M2, combine them with these rules. Let N be the total count across partitions. Let overall_mean = sum(n_i × mean_i) / N. Then total_M2 = sum(M2_i + n_i × (mean_i - overall_mean)^2). The combined population variance is total_M2 / N. The combined sample variance is total_M2 / (N - 1), assuming N is greater than 1.",
-          "The first term, M2_i, preserves variation inside each partition. The second term, n_i × (mean_i - overall_mean)^2, adds the variation caused by each partition mean sitting away from the overall mean. This is the part that naive averaging misses."
+          "Consider a hypothetical retail order-line dataset that stores prices in cents as integers. This is a numeric representation example, not tax or accounting advice.",
+          "Assume the row-level constraints are: quantity is between 0 and 12, unit_price_cents is between 0 and 199,999, and line_gross_cents is computed as quantity times unit_price_cents. The largest row-level line gross is 12 times 199,999, which equals 2,399,988 cents. That fits inside a signed 32-bit integer because it is far below 2,147,483,647. The row looks harmless.",
+          "Now aggregate by store and month. The maximum number of high-value lines needed to overflow a signed 32-bit sum is small: 894 lines at 2,399,988 cents sum to 2,145,589,272 cents, which is still under 2,147,483,647. The 895th such line produces 2,147,989,260 cents, which exceeds the signed 32-bit maximum by 505,613 cents. Nothing about a single row looked extreme, but the monthly sum crossed the boundary in fewer than 900 maximum-size rows.",
+          "The same pattern applies at larger widths. Suppose a different hypothetical aggregate stores a large enterprise amount in cents, with each row bounded at 999,999,999,999 cents. One row fits in signed 64-bit. Ten million such rows sum to 9,999,999,999,990,000,000 cents. That is greater than the signed 64-bit maximum of 9,223,372,036,854,775,807. If the accumulator or destination column is signed 64-bit, the aggregate bound is too large even though every input row fits.",
+          "This counterexample is deliberately simple. It leaves out returns, discounts, currency conversion, taxes, and rounding policy because those are separate business rules. The numeric lesson is enough: the aggregate must be sized for row count multiplied by the largest possible term, not for the largest individual input column."
+        ],
+        "bullets": [],
+        "codeExamples": []
+      },
+      {
+        "id": "bound-the-expression-not-the-column",
+        "heading": "Bound the expression, not just the column",
+        "paragraphs": [
+          "A practical overflow review starts by writing down the expression that the aggregate actually computes. For each grouped metric, identify the term being aggregated, the largest plausible absolute value of that term, and the largest plausible number of rows in one group. If a rollup aggregates already-aggregated data, use the largest plausible number of child groups and the largest child total, not only the original row constraint.",
+          "For a nonnegative SUM, use this rule: maximum sum equals maximum rows per group times maximum term. If the term can be negative or positive and you need a safe absolute bound, use maximum absolute sum less than or equal to maximum rows per group times maximum absolute term. If positive and negative values can offset each other, do not rely on offsetting for storage safety unless the data model enforces the bound. Overflow can occur before values cancel when fixed-width intermediate representations are used.",
+          "For multiplication, bound the product before the sum. If the absolute value of a is at most A and the absolute value of b is at most B, then the absolute value of a times b is at most A times B. For a line amount computed as quantity times unit_price_cents, the term bound is max_quantity times max_unit_price_cents. Then the SUM bound is max_rows_per_group times that product.",
+          "For averages, do not stop at the final average range. The final AVG of cents may be within the input range, but a separately stored or computed sum may not be. If the engine computes AVG using a widened accumulator, that may be safe for the aggregate itself; if your pipeline computes sum_cents and count separately, stores sum_cents in an aggregate table, or casts the result, the stored sum still needs its own bound.",
+          "For decimal types, think in scaled integer units. If values are stored as dollars with scale 2, the scaled unit is cents. PostgreSQL 18 defines numeric precision as the total count of significant digits and scale as the count of digits after the decimal point. For a SUM stored as numeric(p, s), estimate the maximum absolute scaled integer value and choose p large enough for the digits before and after the decimal point. For example, 2,879,985,600,000 cents is 28,799,856,000.00 dollars, which needs 11 digits before the decimal point and 2 after it, so numeric(13,2) is the minimum exact shape for that value before adding growth margin."
         ],
         "bullets": [
-          "Store count, not just variance.",
-          "Store the partition mean, not just the partition label.",
-          "Store M2, or store enough information to reconstruct M2 from a clearly labeled sample or population variance.",
-          "Do not mix sample variance and population variance in the same aggregate column."
+          "Write the aggregate expression exactly as computed, including multiplication and casts.",
+          "Estimate the maximum absolute value of one aggregate term.",
+          "Estimate the maximum rows per group after filters and joins, not just source table size.",
+          "Multiply term bound by group row bound for SUM-like metrics.",
+          "Compare the result to the accumulator type and the destination column type."
         ],
         "codeExamples": []
       },
       {
-        "id": "worked-hypothetical-retail-example",
-        "heading": "Worked hypothetical retail example",
+        "id": "joins-and-aggregate-facts",
+        "heading": "Use post-join grain and aggregate-table grain",
         "paragraphs": [
-          "Suppose a hypothetical retail analytics table has already summarized order values by acquisition channel. The goal is to compute the variance of order value across all orders, not the average of channel-level variances.",
-          "The channel summaries are as follows. Online has n = 3, mean = 33.333333, and sample variance = 133.333333. Store has n = 4, mean = 65, and sample variance = 366.666667. Marketplace has n = 2, mean = 105, and sample variance = 50. These are compatible because they describe the same measure, order value, at the same observation grain, one row per order.",
-          "First convert each sample variance to M2. Online M2 is (3 - 1) × 133.333333 = 266.666667. Store M2 is (4 - 1) × 366.666667 = 1100. Marketplace M2 is (2 - 1) × 50 = 50.",
-          "Next compute the overall mean. Total count N is 3 + 4 + 2 = 9. The weighted total is 3 × 33.333333 + 4 × 65 + 2 × 105 = 570. The overall mean is 570 / 9 = 63.333333.",
-          "Now add the within-partition and between-partition components. Online contributes 266.666667 + 3 × (33.333333 - 63.333333)^2 = 2966.666667. Store contributes 1100 + 4 × (65 - 63.333333)^2 = 1111.111111. Marketplace contributes 50 + 2 × (105 - 63.333333)^2 = 3522.222222. The total M2 is 7600.",
-          "The combined sample variance is 7600 / (9 - 1) = 950. The combined population variance is 7600 / 9 = 844.444444. For comparison, the unweighted average of the three sample variances is 183.333333, which is not close to the correct combined sample variance because the channel means are far apart."
+          "The row-count bound must match the grain at the point where the aggregate runs. If a fact table is joined to a dimension with one matching row per key, the row count may be unchanged. If it is joined to a bridge table, a slowly changing dimension without an effective-date filter, or any non-unique lookup, the aggregate may see duplicated facts. Numeric overflow and double counting can arrive together.",
+          "A safe bound uses the largest post-join multiplicity. If one order line can match up to 4 campaign rows and the aggregate runs after the join, the row-count contribution of that order line is up to 4, not 1. If the metric should not be multiplied, fix the grain before aggregation. If multiplication is intentional, include it in the numeric bound.",
+          "Aggregate fact tables and cubes also need separate sizing. Kimball Group describes aggregate fact tables as numeric rollups of atomic fact table data used to accelerate query performance, with aggregated facts created by summing measures from more atomic fact tables. That higher grain changes numeric ranges. A daily store total, monthly regional total, and all-company yearly total are not the same numeric domain as a single order line. Treat each aggregate table column as a new modeled measurement with its own maximum, precision, and growth assumptions.",
+          "Grain discipline matters here. Kimball Group’s grain guidance says the grain establishes what a single fact table row represents and that different grains should not be mixed in the same fact table. For overflow review, that same discipline gives you the unit of analysis: calculate the bound for the metric at the grain where it is computed and stored."
         ],
         "bullets": [],
         "codeExamples": []
       },
       {
-        "id": "illustrative-sql-for-a-summary-table",
-        "heading": "Illustrative SQL for a summary table",
+        "id": "a-repeatable-sizing-check",
+        "heading": "A repeatable sizing check",
         "paragraphs": [
-          "The following query is illustrative PostgreSQL 18-style SQL for a table of compatible group summaries. It has not been executed for this article. PostgreSQL documents built-in aggregate functions such as avg, variance, var_samp, and var_pop, but this example shows the explicit combination rule so the denominator and partition behavior are visible.",
-          "The query assumes the stored variance is sample variance. If the stored value is population variance, replace (n - 1) × sample_variance with n × population_variance. If a partition has n = 1 and sample variance is null, treat its within-partition M2 as 0 for that single observation, provided the mean is known."
+          "The following PostgreSQL 18 SQL is illustrative. It has not been executed as test evidence for this article. The point is to make the bound review explicit and reproducible in code review. The constants are the hypothetical retail values from above.",
+          "This query computes the maximum gross cents for one order line, the maximum aggregate cents for a group, and whether that value would fit in signed 32-bit or signed 64-bit integer ranges. In PostgreSQL specifically, documented aggregate return types may widen some SUM results, but this check is still useful when designing expression casts, exported schemas, and destination aggregate tables."
         ],
         "bullets": [],
         "codeExamples": [
           {
             "language": "sql",
-            "code": "WITH group_stats(channel, n, mean_order_value, sample_variance) AS (\n  VALUES\n    ('online',      3::numeric,  33.333333333333::numeric, 133.333333333333::numeric),\n    ('store',       4::numeric,  65.000000000000::numeric, 366.666666666667::numeric),\n    ('marketplace', 2::numeric, 105.000000000000::numeric,  50.000000000000::numeric)\n), totals AS (\n  SELECT\n    SUM(n) AS total_n,\n    SUM(n * mean_order_value) / SUM(n) AS overall_mean\n  FROM group_stats\n), combined AS (\n  SELECT\n    totals.total_n,\n    totals.overall_mean,\n    SUM(\n      ((group_stats.n - 1) * group_stats.sample_variance)\n      + group_stats.n\n        * (group_stats.mean_order_value - totals.overall_mean)\n        * (group_stats.mean_order_value - totals.overall_mean)\n    ) AS total_m2\n  FROM group_stats\n  CROSS JOIN totals\n  GROUP BY totals.total_n, totals.overall_mean\n)\nSELECT\n  total_n,\n  overall_mean,\n  total_m2 / (total_n - 1) AS combined_sample_variance,\n  total_m2 / total_n AS combined_population_variance\nFROM combined;"
+            "code": "WITH metric_bounds AS (\n  SELECT\n    'monthly_store_gross_cents' AS metric_name,\n    12::numeric AS max_quantity,\n    199999::numeric AS max_unit_price_cents,\n    1200000::numeric AS max_rows_per_group\n), calculated AS (\n  SELECT\n    metric_name,\n    max_quantity * max_unit_price_cents AS max_term_cents,\n    max_rows_per_group * max_quantity * max_unit_price_cents AS max_sum_cents\n  FROM metric_bounds\n)\nSELECT\n  metric_name,\n  max_term_cents,\n  max_sum_cents,\n  length(max_sum_cents::text) AS scaled_digits_needed,\n  max_sum_cents <= 2147483647::numeric AS fits_signed_int32,\n  max_sum_cents <= 9223372036854775807::numeric AS fits_signed_int64\nFROM calculated;"
           }
         ]
       },
       {
-        "id": "counterexamples-that-catch-bad-models",
-        "heading": "Counterexamples that catch bad models",
+        "id": "interpreting-the-example",
+        "heading": "Interpreting the example",
         "paragraphs": [
-          "A good way to test a variance aggregation design is to construct small counterexamples where the right answer is obvious. The first counterexample is the two-partition example from earlier: 10, 10 and 20, 20. Any aggregation that returns zero for the combined variance is wrong because it ignored variation between partitions.",
-          "A second counterexample catches unweighted averaging. Suppose one hypothetical customer-event partition has n = 100, mean = 10, and sample variance = 9. A second partition has n = 2, mean = 10, and sample variance = 100. Because the means are equal, there is no between-partition component. The correct combined M2 is (100 - 1) × 9 + (2 - 1) × 100 = 991. The combined sample variance is 991 / 101 = 9.811881. The unweighted average of the two variances is 54.5, which overstates the combined variance because it gives the tiny partition the same influence as the large one.",
-          "A third counterexample catches a tempting but still-wrong weighted average. In that same example, weighting sample variances by n gives (100 × 9 + 2 × 100) / 102 = 10.784314. That is closer, but it is still not the sample variance of the combined observations. For sample variance, the within-partition degrees of freedom are n - 1, and the final denominator is N - 1. The safest route is to combine through M2."
+          "For the hypothetical monthly store metric, the maximum term is 2,399,988 cents. With 1,200,000 rows in a group, the maximum sum is 2,879,985,600,000 cents. That does not fit signed 32-bit. It does fit signed 64-bit. As a decimal with scale 2, the dollar representation is 28,799,856,000.00, so the minimum exact decimal shape is 13 total digits with 2 fractional digits, before adding any safety margin.",
+          "The decision is not automatically “use the largest type everywhere.” Wider exact numeric types can have storage and performance tradeoffs, and type behavior varies by system. PostgreSQL 18, for example, recommends numeric for exact storage and calculations such as monetary amounts, while also documenting that numeric calculations are slower than integer or floating-point calculations. The engineering decision is to make the bound visible, compare it to the actual accumulator and destination types, and document the assumptions.",
+          "If the business can plausibly exceed 1,200,000 rows per store-month, increase the row bound. If unit prices or quantities can grow, update the term bound. If a new rollup sums store-months into region-years, calculate a new bound for the new grain.",
+          "A useful diagnostic question is: where is the narrowest numeric representation after the expression is introduced? It may be the SQL engine accumulator, a cast in a transformation, a column in an aggregate table, a dataframe type, a message schema, or a BI extract. The calculation is only as safe as its narrowest required representation."
         ],
         "bullets": [],
         "codeExamples": []
       },
       {
-        "id": "modeling-rules-for-aggregate-facts",
-        "heading": "Modeling rules for aggregate facts",
+        "id": "review-checklist",
+        "heading": "Checklist for aggregate overflow reviews",
         "paragraphs": [
-          "In a dimensional or aggregate model, variance should be treated as a derived statistic with explicit state, not as a simple additive measure. Kimball dimensional modeling material distinguishes additive, semi-additive, and non-additive facts, and recommends storing additive components where possible before calculating a final non-additive result. Variance rollups follow that same modeling instinct: preserve reusable components rather than averaging a finished statistic.",
-          "For a summary table intended to support variance rollups, include at least the partition dimensions, observation count, mean, and M2 for the measured quantity. Name the measured quantity clearly, such as order_value_m2, so it cannot be accidentally reused for a different unit or grain. If the business-facing table also exposes sample variance or population variance, label the denominator choice in the column name or metric definition.",
-          "Do not combine partitions unless they describe the same observation grain. Order-value variance across orders is not compatible with customer-average-order-value variance across customers. A day-level partition and a channel-level partition can be combined only if they summarize the same underlying row population without overlap or omission. The calculation is mathematical, but the most common errors are modeling errors: duplicate partitions, missing partitions, mixed measures, or summaries built at different grains.",
-          "The Kimball material on fact table structure, lag and duration facts, and behavior study groups is useful background for thinking about fact grain and measured behavior. The variance rule here is narrower: preserve the state needed to reconstruct the statistic across a new grouping level."
+          "Use this checklist when adding a metric, changing a grain, or designing an aggregate fact table. It is intentionally mechanical because overflow risk often hides in otherwise ordinary metrics."
         ],
         "bullets": [
-          "Declare the observation grain before publishing the variance metric.",
-          "Carry n, mean, and M2 for each partition.",
-          "Keep sample and population variance separate.",
-          "Reject rollups across mixed units, mixed grains, or overlapping partitions.",
-          "Use raw rows when the aggregate state is incomplete."
+          "Name the business grain of the output metric, such as store-month, customer-day, or region-year.",
+          "Write the exact numeric expression before aggregation.",
+          "Convert money-like values to a consistent scaled unit for bound calculations, such as cents, while keeping policy questions separate.",
+          "Calculate the maximum absolute term, including products and allowed signs.",
+          "Estimate the maximum post-join rows per output group.",
+          "Calculate the maximum absolute aggregate and the number of scaled digits required.",
+          "Check both the computation type and the stored destination type.",
+          "Repeat the check for rollups, cubes, exports, and downstream schemas.",
+          "Document whether the bound is a hard constraint, a planning assumption, or a temporary limit."
         ],
-        "codeExamples": []
-      },
-      {
-        "id": "diagnostic-checklist",
-        "heading": "Diagnostic checklist before you roll up variance",
-        "paragraphs": [
-          "Before accepting a variance rollup in a warehouse, semantic layer, or dashboard, ask a few concrete questions. Can the query identify the count behind every variance value? Can it tell whether the variance is sample or population? Does it have the partition mean? Does it include the between-partition adjustment? Are all partitions summarizing the same underlying measurement at the same grain?",
-          "If the answer to any of those questions is no, the rollup is not trustworthy. Sometimes the right fix is to return to the raw rows and recompute the statistic. Other times, the fix is to change the aggregate table so it carries reusable state going forward. What should not be done is to average a column named variance and hope the partitions are close enough.",
-          "This rule also applies when the variance appears under friendlier names such as volatility, dispersion, spread, consistency, or standard deviation. Standard deviation is the square root of variance. To combine standard deviations across partitions, do not average the standard deviations. Convert the underlying variance state to M2, combine M2, then take the square root only after the final variance has been computed."
-        ],
-        "bullets": [],
         "codeExamples": []
       }
     ],
     "takeaways": [
-      "Do not average partition variances when you need the variance of the combined observations.",
-      "Carry count, mean, and M2 so each partition contributes both within-partition and between-partition variation.",
-      "Keep sample variance and population variance separate because they use different denominators.",
-      "A variance rollup is valid only when partitions use the same measure, unit, observation grain, and non-overlapping population.",
-      "If a summary table lacks count or mean, recompute from raw rows or redesign the aggregate state before publishing the metric."
+      "Input column ranges do not prove aggregate safety; SUM, separately materialized totals, multiplication, joins, and rollups can create larger intermediate values.",
+      "Estimate bounds at the expression and grain where the aggregate actually runs: maximum term times maximum post-join rows per group.",
+      "Size both the accumulator and the destination schema, especially for aggregate fact tables whose numeric ranges differ from base facts."
     ],
     "sources": [
       {
+        "title": "PostgreSQL: Documentation: 18: 8.1. Numeric Types",
+        "url": "https://www.postgresql.org/docs/18/datatype-numeric.html"
+      },
+      {
         "title": "PostgreSQL: Documentation: 18: 9.21. Aggregate Functions",
-        "url": "https://www.postgresql.org/docs/current/functions-aggregate.html"
+        "url": "https://www.postgresql.org/docs/18/functions-aggregate.html"
       },
       {
-        "title": "1.3.5.6. Measures of Scale",
-        "url": "https://itl.nist.gov/div898/handbook/eda/section3/eda356.htm"
+        "title": "Aggregate Fact Tables or Cubes | Kimball Group",
+        "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/aggregate-fact-table-cube/"
       },
       {
-        "title": "UPDATING FORMULAE AND A PAIRWISE ALGORITHM FOR COMPUTING SAMPLE VARIANCES. - HKUST SPD | The Institutional Repository",
-        "url": "https://repository.hkust.edu.hk/ir/Record/1783.1-163575"
-      },
-      {
-        "title": "Additive, Semi-Additive, and Non-Additive Facts | Kimball Group",
-        "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/additive-semi-additive-non-additive-fact/"
-      },
-      {
-        "title": "Fact Table Structure | Kimball Dimensional Modeling Techniques",
-        "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/fact-table-structure/"
-      },
-      {
-        "title": "Lag/Duration Facts - Kimball Group",
-        "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/lag-duration-fact/"
-      },
-      {
-        "title": "Behavior Study Groups | Kimball Dimensional Modeling Techniques",
-        "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/behavior-study-group/"
+        "title": "Grain | Kimball Dimensional Modeling Techniques",
+        "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/grain/"
       }
     ],
     "requiresVerification": false,
     "verificationNotes": []
   },
   {
-    "slug": "numerical-stability-in-variance-calculations",
-    "title": "Numerical stability in variance calculations",
-    "description": "A practical guide to comparing cancellation-prone variance formulas with stable accumulation, using a self-contained hypothetical retail example.",
-    "primaryKeyword": "Numerical stability in variance calculations",
+    "slug": "logarithmic-scales-in-operational-metrics",
+    "title": "Logarithmic scales in operational metrics",
+    "description": "A practical guide to using log-style transformations for operational metrics while preserving zero, negative, and signed values instead of filtering them away.",
+    "primaryKeyword": "Logarithmic scales in operational metrics",
     "relatedKeywords": [
-      "Numerical stability in variance calculations"
+      "Logarithmic scales in operational metrics"
     ],
     "category": "Data Modeling",
     "level": "Intermediate",
-    "readTime": "8 min read",
-    "datePublished": "2026-11-02",
-    "dateModified": "2026-11-03",
-    "canonicalUrl": "https://jwatterson.com/writing/numerical-stability-in-variance-calculations",
+    "readTime": "7 min",
+    "datePublished": "2026-11-10",
+    "dateModified": "2026-11-10",
+    "canonicalUrl": "https://jwatterson.com/writing/logarithmic-scales-in-operational-metrics",
     "status": "published",
-    "sourceHash": "5de95863f2c768d8",
-    "lead": "Variance looks simple until the data has large values with small differences. In that case, a formula that subtracts two nearly equal large totals can erase the signal you were trying to measure. This guide compares the cancellation-prone formula with stable accumulation, using a checked hypothetical retail example and implementation rules that data engineers can apply in warehouse models, metric layers, and validation queries.",
+    "sourceHash": "5d79ca3bd8298fa6",
+    "lead": "Logarithmic scales are useful when a metric varies by multiplication rather than addition: 10, 100, and 1,000 are evenly spaced on a base-10 log scale because each step is a tenfold change. The trap is that many operational metrics are not strictly positive. Counts can be zero. Net values, adjustments, margin, balance changes, and forecast errors can be negative. If a dashboard silently filters those rows before applying a logarithm, it can turn an operational warning into an apparently clean trend. The practical rule is simple: aggregate in the metric’s natural units first, then choose a display transform that makes zero and sign behavior explicit.",
     "sections": [
       {
-        "id": "why-the-obvious-formula-fails",
-        "heading": "Why the obvious formula fails",
+        "id": "why-ordinary-logs-break-operational-data",
+        "heading": "Why ordinary logs break operational data",
         "paragraphs": [
-          "For a set of numeric values, sample variance is commonly expressed as the sum of squared distances from the mean divided by n minus 1. That definition is stable as a concept because it centers each value before squaring. A common computational shortcut rewrites the same algebra as sum of squares minus square of sum divided by n, then divides by n minus 1.",
-          "Mathematically, these two formulas are equivalent in exact arithmetic. Operationally, they are not equivalent when intermediate values are rounded. The shortcut asks the engine to compute two very large numbers and subtract them to recover a much smaller number. If the true variance is small relative to the magnitude of the values, the useful digits live in the part most likely to be lost during rounding. This is cancellation.",
-          "This matters in data engineering because metrics are often computed after values have been scaled, joined, cast, exported, or accumulated. Order amounts, balances, sensor readings, and customer scores can all have a large baseline and a small spread. A variance calculation can therefore look reasonable in SQL, Python, Spark, or a BI expression while producing zero, a negative value, or a value that changes when rows are processed through a different arithmetic path.",
-          "The issue is not that variance is exotic. The NIST/SEMATECH e-Handbook treats variance and standard deviation as standard measures of scale. The issue is that a data pipeline is an arithmetic system, not a chalkboard. The more a formula depends on subtracting nearly equal large aggregates, the more it depends on details of representation, rounding, and accumulation."
+          "A plain logarithm answers a narrow question: how many multiplicative steps separate positive values? On a base-10 log scale, 1, 10, 100, and 1,000 are evenly spaced. That is useful for operational metrics with long right tails, such as request volume by endpoint, item demand by SKU, or batch duration by job type, when the measured value is strictly greater than zero.",
+          "The limitation is mathematical, not cosmetic. In ordinary real-valued analysis, log(x) is defined for positive x, not for x = 0 or negative x. A charting tool, SQL expression, or notebook therefore has to do something when it sees zero or negative observations. Common choices are to drop those rows, replace zero with a small constant, take the absolute value, or use a signed transformation. Only the signed transformation preserves both the fact that the original data contained a zero and the direction of a signed value.",
+          "Operational data contains these cases often. A store-day can have zero returns. A customer cohort can have negative net revenue after refunds. An inventory adjustment can be positive after a recount or negative after shrinkage. A forecast error is signed by design. These values are not dirty just because they are inconvenient for a logarithm.",
+          "This is also why the transform should not be treated as the metric definition. Measures of scale summarize variation, but the scale used for explanation is separate from the business quantity being measured. Store the natural unit, compute totals and rates according to the metric definition, and then transform a copy for inspection or display."
+        ],
+        "bullets": [],
+        "codeExamples": []
+      },
+      {
+        "id": "counterexample-filtering-positives-changes-the-answer",
+        "heading": "Counterexample: filtering positives changes the answer",
+        "paragraphs": [
+          "Consider a hypothetical retail operations table with one row per region. The metric is daily net order change against plan. Positive values mean more orders than planned, negative values mean fewer orders than planned, and zero means plan was met exactly.",
+          "The five observed values are: +100, +10, 0, -10, and -100 orders. In natural units, the sum is 0 and the arithmetic mean is 0. This is a balanced day: two regions are above plan, two are below plan by matching magnitudes, and one is exactly on plan.",
+          "Now suppose an analyst wants to explain the multiplicative spread and applies log10 only where the value is positive. The remaining values are +10 and +100. Their log10 values are 1 and 2. The average transformed value is 1.5, and converting that back gives 10^1.5, or about 31.62. That number is the geometric center of the positive observations only. It is not the typical region, not the average net change, and not evidence that the business was above plan.",
+          "Another attempted fix is to take log10(abs(x) + 1). This keeps every row, but it discards the sign. The transformed values are approximately 2.004, 1.041, 0, 1.041, and 2.004. The average transformed value is approximately 1.218, and converting back gives about 15.52 after subtracting 1. The problem is worse than before: the display now says there was sizable movement, but it has erased whether that movement was favorable or unfavorable.",
+          "A better display transform for this example is a signed log-style transform: signed_log10(x) = sign(x) times log10(1 + abs(x)). The transformed values are approximately +2.004, +1.041, 0, -1.041, and -2.004. Zero remains zero. Positive and negative values stay on opposite sides of the axis. Equal magnitudes with opposite signs balance visually around the center.",
+          "That does not make the signed transform an aggregation rule. It is a display rule. If the question is total net order change, the answer is still computed in orders: +100 + 10 + 0 - 10 - 100 = 0. If the question is signed multiplicative variation, the signed transform is a reasonable way to show that the magnitude ranges from 10-order differences to 100-order differences without pretending negative values do not exist."
+        ],
+        "bullets": [],
+        "codeExamples": []
+      },
+      {
+        "id": "calculation-rules-for-practitioners",
+        "heading": "Calculation rules for practitioners",
+        "paragraphs": [
+          "A useful implementation starts by classifying the metric’s valid domain. This is a modeling decision, not a visualization preference. The same numeric value can have different meanings depending on the metric: zero orders is a valid count, zero latency may indicate instrumentation behavior, and zero net revenue may be a real outcome after refunds.",
+          "Use a plain logarithm only when all valid observations are strictly positive and a multiplicative interpretation is intended. Examples can include positive-only quantities such as nonzero elapsed time or positive demand among products that had at least one sale, provided the exclusion is part of the question. The label should say what was excluded, such as “log scale, positive demand days only.”",
+          "Use a log1p-style transform for nonnegative metrics when zero is valid and the purpose is visual compression. log(1 + x) maps zero to zero and compresses large values. The tradeoff is that small values no longer have the same pure ratio interpretation as a plain logarithm. The distance between 0 and 1 is not a ratio of zero to one; it is an artifact of the plus-one transform.",
+          "Use a signed log-style transform when the metric is signed and magnitude matters. sign(x) times log(1 + abs(x)) is easy to explain: keep the sign, compress the magnitude, and leave zero at zero. This is appropriate for signed deltas, forecast errors, inventory adjustments, and net operational values. The tradeoff is that ratios across zero are not meaningful. Moving from -10 to +10 is a sign change, not a twofold increase.",
+          "Never aggregate transformed values unless the transformed quantity is the metric being analyzed. For operational reporting, this usually means totals, counts, and numerator-denominator ratios should be calculated before any log transform is applied. Transforming first and summing later changes the question.",
+          "For exact decimal quantities where rounding error would be misleading, use an appropriate exact numeric representation rather than binary floating point. PostgreSQL’s numeric type stores selectable-precision exact decimals, while real and double precision are inexact floating-point types. This is separate from the log-scale question, but it matters because a clean transform cannot repair an imprecise base metric."
         ],
         "bullets": [
-          "Cancellation-prone shape: variance = (sum(x squared) minus sum(x) squared divided by n) divided by n minus 1.",
-          "Stable conceptual shape: compute the mean first, then aggregate squared deviations from that mean.",
-          "Practical warning sign: values are large, differences between values are small, and the final variance is tiny compared with sum(x squared)."
+          "Classify the valid domain first: positive-only, nonnegative, or signed.",
+          "Compute business aggregates in natural units before applying any display transform.",
+          "Label the transform explicitly: log10(x), log10(1 + x), or signed log10(1 + abs(x)).",
+          "Do not hide excluded rows. Count and report zeros and negatives when a plain log is used."
         ],
         "codeExamples": []
       },
       {
-        "id": "worked-hypothetical-retail-example",
-        "heading": "Worked hypothetical retail example",
+        "id": "diagnostic-query-before-a-log-scale",
+        "heading": "Diagnostic query before a log scale",
         "paragraphs": [
-          "Consider a hypothetical retail dataset with four order amounts. The amounts are intentionally close together but have a large baseline: 100000000.01, 100000000.02, 100000000.03, and 100000000.04. This could represent any high-magnitude measure with cent-level variation; it is not a real customer or business dataset.",
-          "The mean is 100000000.025. The deviations from the mean are -0.015, -0.005, 0.005, and 0.015. Squaring those deviations gives 0.000225, 0.000025, 0.000025, and 0.000225. Their sum is 0.000500. The sample variance is therefore 0.000500 divided by 3, or 0.0001666666666666667.",
-          "Now compare the shortcut. The sum of the values is 400000000.10. The exact sum of squares is 40000000020000000.0030. The square of the sum divided by n is 40000000020000000.0025. Their difference is 0.0005, the same numerator as above. In exact arithmetic, both formulas still agree.",
-          "The problem appears when those two large intermediate terms cannot preserve the small decimal tail. Suppose an execution path rounds each large intermediate term to the nearest whole unit before subtraction. This is a simplified model of finite precision; it is not a claim about a specific database engine. The rounded sum of squares becomes 40000000020000000. The rounded square-of-sum term also becomes 40000000020000000. The subtraction returns 0, so the sample variance becomes 0 instead of 0.0001666666666666667.",
-          "That zero result is not a data fact. It is an artifact of the calculation path. A more awkward rounding path could even make the numerator negative, which is impossible for an ordinary unweighted variance in exact arithmetic but possible for a cancellation-prone implementation. When a variance metric occasionally goes negative, clamps to zero, or changes after a type cast, the first suspect should be arithmetic shape, not business behavior."
+          "Before putting a metric on a log scale, run a domain diagnostic. The goal is not to prove that the chart will look good. The goal is to discover whether a plain logarithm would exclude valid operational states.",
+          "The following is an illustrative PostgreSQL 18-style query for a table named metric_observations. It uses ordinary aggregate checks to count positive, zero, and negative observations. Execution is not implied; adapt column names, data types, and filters to the actual model.",
+          "If negative_count is greater than zero, a plain log scale is not valid for the full metric. If zero_count is greater than zero, a plain log scale will omit or special-case valid observations. If both are zero, a plain log scale may be suitable, but only if the metric definition supports multiplicative interpretation."
         ],
-        "bullets": [
-          "Exact stable numerator: 0.000500.",
-          "Exact sample variance: 0.0001666666666666667.",
-          "Rounded shortcut numerator in the simplified finite-precision model: 0.",
-          "Interpretation: the shortcut lost the small spread by subtracting nearly equal large totals."
-        ],
+        "bullets": [],
         "codeExamples": [
           {
-            "language": "python",
-            "code": "from decimal import Decimal\n\n# Illustrative calculation for the hypothetical values in this article.\n# This snippet has not been executed in this publishing pipeline.\nvalues = [\n    Decimal(\"100000000.01\"),\n    Decimal(\"100000000.02\"),\n    Decimal(\"100000000.03\"),\n    Decimal(\"100000000.04\"),\n]\n\nn = Decimal(len(values))\nmean = sum(values) / n\nsum_squared_deviations = sum((x - mean) ** 2 for x in values)\nsample_variance = sum_squared_deviations / (n - Decimal(1))\n\nprint(mean)                         # 100000000.025\nprint(sum_squared_deviations)       # 0.000500\nprint(sample_variance)              # 0.0001666666666666666666666666667"
+            "language": "sql",
+            "code": "select\n    metric_name,\n    count(*) as row_count,\n    sum(case when observed_value > 0 then 1 else 0 end) as positive_count,\n    sum(case when observed_value = 0 then 1 else 0 end) as zero_count,\n    sum(case when observed_value < 0 then 1 else 0 end) as negative_count,\n    min(observed_value) as min_observed_value,\n    max(observed_value) as max_observed_value,\n    sum(observed_value) as natural_unit_sum,\n    avg(observed_value) as natural_unit_average\nfrom metric_observations\ngroup by metric_name\norder by metric_name;"
           }
         ]
       },
       {
-        "id": "stable-calculation-rules",
-        "heading": "Stable calculation rules",
+        "id": "worked-display-fixture",
+        "heading": "Worked display fixture",
         "paragraphs": [
-          "A stable variance implementation should reduce large baselines before squaring or should update centered state incrementally. The simplest rule is a two-pass calculation: first compute the mean, then compute the sum of squared deviations from that mean. This is usually easy in SQL when the dataset is bounded by a group key, a date window, or a materialized intermediate table.",
-          "A second option is shifted accumulation. Choose a constant near the values, subtract it from every value, and compute variance on the shifted values. Variance is unchanged by adding or subtracting the same constant from all observations. If values are around 100000000 and differ by cents, accumulating x minus 100000000 avoids creating enormous squared totals. This is useful when the mean is not yet known but a safe baseline is available, such as a batch-level first value or a domain-specific reference value.",
-          "A third option is an online algorithm such as Welford's method. It keeps a running count, mean, and sum of squared deviations. Each new value is compared with the current mean rather than being squared at its original magnitude. This is useful for streaming or row-by-row processing. Chan, Golub, and LeVeque's analysis of sample variance algorithms is a useful reference when choosing among direct, corrected, and updating methods.",
-          "Data type choice still matters. PostgreSQL 18 documents numeric as an exact numeric type recommended when exactness is required, while real and double precision are inexact floating-point types. PostgreSQL 18 also provides var_samp, var_pop, stddev_samp, and stddev_pop aggregate functions; for var_samp and variance, PostgreSQL returns double precision for real or double precision inputs and numeric otherwise. For warehouse work, use documented built-in aggregates when their statistical convention and return type match the metric, and avoid replacing them with a hand-written one-pass shortcut unless there is a clear reason.",
-          "Do not round intermediate aggregates unless the rounded value is itself the metric. Rounding final display values is different from rounding sum of squares, running means, or squared deviations before the variance is complete. A variance calculation may need more internal precision than the number of decimals shown on a dashboard."
+          "Here is the same hypothetical retail fixture expressed as a small calculation table. The values are in orders. The signed display transform is shown to three decimals using base 10.",
+          "Region A has +100 orders versus plan, so signed_log10 is +log10(101), approximately +2.004. Region B has +10, so the value is +log10(11), approximately +1.041. Region C has 0, so the value is 0. Region D has -10, so the value is -log10(11), approximately -1.041. Region E has -100, so the value is -log10(101), approximately -2.004.",
+          "The transformed values are useful for visual comparison because they show two facts at once: Region A and Region E have similar magnitude, and they point in opposite operational directions. A plain log of positives would show only Region A and Region B. An absolute-value log would show large movement but erase whether it was above or below plan.",
+          "The interpretation to write beside such a chart is not “average log order change.” A clearer caption is: “Net order change versus plan, displayed with a signed log10(1 + abs(x)) scale so that zero and negative values remain visible.” That caption tells readers exactly which arithmetic is business logic and which arithmetic is presentation."
         ],
-        "bullets": [
-          "Prefer documented built-in variance aggregates when the database provides the convention and return type you need.",
-          "If writing the calculation yourself, prefer a two-pass centered formula, a shifted formula, or an online centered algorithm.",
-          "Avoid the formula based on sum(x squared) minus sum(x) squared divided by n for high-magnitude, low-spread data.",
-          "Keep intermediate precision higher than display precision.",
-          "Treat negative variance as a numerical defect unless the metric is not an ordinary unweighted variance or the inputs are malformed."
+        "bullets": [],
+        "codeExamples": []
+      },
+      {
+        "id": "illustrative-signed-transform-in-sql",
+        "heading": "Illustrative signed transform in SQL",
+        "paragraphs": [
+          "The next query is illustrative and has not been executed here. It shows the display calculation as a separate selected column rather than replacing the natural metric. PostgreSQL 18 documents log and log10 as base-10 logarithms, abs as absolute value, and sign as returning -1, 0, or +1. Those functions are enough to express a signed log-style display value while keeping the original observed_value beside it.",
+          "The null branch is included to keep missing observations distinct from real zero values. A missing metric, a metric value of zero, and a negative metric value should not collapse into the same display state."
         ],
+        "bullets": [],
         "codeExamples": [
           {
-            "language": "python",
-            "code": "def sample_variance_welford(values):\n    # Illustrative implementation of the online update rule.\n    # This snippet has not been executed in this publishing pipeline.\n    n = 0\n    mean = 0.0\n    m2 = 0.0\n\n    for x in values:\n        n += 1\n        delta = x - mean\n        mean += delta / n\n        delta_after_mean_update = x - mean\n        m2 += delta * delta_after_mean_update\n\n    if n < 2:\n        return None\n\n    return m2 / (n - 1)\n\nvalues = [100000000.01, 100000000.02, 100000000.03, 100000000.04]\nprint(sample_variance_welford(values))"
+            "language": "sql",
+            "code": "select\n    metric_name,\n    observed_value,\n    case\n        when observed_value is null then null\n        else sign(observed_value) * log10(1 + abs(observed_value))\n    end as signed_log10_display_value\nfrom metric_observations;"
           }
         ]
       },
       {
-        "id": "diagnostic-query-for-pipelines",
-        "heading": "A diagnostic query for pipelines",
+        "id": "tradeoffs-and-labeling",
+        "heading": "Tradeoffs and labeling",
         "paragraphs": [
-          "A practical diagnostic is to compute the same variance two ways in a development model: once with a centered formula and once with the cancellation-prone shortcut. The goal is not to ship both metrics. The goal is to expose datasets where the shortcut is unsafe. The larger the disagreement, the more the metric depends on numerical accident.",
-          "The following PostgreSQL-style query is illustrative and uses a hypothetical inline dataset. It is written with numeric literals so the arithmetic is decimal exact for the example. In a real model, replace the inline values with a table, keep the grouping grain explicit, and compare the result with the database's documented var_samp aggregate for the same expression.",
-          "The stable expression computes the mean and then sums squared deviations. The shortcut expression computes sum(amount times amount) minus sum(amount) times sum(amount) divided by count. For the hypothetical values, exact arithmetic gives the same sample variance: 0.0001666666666666667. If the shortcut changes after casts, exports, or rewrites while the centered calculation remains stable, the shortcut is not safe for that metric."
+          "A log-style display is valuable when a linear chart would collapse most observations near the axis. It is not valuable when the transform becomes a way to avoid explaining the metric’s domain. Zero and negative values often carry the operational signal: no sales, refund-heavy cohorts, negative inventory adjustments, missed forecasts, or failed jobs with no completed records.",
+          "There is also a naming risk. Calling every compressed axis a “log scale” is imprecise. A plain log scale, a log1p transform, and a signed log transform have different meanings. The difference matters when someone tries to compare two dashboards or reproduce a metric in SQL.",
+          "A practical dashboard can expose both views. Show the natural-unit total or rate as the headline number. Use the transformed plot to explain distribution, outliers, or multiplicative spread. Include a small diagnostic count for rows that were zero or negative if the visualization uses a positive-only log scale. This prevents the visual convenience from becoming a hidden data-quality filter.",
+          "The final test is whether a reader can reconstruct the decision rule. If the metric is strictly positive, state that. If zero is valid, state how zero is displayed. If negative values are valid, preserve the sign or choose a different chart. The point of logarithmic scales in operational metrics is not to make the data look smoother; it is to explain large relative differences without losing the states that operations teams need to see."
+        ],
+        "bullets": [],
+        "codeExamples": []
+      }
+    ],
+    "takeaways": [
+      "A plain logarithm is only valid for strictly positive values; zeros and negatives require an explicit modeling decision.",
+      "Filtering to positive rows can change the operational answer, not just the chart appearance.",
+      "Use signed log-style transforms for signed metrics when the goal is to display multiplicative magnitude while preserving zero and sign.",
+      "Aggregate in natural units first, then transform for display or diagnosis."
+    ],
+    "sources": [
+      {
+        "title": "1.3.5.6. Measures of Scale",
+        "url": "https://itl.nist.gov/div898/handbook/eda/section3/eda356.htm"
+      },
+      {
+        "title": "PostgreSQL: Documentation: 18: 8.1. Numeric Types",
+        "url": "https://www.postgresql.org/docs/18/datatype-numeric.html"
+      },
+      {
+        "title": "PostgreSQL: Documentation: 18: 9.21. Aggregate Functions",
+        "url": "https://www.postgresql.org/docs/18/functions-aggregate.html"
+      },
+      {
+        "title": "PostgreSQL: Documentation: 18: 9.3. Mathematical Functions and Operators",
+        "url": "https://www.postgresql.org/docs/18/functions-math.html"
+      }
+    ],
+    "requiresVerification": false,
+    "verificationNotes": []
+  },
+  {
+    "slug": "sign-conventions-for-debits-and-credits-in-data",
+    "title": "Sign conventions for debits and credits in data",
+    "description": "A practical guide to keeping debit and credit sign semantics explicit during analytical transformations, with numeric counterexamples and calculation rules for data engineers.",
+    "primaryKeyword": "Sign conventions for debits and credits in data",
+    "relatedKeywords": [
+      "Sign conventions for debits and credits in data"
+    ],
+    "category": "Data Modeling",
+    "level": "Intermediate",
+    "readTime": "9 min",
+    "datePublished": "2026-11-10",
+    "dateModified": "2026-11-10",
+    "canonicalUrl": "https://jwatterson.com/writing/sign-conventions-for-debits-and-credits-in-data",
+    "status": "published",
+    "sourceHash": "46befbab500423ed",
+    "lead": "Debit and credit data often looks numeric before it is ready for arithmetic. A source amount may be a signed delta, an unsigned magnitude paired with a debit or credit flag, or a presentation value whose sign is meaningful only inside one report. If a pipeline collapses those cases into one column called amount, later transformations can be numerically precise and semantically wrong. The safer pattern is to preserve the source sign convention, derive analytical deltas with named rules, and test the rules with counterexamples that would fail under double-negation or sign-erasure mistakes.",
+    "sections": [
+      {
+        "id": "why-sign-semantics-break",
+        "heading": "Why sign semantics break in analytical pipelines",
+        "paragraphs": [
+          "This article is about numeric representation and aggregation in data systems. It is not accounting, tax, or financial reporting advice. The practical data engineering problem is narrower: how should a pipeline represent source debits, credits, and signs so that later sums mean what their names claim?",
+          "The dangerous assumption is that a number carries its own business direction. In debit and credit feeds, that is frequently false. One source may emit positive magnitudes plus a debit or credit code. Another may emit debits as positive and credits as negative. A third may emit values already signed from the perspective of a customer, merchant, bank account, or ledger-like account. The same visible value, such as -40.00, can mean a payment reduced a receivable balance, a refund was issued, a reversal was posted, or a display layer chose parentheses for credits.",
+          "The failure mode is usually quiet. SQL will happily sum signed numerics. A dashboard will happily format a negative value in red. The wrongness appears when a transformation either ignores a direction field that must be applied or applies a direction field to an amount that was already signed. Both errors can survive basic reconciliation if downstream reports aggregate at a level where offsetting mistakes hide each other.",
+          "A robust model separates three questions. First, what exactly did the source send? Second, what convention does the source use for sign and debit or credit indicators? Third, what analytical perspective should the derived metric use? Do not answer all three with one overloaded amount column."
+        ],
+        "bullets": [],
+        "codeExamples": []
+      },
+      {
+        "id": "store-source-convention-before-normalizing",
+        "heading": "Store the source convention before normalizing",
+        "paragraphs": [
+          "A practical ingestion table should preserve the original amount and the original direction fields, even if a normalized delta is created later. The point is not to make every downstream user think about debits and credits. The point is to make the normalization rule visible, testable, and auditable.",
+          "At minimum, keep the source amount, the source debit or credit indicator if one exists, the source system or feed name, and a documented convention code. Useful convention codes are simple and boring: magnitude_plus_side, signed_by_side, signed_delta_no_side, and presentation_signed. They can be implemented as a reference table, accepted values in a transformation contract, or metadata attached to a source-specific staging model.",
+          "The convention code controls whether the raw sign participates in the analytical delta. If the source uses magnitude_plus_side, the raw amount should normally be nonnegative and the side indicator supplies direction. If the source uses signed_by_side, the raw sign already encodes direction, but the side indicator can still be useful as a cross-check. If the source uses signed_delta_no_side, there may be no debit or credit field to apply. If the source uses presentation_signed, the safest action is often to reject the field for analytical arithmetic until a source-system rule is documented.",
+          "A normalized table can then expose both untouched source fields and derived analytical fields. For example, source_amount is the value as received after parsing into an exact decimal type. amount_magnitude is abs(source_amount) only when the rule treats the source value as a magnitude. analytical_delta_customer_owes is the signed amount from a stated perspective, such as positive means the customer owes more and negative means the customer owes less. That metric name is longer than amount, but it prevents a common ambiguity: positive for whom?"
         ],
         "bullets": [
-          "Run the diagnostic on the same grain as the published metric, not on a convenient sample with different grouping.",
-          "Include groups with high baselines and small spreads; those are the groups most likely to reveal cancellation.",
-          "Compare signs as well as magnitudes. A negative result for ordinary variance is a strong signal that the arithmetic path is broken.",
-          "Keep the diagnostic separate from business validation. Numerical disagreement is an implementation problem even when the input records are valid."
+          "Keep raw amount and raw debit or credit code as separate fields.",
+          "Add a convention field that says how the source uses signs.",
+          "Name derived deltas from an explicit perspective, not as generic amount.",
+          "Prefer exact decimal arithmetic for financial quantities when the database supports it."
+        ],
+        "codeExamples": []
+      },
+      {
+        "id": "worked-counterexample",
+        "heading": "A hypothetical counterexample: double-negating credits",
+        "paragraphs": [
+          "Consider a hypothetical retail accounts receivable feed. The business question is simple: after a few postings, how much does customer C-100 owe? For this analytical metric, positive means the customer owes more. In this hypothetical convention, debit postings increase the receivable balance and credit postings decrease it. The example is deliberately small so the arithmetic can be checked by inspection.",
+          "The feed sends a debit or credit code. It also sends credits as negative numbers. That means the source amount is already signed by side. If a transformation blindly multiplies credits by -1, it double-negates the credit rows and turns decreases into increases.",
+          "Here are the hypothetical rows. An invoice for 100.00 is a debit. A payment for 40.00 is a credit stored as -40.00. A credit memo for 15.00 is a credit stored as -15.00. A write-off for 5.00 is a credit stored as -5.00. A second invoice for 60.00 is a debit. The correct balance, from the perspective positive means customer owes more, is 100.00 - 40.00 - 15.00 - 5.00 + 60.00 = 100.00.",
+          "A naive rule says: if side is D, multiply by 1; if side is C, multiply by -1. Applied to already signed source amounts, it produces 100.00 + 40.00 + 15.00 + 5.00 + 60.00 = 220.00. The query is arithmetically consistent and semantically wrong.",
+          "The correct rule for this particular source depends on the documented convention. If the source contract says signed_by_side, the analytical delta can use source_amount directly after validating that debit rows are nonnegative and credit rows are nonpositive. If the source contract says magnitude_plus_side, these same negative credit rows should be treated as contract violations rather than silently repaired with abs(source_amount). For a true magnitude_plus_side feed, the credit source amounts would be positive magnitudes, and the side code would supply the negative direction."
+        ],
+        "bullets": [],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "-- Illustrative PostgreSQL 18 example. The CTE uses hypothetical data and is not evidence of execution.\nwith postings(posting_id, customer_id, event_name, source_amount, source_side) as (\n  values\n    (1, 'C-100', 'invoice',     100.00::numeric, 'D'),\n    (2, 'C-100', 'payment',     -40.00::numeric, 'C'),\n    (3, 'C-100', 'credit_memo', -15.00::numeric, 'C'),\n    (4, 'C-100', 'write_off',    -5.00::numeric, 'C'),\n    (5, 'C-100', 'invoice',      60.00::numeric, 'D')\n), calculated as (\n  select\n    *,\n    case source_side\n      when 'D' then source_amount\n      when 'C' then -source_amount\n    end as naive_side_multiplier_delta,\n    source_amount as signed_by_side_delta,\n    case\n      when source_side = 'D' and source_amount >= 0 then false\n      when source_side = 'C' and source_amount <= 0 then false\n      else true\n    end as violates_signed_by_side_pattern,\n    case\n      when source_amount < 0 then true\n      else false\n    end as violates_magnitude_plus_side_pattern\n  from postings\n)\nselect\n  customer_id,\n  sum(naive_side_multiplier_delta) as wrong_if_source_already_signed,\n  sum(signed_by_side_delta) as correct_for_signed_by_side,\n  count(*) filter (where violates_signed_by_side_pattern) as signed_by_side_pattern_violations,\n  count(*) filter (where violates_magnitude_plus_side_pattern) as magnitude_plus_side_pattern_violations\nfrom calculated\ngroup by customer_id;\n\n-- Expected result for the hypothetical rows:\n-- wrong_if_source_already_signed          = 220.00\n-- correct_for_signed_by_side              = 100.00\n-- signed_by_side_pattern_violations       = 0\n-- magnitude_plus_side_pattern_violations  = 3"
+          }
+        ]
+      },
+      {
+        "id": "calculation-rules-that-survive-refactoring",
+        "heading": "Calculation rules that survive refactoring",
+        "paragraphs": [
+          "The rule should be written as data logic, not tribal knowledge. A useful normalization model has a small decision table and rejects impossible combinations. It should not silently guess when the source convention is missing.",
+          "For a metric named customer_receivable_delta, with positive meaning the customer owes more, one decision table could be: if convention is magnitude_plus_side and side is D, delta equals source_amount after validating source_amount is nonnegative; if convention is magnitude_plus_side and side is C, delta equals -source_amount after validating source_amount is nonnegative; if convention is signed_by_side, delta equals source_amount after validating that the side and sign agree with the source contract; if convention is signed_delta_no_side, delta equals source_amount; otherwise the row is not analytically usable without a mapping rule.",
+          "Notice the difference between validation and transformation. Validation asks whether the row is compatible with the declared convention. Transformation derives a metric from that convention. A signed_by_side source with a positive credit should not be quietly normalized using abs unless the source contract says reversals or corrections are represented that way. Otherwise, the row may be an upstream defect, a reversal convention, or a case the model does not yet understand.",
+          "PostgreSQL numeric can store numbers with many digits and is recommended by PostgreSQL documentation for monetary amounts and other quantities where exactness is required. PostgreSQL also documents sum as an aggregate over non-null input values, while noting that, except for count, aggregates return null when no rows are selected; in particular, sum over no rows returns null rather than zero. Those database facts matter, but they do not solve sign semantics. Exact decimal arithmetic avoids one class of floating-point surprise, but a precisely computed 220.00 is still wrong if the intended balance is 100.00."
+        ],
+        "bullets": [
+          "Write the perspective into the metric name: customer owes more, cash increases, liability increases, revenue increases, or another explicit direction.",
+          "Use a convention-driven decision table instead of scattered case expressions.",
+          "Fail closed when the source convention is unknown.",
+          "Treat exact numeric types as necessary for decimal correctness, not sufficient for semantic correctness."
         ],
         "codeExamples": [
           {
             "language": "sql",
-            "code": "-- Illustrative PostgreSQL-style diagnostic query for the hypothetical values.\n-- This query has not been executed in this publishing pipeline.\nWITH hypothetical_order_amounts(amount) AS (\n    VALUES\n        (100000000.01::numeric),\n        (100000000.02::numeric),\n        (100000000.03::numeric),\n        (100000000.04::numeric)\n), stats AS (\n    SELECT\n        count(*)::numeric AS n,\n        avg(amount) AS mean_amount,\n        sum(amount) AS sum_amount,\n        sum(amount * amount) AS sum_square_amount\n    FROM hypothetical_order_amounts\n)\nSELECT\n    sum((h.amount - s.mean_amount) * (h.amount - s.mean_amount)) / (s.n - 1) AS centered_sample_variance,\n    (s.sum_square_amount - (s.sum_amount * s.sum_amount / s.n)) / (s.n - 1) AS shortcut_sample_variance,\n    var_samp(h.amount) AS documented_pg_sample_variance\nFROM hypothetical_order_amounts h\nCROSS JOIN stats s\nGROUP BY s.n, s.mean_amount, s.sum_amount, s.sum_square_amount;"
+            "code": "-- Illustrative PostgreSQL 18 pattern for a convention-driven derived delta.\n-- Hypothetical table and columns; adapt names to the actual source contract.\nselect\n  posting_id,\n  customer_id,\n  source_amount,\n  source_side,\n  source_sign_convention,\n  case\n    when source_sign_convention = 'magnitude_plus_side'\n      and source_amount < 0\n      then null\n    when source_sign_convention = 'magnitude_plus_side'\n      and source_side = 'D'\n      then source_amount\n    when source_sign_convention = 'magnitude_plus_side'\n      and source_side = 'C'\n      then -source_amount\n    when source_sign_convention = 'signed_by_side'\n      and source_side = 'D'\n      and source_amount >= 0\n      then source_amount\n    when source_sign_convention = 'signed_by_side'\n      and source_side = 'C'\n      and source_amount <= 0\n      then source_amount\n    when source_sign_convention = 'signed_delta_no_side'\n      then source_amount\n    else null\n  end as customer_receivable_delta,\n  case\n    when source_sign_convention is null then 'missing_convention'\n    when source_sign_convention = 'magnitude_plus_side' and source_amount < 0 then 'negative_magnitude'\n    when source_sign_convention = 'signed_by_side' and source_side = 'D' and source_amount < 0 then 'debit_negative'\n    when source_sign_convention = 'signed_by_side' and source_side = 'C' and source_amount > 0 then 'credit_positive'\n    when source_sign_convention not in ('magnitude_plus_side', 'signed_by_side', 'signed_delta_no_side') then 'unknown_convention'\n    else null\n  end as sign_rule_error\nfrom raw_postings;"
           }
         ]
       },
       {
-        "id": "implementation-tradeoffs",
-        "heading": "Implementation tradeoffs",
+        "id": "diagnostics-before-trusting-aggregates",
+        "heading": "Diagnostics before trusting aggregates",
         "paragraphs": [
-          "The two-pass centered formula is easy to review and usually easiest to explain. Its cost is that it needs either two scans or a materialized mean per group. In an analytical warehouse this is often acceptable, especially when correctness matters more than shaving one expression from a query. The bigger operational risk is accidentally changing the grain: the mean must be computed for the same group whose variance is being reported.",
-          "Welford's method is attractive for streaming and custom aggregation because it processes each value once and stores only three state variables. The tradeoff is maintainability. Engineers reviewing a model may recognize the two-pass definition faster than an online update rule. If Welford is used in shared code, name the state variables clearly: count, mean, and m2, where m2 is the accumulated sum of squared deviations from the running mean.",
-          "Exact decimal arithmetic reduces representation surprises but does not make every formula equally well conditioned. If a query computes two exact 30-digit numbers and then later casts them to an approximate type before subtraction, cancellation can still enter. Conversely, approximate arithmetic with a stable centered algorithm may be acceptable for exploratory metrics where tiny decimal differences are not material. The right rule is not always use decimal; it is choose the representation and the arithmetic shape together.",
-          "For data modeling, the durable design rule is to store facts at their natural grain and compute scale metrics with stable aggregations at the reporting grain. Do not precompute sum of squares as the only reusable statistic unless the downstream calculation method is specified and numerically safe. If a metric contract includes variance or standard deviation, include the formula, denominator convention, input type, null handling, and whether the implementation uses a built-in aggregate or a centered algorithm."
+          "Before publishing a derived metric, add diagnostics that would reveal the two common counterexamples: sign erasure and double negation. A sign-erasure bug ignores the side field and sums positive magnitudes. In the hypothetical example, that produces 220.00 instead of 100.00 when all rows are treated as positive. A double-negation bug applies a side multiplier to source values that already include the sign. It also produces 220.00 in the signed_by_side example.",
+          "A simple diagnostic groups rows by side and sign bucket. For a magnitude_plus_side source, debit and credit rows are usually both nonnegative because side supplies the direction. For a signed_by_side source, debit rows are usually nonnegative and credit rows are usually nonpositive. That pattern is not proof of correctness, but it is a useful smoke test. If the observed signs do not match the declared convention, the pipeline should quarantine rows, raise a data quality alert, or route them to a documented exception rule.",
+          "Do not rely on distribution summaries alone. Measures of scale such as range, standard deviation, median absolute deviation, or interquartile range describe spread. They do not tell you whether a negative sign is a reversal, a credit, a refund, or a presentation convention. Distribution checks can find unusual values, but the debit and credit rule must come from source semantics.",
+          "The last diagnostic is reconciliation at the smallest practical grain. Instead of only comparing total receivables by day, compare derived deltas by posting type, side, and source convention. A total can match while individual categories are inverted and offset by other categories. The goal is not to make every report longer; it is to catch semantic mistakes before they are compressed into one attractive number."
+        ],
+        "bullets": [],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "-- Illustrative PostgreSQL 18 diagnostic for source sign patterns.\nselect\n  source_sign_convention,\n  source_side,\n  case\n    when source_amount > 0 then 'positive'\n    when source_amount < 0 then 'negative'\n    else 'zero'\n  end as source_amount_sign,\n  count(*) as row_count,\n  sum(abs(source_amount)) as total_magnitude\nfrom raw_postings\ngroup by\n  source_sign_convention,\n  source_side,\n  case\n    when source_amount > 0 then 'positive'\n    when source_amount < 0 then 'negative'\n    else 'zero'\n  end\norder by source_sign_convention, source_side, source_amount_sign;"
+          }
+        ]
+      },
+      {
+        "id": "empty-groups-and-zeroes",
+        "heading": "Keep null, zero, and no rows distinct",
+        "paragraphs": [
+          "Sign convention errors often get mixed with another aggregation problem: treating no rows as the same thing as a zero-valued balance. They are different cases. A set of postings that sums to 0.00 is evidence that positive and negative deltas offset. A missing set of postings means there was nothing to aggregate at that grain, or the join removed the rows before aggregation.",
+          "In PostgreSQL, sum over no input rows returns null, not zero. That behavior is useful because it preserves the distinction until the query author chooses otherwise. If a report needs to display 0.00 for an empty group, use an explicit coalesce at the reporting boundary. Do not use coalesce as a substitute for checking whether the expected rows were present.",
+          "This distinction is especially important when validating sign rules. If a left join produces no postings for a customer, coalescing the missing aggregate to 0.00 may be appropriate for a display total. It should not be counted as proof that the sign convention worked. Reconciliation tests should separately track row counts, rejected rows, null deltas, and accepted deltas."
         ],
         "bullets": [
-          "Two-pass centered variance is reviewable and stable, but it may require an extra scan or intermediate table.",
-          "Online centered algorithms are good for streaming and custom aggregates, but they need clear implementation notes.",
-          "Exact numeric types help with decimal representation, but they do not excuse cancellation-prone formula design.",
-          "Metric contracts should specify both statistical convention and arithmetic implementation."
+          "A zero sum means rows were present and offset, or all accepted deltas were zero.",
+          "A null aggregate can mean no input rows were selected for that aggregate.",
+          "Use coalesce intentionally at a presentation or reporting boundary.",
+          "Keep row counts and rejected-row counts next to aggregate totals during validation."
+        ],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "-- Illustrative PostgreSQL 18 pattern: keep diagnostic counts with the displayed total.\nselect\n  customer_id,\n  count(*) as source_row_count,\n  count(customer_receivable_delta) as accepted_delta_count,\n  count(*) filter (where customer_receivable_delta is null) as rejected_or_unmapped_count,\n  sum(customer_receivable_delta) as raw_sum_delta,\n  coalesce(sum(customer_receivable_delta), 0.00::numeric) as display_sum_delta\nfrom staged_postings\ngroup by customer_id;"
+          }
+        ]
+      },
+      {
+        "id": "implementation-checklist",
+        "heading": "Implementation checklist",
+        "paragraphs": [
+          "A durable sign convention design is usually small. The hard part is making it explicit enough that a future refactor does not rediscover the ambiguity.",
+          "In the raw layer, preserve what arrived. In the staging layer, type amounts as exact decimals where appropriate, attach the source convention, and validate that the source amount and side agree with the declared contract. In the semantic or mart layer, expose named deltas from a named perspective. In tests, include at least one counterexample where the wrong rule produces a plausible but incorrect total.",
+          "The worked example above is a useful fixture because it catches both classes of mistakes. If a model ignores credits and sums magnitudes, it returns 220.00. If it double-negates already signed credits, it also returns 220.00. Only a convention-aware rule returns 100.00 for the customer-owes-more perspective.",
+          "The broader lesson is that debit and credit fields are not decorations around an amount. They are part of the numeric meaning. Keep them visible until a rule has converted them into a perspective-specific analytical delta, and keep the rule close enough to the data that it can be reviewed, tested, and changed deliberately."
+        ],
+        "bullets": [
+          "Preserve raw amount and raw side fields.",
+          "Record the source sign convention as data or metadata used by transformations.",
+          "Create perspective-specific derived deltas instead of a generic signed amount.",
+          "Add fixtures that fail under sign-erasure and double-negation rules.",
+          "Use diagnostics by side, sign bucket, posting type, and source convention before trusting aggregate totals.",
+          "Track row counts, null aggregate results, and rejected rows separately from displayed zeroes."
         ],
         "codeExamples": []
       }
     ],
     "takeaways": [
-      "The algebraic shortcut for variance can be numerically unsafe because it subtracts nearly equal large intermediate totals to recover a small spread.",
-      "A stable variance calculation centers values before squaring, either with a two-pass mean, a shifted baseline, or an online algorithm such as Welford's method.",
-      "Use diagnostics that compare centered variance with the shortcut on high-baseline, low-spread groups; disagreement, zero variance, or negative variance indicates a numerical implementation problem.",
-      "Choose data types and formulas together. Exact numeric representation helps, but stable accumulation is still the main defense against cancellation."
+      "A debit or credit amount is not analytically safe until the source sign convention and analytical perspective are explicit.",
+      "The same hypothetical postings can produce 100.00 or 220.00 depending on whether a pipeline respects the source convention, ignores side fields, or double-negates already signed credits.",
+      "Exact decimal types and precise sums help with numeric representation, but they do not protect against semantic sign errors.",
+      "Use convention-driven calculation rules, source sign diagnostics, and small counterexample fixtures to keep transformations honest."
     ],
     "sources": [
       {
-        "title": "NIST/SEMATECH e-Handbook of Statistical Methods: Measures of Scale",
-        "url": "https://itl.nist.gov/div898/handbook/eda/section3/eda356.htm"
-      },
-      {
-        "title": "PostgreSQL Documentation 18: Numeric Types",
+        "title": "PostgreSQL: Documentation: 18: 8.1. Numeric Types",
         "url": "https://www.postgresql.org/docs/18/datatype-numeric.html"
       },
       {
-        "title": "PostgreSQL Documentation 18: Aggregate Functions",
+        "title": "PostgreSQL: Documentation: 18: 9.21. Aggregate Functions",
         "url": "https://www.postgresql.org/docs/18/functions-aggregate.html"
       },
       {
-        "title": "Algorithms for Computing the Sample Variance: Analysis and Recommendations",
-        "url": "https://doi.org/10.1080/00031305.1983.10483115"
+        "title": "1.3.5.6. Measures of Scale",
+        "url": "https://itl.nist.gov/div898/handbook/eda/section3/eda356.htm"
+      }
+    ],
+    "requiresVerification": false,
+    "verificationNotes": []
+  },
+  {
+    "slug": "precision-loss-in-identifier-conversions",
+    "title": "Precision loss in identifier conversions",
+    "description": "A practical guide to keeping long numeric identifiers from being rounded when they pass through JSON, JavaScript, CSV, databases, and analytical pipelines.",
+    "primaryKeyword": "Precision loss in identifier conversions",
+    "relatedKeywords": [
+      "Precision loss in identifier conversions"
+    ],
+    "category": "Data Modeling",
+    "level": "Intermediate",
+    "readTime": "7 minutes",
+    "datePublished": "2026-11-10",
+    "dateModified": "2026-11-10",
+    "canonicalUrl": "https://jwatterson.com/writing/precision-loss-in-identifier-conversions",
+    "status": "published",
+    "sourceHash": "846bd1429c9d97cc",
+    "lead": "Long identifiers that look numeric are often labels, not quantities. If they pass through an approximate floating-point representation, two different identifiers can become the same value. The safest default is to model externally assigned long identifiers as strings at every boundary, then reserve numeric types for values you intend to calculate with.",
+    "sections": [
+      {
+        "id": "the-failure-mode",
+        "heading": "The failure mode: an identifier is treated like a number",
+        "paragraphs": [
+          "A long numeric identifier can be perfectly valid in the source system and still be corrupted in transit. The usual cause is not a database bug or an incorrect join condition. It is a type change: a label such as an order ID, account ID, shipment ID, or event ID is parsed as an approximate number somewhere between source and destination.",
+          "Floating-point numbers are useful for approximate numeric calculation, but they are not a universal container for identifiers. JavaScript Number values use double-precision floating-point format, and JSON interoperability guidance explicitly warns that implementations expecting more precision than binary64 can create interoperability problems. The practical boundary to remember is 9,007,199,254,740,991, which is 2^53 minus 1. Integers in the range from negative 2^53 plus 1 through positive 2^53 minus 1 are the range that common binary64-based implementations can agree on exactly.",
+          "This is especially dangerous because the identifier may still look reasonable after the conversion. It may have the same number of digits. It may sort near the expected value. It may even pass a non-null and numeric-looking validation rule. The damage is that equality has changed: two different labels can collapse into one label.",
+          "Consider this hypothetical retail event feed. The source emits two distinct order identifiers as decimal text: 9007199254740992 and 9007199254740993. As strings, these are different identifiers. If the second identifier is parsed into a double-precision floating-point value, it cannot be represented exactly. At that magnitude, adjacent representable values are spaced two integers apart. The value 9007199254740993 is halfway between 9007199254740992 and 9007199254740994. Under the common round-to-nearest-even rule used by binary floating-point operations, it rounds to 9007199254740992. After serialization back to decimal, both identifiers can appear as 9007199254740992.",
+          "The resulting data quality issue is not a small numeric error. It is an identity error. A distinct order may be merged with another order. A deduplication job may discard a real event. A customer service lookup may retrieve the wrong record. A fact table may appear to reconcile by row count while entity-level joins are already corrupted."
+        ],
+        "bullets": [],
+        "codeExamples": [
+          {
+            "language": "json",
+            "code": "{\n  \"bad_contract\": {\n    \"order_id\": 9007199254740993,\n    \"event_type\": \"shipped\"\n  },\n  \"safer_contract\": {\n    \"order_id\": \"9007199254740993\",\n    \"event_type\": \"shipped\"\n  }\n}"
+          }
+        ]
+      },
+      {
+        "id": "worked-counterexample",
+        "heading": "A worked counterexample with checked arithmetic",
+        "paragraphs": [
+          "The key calculation is small enough to reason through without a benchmark. Double-precision binary floating point has 53 bits of integer precision, including the implicit leading bit. That is why the largest safe integer commonly exposed to JavaScript developers is 9,007,199,254,740,991, or 2^53 minus 1. The next integer, 9,007,199,254,740,992, is also representable because it is exactly 2^53. But from that point forward, the spacing between adjacent representable integers is no longer one.",
+          "At 2^53, the next representable double is 2^53 plus 2, or 9,007,199,254,740,994. The integer in between, 9,007,199,254,740,993, has no exact double representation. If a parser, spreadsheet engine, browser runtime, or connector stores that identifier as a double, it must choose a nearby representable value. In common round-to-nearest-even behavior, it becomes 9,007,199,254,740,992.",
+          "Now apply that to a hypothetical order-events table. The source system sends two records: one for order 9007199254740992 with event_type created, and one for order 9007199254740993 with event_type shipped. Before conversion, count distinct order_id is 2. After a float conversion and re-serialization, both records can carry order_id 9007199254740992, so count distinct order_id becomes 1. No amount of downstream dimensional modeling can reliably separate those rows again unless an untouched raw copy exists.",
+          "This is why identifier precision is a data modeling problem, not only a programming-language problem. If the contract says order_id is a number, every downstream consumer is invited to choose a numeric representation. Some systems will use a 64-bit integer and preserve the value. Some will use arbitrary-precision decimal and preserve the value. Some will use double precision and lose it. The contract is ambiguous even when each individual component behaves as designed.",
+          "The safer contract is explicit: this field is an identifier encoded as decimal characters. It is not a measure. It must not be averaged, added, rounded, formatted with thousands separators, converted to scientific notation, or parsed through a type that cannot represent it exactly."
+        ],
+        "bullets": [
+          "Before unsafe conversion: distinct identifiers are 9007199254740992 and 9007199254740993, so the distinct count is 2.",
+          "After conversion of the second identifier through double precision: both values can be represented as 9007199254740992, so the distinct count can fall to 1.",
+          "The arithmetic error is one unit, but the modeling error is a false entity merge."
+        ],
+        "codeExamples": []
+      },
+      {
+        "id": "modeling-rules",
+        "heading": "Rules for modeling long numeric identifiers",
+        "paragraphs": [
+          "Use a simple rule first: if a value identifies a thing, model it as an identifier, not as a number. The fact that it contains only digits is not enough to make it numeric. Postal codes, product codes, payment processor IDs, order IDs, and external customer IDs often use digits because digits are compact and easy to transmit. That does not mean arithmetic is meaningful.",
+          "The second rule is to preserve the original representation at ingestion. A raw landing table should keep the source token as received, especially for externally assigned IDs. If a later model needs a normalized form, create it as a separate field with a documented transformation. Do not overwrite the original identifier with a parsed numeric value and assume it can be reconstructed.",
+          "The third rule is to make boundary formats boring. In JSON, serialize long identifiers as strings. In CSV, treat them as text and be careful with tools that infer types automatically. In databases, choose text or a fixed character type for externally assigned identifiers unless there is a strong reason to use a numeric type. If a database-native surrogate key is needed for joins, create a separate internal key rather than changing the external identifier’s type.",
+          "The fourth rule is to distinguish identifiers from measures in analytical code. Amounts, quantities, durations, and counts are measures. They need numeric types and aggregation rules. Identifiers are labels used for equality, grouping, lineage, and joins. They need stable representation. A pipeline that sums revenue and counts orders should not use the same type inference rule for revenue_amount and order_id.",
+          "There are valid cases for numeric storage. An internal sequence generated and consumed entirely inside a database can be a bigint if the range is sufficient and all clients respect it. PostgreSQL 18 documents bigint as a signed eight-byte integer, numeric and decimal as exact numeric types of selectable precision, and real and double precision as inexact variable-precision numeric types. That makes PostgreSQL numeric and bigint useful tools when the whole contract supports them, but it does not make a JSON number safe for a long external ID that will be handled by browser code, spreadsheets, or generic API clients. The weakest boundary determines the contract.",
+          "A practical default is therefore: external ID fields are strings; internal surrogate keys may be integers; decimal measures use exact decimal or numeric types where exactness matters; approximate floating-point types are not used for identifiers."
+        ],
+        "bullets": [
+          "Do not infer identifier type from characters alone. A digit-only label is still a label.",
+          "Do not use floating-point types for primary keys, foreign keys, deduplication keys, event IDs, or external IDs.",
+          "Do keep raw source identifiers in their original representation, even if you also create a normalized join key.",
+          "Do document whether leading zeros, case, punctuation, and whitespace are significant.",
+          "Do serialize risky identifiers as strings across JSON and other loosely typed boundaries."
+        ],
+        "codeExamples": []
+      },
+      {
+        "id": "diagnostic-checks",
+        "heading": "A diagnostic for existing pipelines",
+        "paragraphs": [
+          "You can find the riskiest fields with a focused diagnostic. Look for columns whose names end in id, _key, number, code, token, or reference, then inspect their physical types at every hop: source extract, message payload, landing table, transformation model, BI semantic layer, reverse ETL output, and exported file. The goal is to identify any hop where an identifier is represented as float, double, real, scientific notation, or an automatically inferred spreadsheet number.",
+          "For text columns, flag values that exceed the safe integer range for double precision. This does not prove corruption occurred; it identifies values that would be unsafe if parsed through double precision. Also flag values with leading zeros, because a numeric parse can change their representation even when the integer value is small.",
+          "The following PostgreSQL 18-style query is illustrative and not presented as an executed test. It assumes a hypothetical staging table named stg_order_events with a text column named order_id_text. It flags unsigned digit-only identifiers that either contain leading zeros or exceed 9,007,199,254,740,991 when compared as normalized decimal text.",
+          "The query compares long numbers as text only after normalizing leading zeros. That avoids casting the identifier to bigint or numeric in the diagnostic itself. It also keeps the check focused on representation risk rather than on whether the identifier could fit in one particular database type."
+        ],
+        "bullets": [],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "WITH ids AS (\n  SELECT\n    order_id_text,\n    COALESCE(NULLIF(regexp_replace(order_id_text, '^0+', ''), ''), '0') AS normalized_id\n  FROM stg_order_events\n  WHERE order_id_text ~ '^[0-9]+$'\n), flagged AS (\n  SELECT\n    order_id_text,\n    normalized_id,\n    CASE\n      WHEN order_id_text <> normalized_id THEN 'leading_zero_or_format_change'\n      WHEN length(normalized_id) > 16 THEN 'above_double_safe_integer_range'\n      WHEN length(normalized_id) = 16\n        AND normalized_id > '9007199254740991'\n        THEN 'above_double_safe_integer_range'\n      ELSE NULL\n    END AS risk_reason\n  FROM ids\n)\nSELECT order_id_text, risk_reason\nFROM flagged\nWHERE risk_reason IS NOT NULL;"
+          },
+          {
+            "language": "sql",
+            "code": "-- Illustrative collision check after a suspected unsafe conversion.\n-- Replace rounded_order_id_text with the identifier representation produced by the suspect hop.\nSELECT\n  rounded_order_id_text,\n  COUNT(DISTINCT original_order_id_text) AS original_ids_collapsed\nFROM suspected_identifier_rounding\nGROUP BY rounded_order_id_text\nHAVING COUNT(DISTINCT original_order_id_text) > 1;"
+          }
+        ]
+      },
+      {
+        "id": "repair-and-prevention",
+        "heading": "Repair when possible, prevent by contract",
+        "paragraphs": [
+          "If rounded identifiers have already overwritten the only copy of the data, repair may be impossible. The rounded value does not contain enough information to infer which original identifier was intended. If 9007199254740993 was stored as 9007199254740992, the lost digit-level distinction cannot be recovered from the rounded value alone.",
+          "The first repair step is to search for an earlier untouched copy: raw object storage, source exports, API logs, message queues with retention, database write-ahead archives, vendor replays, or upstream application tables. If an untouched source exists, reload the affected range with the identifier typed as text at ingestion. If no untouched source exists, the correct response is usually to quarantine affected records, document the known collision risk, and avoid pretending the rounded key is reliable.",
+          "Prevention is cheaper than repair. Put the rule into schemas and contracts. For API payloads, specify that long identifiers are strings. For warehouse models, keep external identifiers in text columns and name internal surrogate keys separately. For transformation code, disable or override type inference for known identifier columns. For data quality checks, add assertions that identifier columns are not floating-point and that risky digit-only text fields stay text through the modeled layer.",
+          "The decision rule is direct: if a field participates in equality rather than arithmetic, preserve representation. If it crosses a loosely typed boundary and may exceed 9,007,199,254,740,991, serialize it as a string. If it has leading zeros or formatting significance, serialize it as a string regardless of length. If a consumer wants a numeric surrogate for performance, create that surrogate under your control without replacing the external identifier.",
+          "This keeps numeric correctness and entity correctness separate. Measures can use the numeric types appropriate for aggregation. Identifiers can use stable text representation appropriate for joins. The pipeline becomes less clever, but more reliable."
+        ],
+        "bullets": [
+          "Reload from an untouched raw source when rounded identifiers have already entered modeled tables.",
+          "Quarantine affected records when the original identifier cannot be recovered.",
+          "Add schema tests that reject floating-point physical types for identifier columns.",
+          "Document external_id as separate from internal surrogate keys.",
+          "Make string serialization the default for long IDs in JSON contracts."
+        ],
+        "codeExamples": []
+      }
+    ],
+    "takeaways": [
+      "Digit-only identifiers are not automatically numeric data. If arithmetic is not meaningful, model the value as a label.",
+      "The common double-precision safe integer boundary is 9,007,199,254,740,991. Above it, distinct integer identifiers may not remain distinct after floating-point conversion.",
+      "Use strings for long external identifiers across JSON, CSV, API, and warehouse boundaries. Keep numeric types for measures and controlled internal surrogate keys.",
+      "Once an identifier has been rounded and the raw value is gone, the original value may be unrecoverable. Preserve raw source representations at ingestion."
+    ],
+    "sources": [
+      {
+        "title": "RFC 8259: The JavaScript Object Notation (JSON) Data Interchange Format",
+        "url": "https://www.rfc-editor.org/info/rfc8259/"
+      },
+      {
+        "title": "Number.MAX_SAFE_INTEGER - JavaScript | MDN",
+        "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/MAX_SAFE_INTEGER"
+      },
+      {
+        "title": "PostgreSQL: Documentation: 18: 8.1. Numeric Types",
+        "url": "https://www.postgresql.org/docs/18/datatype-numeric.html"
+      },
+      {
+        "title": "PostgreSQL: Documentation: 18: 9.21. Aggregate Functions",
+        "url": "https://www.postgresql.org/docs/18/functions-aggregate.html"
+      },
+      {
+        "title": "PostgreSQL: Documentation: 18: 4.2. Value Expressions",
+        "url": "https://www.postgresql.org/docs/18/sql-expressions.html"
       }
     ],
     "requiresVerification": false,
