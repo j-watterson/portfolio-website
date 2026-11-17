@@ -1,0 +1,1529 @@
+[
+  {
+    "slug": "unit-conversions-in-analytical-models",
+    "title": "Unit conversions in analytical models",
+    "primaryKeyword": "Unit conversions in analytical models",
+    "relatedKeywords": [
+      "Unit conversions in analytical models"
+    ],
+    "audience": "practitioners",
+    "updateFrequency": "never",
+    "intent": "How can practitioners preserve original units and conversion provenance beside normalized values?",
+    "format": "Guide",
+    "category": "Data Modeling",
+    "editorialBrief": {
+      "topic": "Unit conversions in analytical models",
+      "audience": "practitioners",
+      "update_frequency": "never",
+      "content_type": "durable",
+      "category": "Data Modeling",
+      "track": "Data Foundations",
+      "cluster": "numeric-correctness",
+      "primary_question": "How can practitioners preserve original units and conversion provenance beside normalized values?",
+      "scope": [
+        "Preserve original units and conversion provenance beside normalized values.",
+        "Numeric representation and aggregation; exclude tax or accounting advice."
+      ],
+      "exclusions": [
+        "Do not expand this into a general introduction to the entire category.",
+        "Do not repeat the Coldstart coverage listed in coldstart_coverage; link their background where useful.",
+        "Leave Negative values in rate calculations to /writing/negative-values-in-rate-calculations/; its separate outcome is: Define how corrections and reversals affect a reported rate.",
+        "Leave Currency conversion dates in reporting to /writing/currency-conversion-dates-in-reporting/; its separate outcome is: Distinguish transaction-date conversion from reporting-date conversion.",
+        "Do not replace or retell the three existing in-progress portfolio notes.",
+        "Do not invent employment history, client stories, measurements, expert review, or first-person hands-on experience."
+      ],
+      "original_contribution": "Create numeric counterexamples and explicit calculation rules. Use it to preserve original units and conversion provenance beside normalized values.",
+      "prerequisites": [
+        "floating-point-error-in-financial-analytics"
+      ],
+      "secondary_keywords": [],
+      "source_urls": [
+        "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/multiple-units-of-measure/",
+        "https://www.itl.nist.gov/div898/handbook/eda/section3/eda356.htm",
+        "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/type-0/"
+      ],
+      "sources": [
+        {
+          "source_id": "kimball-multiple-units-of-measure",
+          "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/multiple-units-of-measure/",
+          "title": "Multiple Units of Measure Facts | Kimball Dimensional Modeling Techniques",
+          "accessed_at": "2026-09-22T20:36:55.009729+00:00"
+        },
+        {
+          "source_id": "nist-scale",
+          "url": "https://www.itl.nist.gov/div898/handbook/eda/section3/eda356.htm",
+          "title": "1.3.5.6. Measures of Scale",
+          "accessed_at": "2026-09-22T20:47:48.322923+00:00"
+        },
+        {
+          "source_id": "kimball-type-0",
+          "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/type-0/",
+          "title": "Type 0: Retain Original | Kimball Dimensional Modeling Techniques",
+          "accessed_at": "2026-09-22T20:31:46.358074+00:00"
+        }
+      ],
+      "evidence_requirements": [
+        "Check the cited primary sources and the original scope before writing; a research lead is not proof of a new claim.",
+        "Use a clearly labeled hypothetical example. Do not invent customer results, personal experience, expert review, or test execution.",
+        "Work through the proposed example or decision framework and verify its assumptions and conclusions before publication."
+      ],
+      "distinctness_rationale": "The article is limited to this deliverable: Preserve original units and conversion provenance beside normalized values. Nearest legacy coverage is retained as background, not rewritten.",
+      "publication_order": 28,
+      "reviewed_distinctions": {},
+      "coldstart_coverage": [
+        {
+          "slug": "metric-definitions-operator-checklist",
+          "title": "Metric Definitions: Operator Checklist",
+          "score": 0.049,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "What a Metric Definition Must Do",
+            "Why Metric Definitions Break in Real Data Systems",
+            "The Metric Definitions Operator Checklist",
+            "A Minimum Viable Metric Definition Template",
+            "Example: Turning a Vague Metric Into an Operator-Ready Definition",
+            "Check the Grain Before You Debate the Formula",
+            "Define Time Rules Explicitly",
+            "Govern Metric Definitions Without Creating Bureaucracy",
+            "Where Metric Definitions Should Live",
+            "Review Questions Before Publishing a Metric",
+            "Maintain Definitions as the Business Changes"
+          ],
+          "has_article_body": true
+        },
+        {
+          "slug": "data-modeling-plain-english-guide",
+          "title": "Data Modeling: Plain-English Guide",
+          "score": 0.042,
+          "files": [
+            "src/_data/articles.json"
+          ],
+          "section_headings": [
+            "What data modeling means",
+            "Why data modeling matters for dashboard trust",
+            "The core building blocks of a data model",
+            "Start with grain before choosing columns",
+            "Common types of analytics models",
+            "A simple example: ecommerce orders",
+            "Metrics need modeling too",
+            "Signs your data model needs work",
+            "A practical data modeling process",
+            "How to repair a weak model without starting over",
+            "Common data modeling mistakes",
+            "What good data modeling looks like",
+            "Why data modeling matters for AI-ready data"
+          ],
+          "has_article_body": true
+        },
+        {
+          "slug": "metric-definitions-common-mistake",
+          "title": "Metric Definitions: Common Mistake",
+          "score": 0.041,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "Why metric definitions matter",
+            "The common mistake: naming the metric but not defining the logic",
+            "What a good metric definition includes",
+            "Example: turning a vague metric into a usable definition",
+            "Why weak metric definitions break AI-ready data",
+            "Diagnostic questions for unclear metrics",
+            "How to repair metric definitions without boiling the ocean",
+            "Common failure modes to avoid",
+            "A lightweight governance model for metric definitions",
+            "Operator rule: define metrics so they can be challenged"
+          ],
+          "has_article_body": true
+        }
+      ],
+      "portfolio_context": "Technical education for practicing and aspiring data engineers. Use small, explicitly hypothetical retail-order or customer-event fixtures where useful. Do not claim Jon implemented or tested anything without supplied evidence.",
+      "cross_brand_boundary": "Coldstart and this portfolio share seed concepts, not article prose. Create a fresh example, explanation, and diagnostic outcome. Do not copy or lightly rewrite Coldstart articles.",
+      "seed_origin": {
+        "brand": "Coldstart",
+        "slug": "unit-conversions-in-analytical-models",
+        "snapshot_sha256": "07ea360d63d3b74952b290ee982fd3c3bec11622cdf1bdf932106a7823ea0020",
+        "adapted_on": "2026-09-23"
+      }
+    },
+    "sourceHash": "4af0766e3bfe643f"
+  },
+  {
+    "slug": "exchange-rate-direction-and-inversion",
+    "title": "Exchange-rate direction and inversion",
+    "primaryKeyword": "Exchange-rate direction and inversion",
+    "relatedKeywords": [
+      "Exchange-rate direction and inversion"
+    ],
+    "audience": "practitioners",
+    "updateFrequency": "never",
+    "intent": "How can practitioners prevent multiplication versus division errors in currency normalization?",
+    "format": "Guide",
+    "category": "Data Modeling",
+    "editorialBrief": {
+      "topic": "Exchange-rate direction and inversion",
+      "audience": "practitioners",
+      "update_frequency": "never",
+      "content_type": "durable",
+      "category": "Data Modeling",
+      "track": "Data Foundations",
+      "cluster": "numeric-correctness",
+      "primary_question": "How can practitioners prevent multiplication versus division errors in currency normalization?",
+      "scope": [
+        "Prevent multiplication versus division errors in currency normalization.",
+        "Numeric representation and aggregation; exclude tax or accounting advice."
+      ],
+      "exclusions": [
+        "Do not expand this into a general introduction to the entire category.",
+        "Do not repeat the Coldstart coverage listed in coldstart_coverage; link their background where useful.",
+        "Leave Currency conversion dates in reporting to /writing/currency-conversion-dates-in-reporting/; its separate outcome is: Distinguish transaction-date conversion from reporting-date conversion.",
+        "Leave Percentage points versus percentage changes to /writing/percentage-points-versus-percentage-changes/; its separate outcome is: Use a worked comparison to distinguish absolute and relative change.",
+        "Do not replace or retell the three existing in-progress portfolio notes.",
+        "Do not invent employment history, client stories, measurements, expert review, or first-person hands-on experience."
+      ],
+      "original_contribution": "Create numeric counterexamples and explicit calculation rules. Use it to prevent multiplication versus division errors in currency normalization.",
+      "prerequisites": [
+        "floating-point-error-in-financial-analytics"
+      ],
+      "secondary_keywords": [],
+      "source_urls": [
+        "https://www.postgresql.org/docs/current/datatype-numeric.html",
+        "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/multiple-currencies/",
+        "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/error-event-schema/"
+      ],
+      "sources": [
+        {
+          "source_id": "pg-numeric",
+          "url": "https://www.postgresql.org/docs/current/datatype-numeric.html",
+          "title": "PostgreSQL: Documentation: 18: 8.1. Numeric Types",
+          "accessed_at": "2026-09-22T16:34:32.222891+00:00"
+        },
+        {
+          "source_id": "kimball-multiple-currencies",
+          "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/multiple-currencies/",
+          "title": "Multiple Currency Facts | Kimball Dimensional Modeling Techniques",
+          "accessed_at": "2026-09-22T20:36:54.289754+00:00"
+        },
+        {
+          "source_id": "kimball-error-event-schema",
+          "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/error-event-schema/",
+          "title": "Error Event Schemas | Kimball Dimensional Modeling Techniques",
+          "accessed_at": "2026-09-22T20:37:00.602527+00:00"
+        }
+      ],
+      "evidence_requirements": [
+        "Check the cited primary sources and the original scope before writing; a research lead is not proof of a new claim.",
+        "Use a clearly labeled hypothetical example. Do not invent customer results, personal experience, expert review, or test execution.",
+        "Work through the proposed example or decision framework and verify its assumptions and conclusions before publication."
+      ],
+      "distinctness_rationale": "The article is limited to this deliverable: Prevent multiplication versus division errors in currency normalization. Nearest legacy coverage is retained as background, not rewritten.",
+      "publication_order": 30,
+      "reviewed_distinctions": {},
+      "coldstart_coverage": [
+        {
+          "slug": "revenue-reporting-operator-checklist",
+          "title": "Revenue Reporting: Operator Checklist",
+          "score": 0.051,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "What revenue reporting should answer",
+            "The revenue reporting operator checklist",
+            "Define the revenue model before automation",
+            "Check the source systems before blaming the dashboard",
+            "Pipeline reliability controls for revenue data",
+            "Common revenue reporting failure modes",
+            "Dashboard trust checklist",
+            "When to involve finance early",
+            "A minimum viable revenue reporting implementation"
+          ],
+          "has_article_body": true
+        },
+        {
+          "slug": "data-quality-checks-operator-checklist",
+          "title": "Data Quality Checks: Operator Checklist",
+          "score": 0.036,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "What data quality checks are",
+            "The operator principle: test the contract, not the database",
+            "Checklist step 1: Start with critical data products",
+            "Checklist step 2: Check freshness first",
+            "Checklist step 3: Add volume and distribution checks",
+            "Checklist step 4: Validate required fields and allowed values",
+            "Checklist step 5: Reconcile across tables and systems",
+            "Checklist step 6: Put checks at the right layer",
+            "Checklist step 7: Decide what happens when a check fails",
+            "Checklist step 8: Assign owners and runbooks",
+            "Common failure modes to watch for",
+            "A minimum viable check set for a small team",
+            "How to review and improve checks over time"
+          ],
+          "has_article_body": true
+        },
+        {
+          "slug": "warehouse-first-analytics-common-mistake",
+          "title": "Warehouse First Analytics: Common Mistake",
+          "score": 0.03,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "What warehouse first analytics means",
+            "The common mistake: making the warehouse first in sequence but last in ownership",
+            "Why this happens during migration",
+            "Symptoms of a bad warehouse first implementation",
+            "What the warehouse should own",
+            "A better migration pattern: thin vertical slices",
+            "Modeling rules that prevent the mistake",
+            "Dashboard trust checklist for warehouse first analytics",
+            "When warehouse first is incomplete or the wrong emphasis",
+            "A practical repair plan if you already made the mistake"
+          ],
+          "has_article_body": true
+        }
+      ],
+      "portfolio_context": "Technical education for practicing and aspiring data engineers. Use small, explicitly hypothetical retail-order or customer-event fixtures where useful. Do not claim Jon implemented or tested anything without supplied evidence.",
+      "cross_brand_boundary": "Coldstart and this portfolio share seed concepts, not article prose. Create a fresh example, explanation, and diagnostic outcome. Do not copy or lightly rewrite Coldstart articles.",
+      "seed_origin": {
+        "brand": "Coldstart",
+        "slug": "exchange-rate-direction-and-inversion",
+        "snapshot_sha256": "07ea360d63d3b74952b290ee982fd3c3bec11622cdf1bdf932106a7823ea0020",
+        "adapted_on": "2026-09-23"
+      }
+    },
+    "sourceHash": "1e293ad2b876d2ab"
+  },
+  {
+    "slug": "geometric-means-for-compounded-growth",
+    "title": "Geometric means for compounded growth",
+    "primaryKeyword": "Geometric means for compounded growth",
+    "relatedKeywords": [
+      "Geometric means for compounded growth"
+    ],
+    "audience": "practitioners",
+    "updateFrequency": "never",
+    "intent": "How can practitioners identify cases where arithmetic averages misstate cumulative change?",
+    "format": "Guide",
+    "category": "Data Modeling",
+    "editorialBrief": {
+      "topic": "Geometric means for compounded growth",
+      "audience": "practitioners",
+      "update_frequency": "never",
+      "content_type": "durable",
+      "category": "Data Modeling",
+      "track": "Data Foundations",
+      "cluster": "numeric-correctness",
+      "primary_question": "How can practitioners identify cases where arithmetic averages misstate cumulative change?",
+      "scope": [
+        "Identify cases where arithmetic averages misstate cumulative change.",
+        "Numeric representation and aggregation; exclude tax or accounting advice."
+      ],
+      "exclusions": [
+        "Do not expand this into a general introduction to the entire category.",
+        "Do not repeat the Coldstart coverage listed in coldstart_coverage; link their background where useful.",
+        "Leave Numerical stability in variance calculations to /writing/numerical-stability-in-variance-calculations/; its separate outcome is: Compare cancellation-prone arithmetic with stable accumulation.",
+        "Leave Logarithmic scales in operational metrics to /writing/logarithmic-scales-in-operational-metrics/; its separate outcome is: Explain multiplicative variation without hiding zero or negative values.",
+        "Do not replace or retell the three existing in-progress portfolio notes.",
+        "Do not invent employment history, client stories, measurements, expert review, or first-person hands-on experience."
+      ],
+      "original_contribution": "Create numeric counterexamples and explicit calculation rules. Use it to identify cases where arithmetic averages misstate cumulative change.",
+      "prerequisites": [
+        "floating-point-error-in-financial-analytics"
+      ],
+      "secondary_keywords": [],
+      "source_urls": [
+        "https://www.itl.nist.gov/div898/software/dataplot/refman2/auxillar/geommean.htm",
+        "https://www.postgresql.org/docs/current/functions-aggregate.html",
+        "https://www.itl.nist.gov/div898/handbook/eda/section3/eda356.htm"
+      ],
+      "sources": [
+        {
+          "source_id": "nist-geometric",
+          "url": "https://www.itl.nist.gov/div898/software/dataplot/refman2/auxillar/geommean.htm",
+          "title": "Geometric Mean",
+          "accessed_at": "2026-09-22T20:49:12.905960+00:00"
+        },
+        {
+          "source_id": "pg-aggregate",
+          "url": "https://www.postgresql.org/docs/current/functions-aggregate.html",
+          "title": "PostgreSQL: Documentation: 18: 9.21. Aggregate Functions",
+          "accessed_at": "2026-09-22T16:34:30.057160+00:00"
+        },
+        {
+          "source_id": "nist-scale",
+          "url": "https://www.itl.nist.gov/div898/handbook/eda/section3/eda356.htm",
+          "title": "1.3.5.6. Measures of Scale",
+          "accessed_at": "2026-09-22T20:47:48.322923+00:00"
+        }
+      ],
+      "evidence_requirements": [
+        "Check the cited primary sources and the original scope before writing; a research lead is not proof of a new claim.",
+        "Use a clearly labeled hypothetical example. Do not invent customer results, personal experience, expert review, or test execution.",
+        "Work through the proposed example or decision framework and verify its assumptions and conclusions before publication."
+      ],
+      "distinctness_rationale": "The article is limited to this deliverable: Identify cases where arithmetic averages misstate cumulative change. Nearest legacy coverage is retained as background, not rewritten.",
+      "publication_order": 35,
+      "reviewed_distinctions": {},
+      "coldstart_coverage": [
+        {
+          "slug": "ai-ready-data-founder-framework",
+          "title": "AI-Ready Data: Founder Framework",
+          "score": 0.055,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "What AI-ready data means in a founder-run company",
+            "Start with the AI use case, not the architecture",
+            "The six-part founder framework for AI-ready data",
+            "Why migration is the best time to fix AI-readiness problems",
+            "How to tell whether a dataset is AI-ready",
+            "Common failure modes that make data not AI-ready",
+            "Governance does not have to mean bureaucracy",
+            "A practical 30-60-90 day plan for founders",
+            "What founders should not fully delegate"
+          ],
+          "has_article_body": true
+        },
+        {
+          "slug": "warehouse-first-analytics-founder-framework",
+          "title": "Warehouse First Analytics: Founder Framework",
+          "score": 0.05,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "What warehouse first analytics means",
+            "Why founders should care before the data team is large",
+            "The founder framework: five decisions before you build",
+            "What belongs in the warehouse first",
+            "What warehouse first analytics is not",
+            "The basic data modeling pattern",
+            "Example: a SaaS founder repairing conflicting revenue and usage metrics",
+            "Common failure modes",
+            "A readiness checklist for founders",
+            "A practical first 90 days",
+            "How to evaluate whether it is working",
+            "Founder rules for warehouse first analytics"
+          ],
+          "has_article_body": true
+        },
+        {
+          "slug": "bi-governance-founder-framework",
+          "title": "BI Governance: Founder Framework",
+          "score": 0.049,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "What BI Governance Means in a Founder-Led Company",
+            "Why Founders Should Care Before BI Gets Messy",
+            "The Founder Framework: Four Layers of BI Governance",
+            "Start With Metric Governance, Not Tool Permissions",
+            "Classify Dashboards by Trust Level",
+            "Use a Two-Owner Model for Important Metrics",
+            "Create Lightweight Change Control for Metrics That Matter",
+            "Common BI Governance Failure Modes",
+            "Minimum Viable BI Governance for an Early Company",
+            "How to Evaluate Whether BI Governance Is Working",
+            "A Practical Implementation Sequence",
+            "Founder Rules for BI Governance"
+          ],
+          "has_article_body": true
+        }
+      ],
+      "portfolio_context": "Technical education for practicing and aspiring data engineers. Use small, explicitly hypothetical retail-order or customer-event fixtures where useful. Do not claim Jon implemented or tested anything without supplied evidence.",
+      "cross_brand_boundary": "Coldstart and this portfolio share seed concepts, not article prose. Create a fresh example, explanation, and diagnostic outcome. Do not copy or lightly rewrite Coldstart articles.",
+      "seed_origin": {
+        "brand": "Coldstart",
+        "slug": "geometric-means-for-compounded-growth",
+        "snapshot_sha256": "07ea360d63d3b74952b290ee982fd3c3bec11622cdf1bdf932106a7823ea0020",
+        "adapted_on": "2026-09-23"
+      }
+    },
+    "sourceHash": "282b3478b259d4ca"
+  },
+  {
+    "slug": "missing-measurements-versus-measured-zero",
+    "title": "Missing measurements versus measured zero",
+    "primaryKeyword": "Missing measurements versus measured zero",
+    "relatedKeywords": [
+      "Missing measurements versus measured zero"
+    ],
+    "audience": "practitioners",
+    "updateFrequency": "never",
+    "intent": "How can practitioners keep unavailable observations distinct from real absence of activity?",
+    "format": "Guide",
+    "category": "Data Modeling",
+    "editorialBrief": {
+      "topic": "Missing measurements versus measured zero",
+      "audience": "practitioners",
+      "update_frequency": "never",
+      "content_type": "durable",
+      "category": "Data Modeling",
+      "track": "Data Foundations",
+      "cluster": "numeric-correctness",
+      "primary_question": "How can practitioners keep unavailable observations distinct from real absence of activity?",
+      "scope": [
+        "Keep unavailable observations distinct from real absence of activity.",
+        "Numeric representation and aggregation; exclude tax or accounting advice."
+      ],
+      "exclusions": [
+        "Do not expand this into a general introduction to the entire category.",
+        "Do not repeat the Coldstart coverage listed in coldstart_coverage; link their background where useful.",
+        "Leave Precision loss in identifier conversions to /writing/precision-loss-in-identifier-conversions/; its separate outcome is: Prevent long numeric identifiers from being rounded in transit.",
+        "Leave Sign conventions for debits and credits in data to /writing/sign-conventions-for-debits-and-credits-in-data/; its separate outcome is: Keep source sign semantics explicit during analytical transformations.",
+        "Do not replace or retell the three existing in-progress portfolio notes.",
+        "Do not invent employment history, client stories, measurements, expert review, or first-person hands-on experience."
+      ],
+      "original_contribution": "Create numeric counterexamples and explicit calculation rules. Use it to keep unavailable observations distinct from real absence of activity.",
+      "prerequisites": [
+        "floating-point-error-in-financial-analytics"
+      ],
+      "secondary_keywords": [],
+      "source_urls": [
+        "https://www.postgresql.org/docs/current/datatype-numeric.html",
+        "https://www.postgresql.org/docs/current/functions-aggregate.html",
+        "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/realtime-fact-table/"
+      ],
+      "sources": [
+        {
+          "source_id": "pg-numeric",
+          "url": "https://www.postgresql.org/docs/current/datatype-numeric.html",
+          "title": "PostgreSQL: Documentation: 18: 8.1. Numeric Types",
+          "accessed_at": "2026-09-22T16:34:32.222891+00:00"
+        },
+        {
+          "source_id": "pg-aggregate",
+          "url": "https://www.postgresql.org/docs/current/functions-aggregate.html",
+          "title": "PostgreSQL: Documentation: 18: 9.21. Aggregate Functions",
+          "accessed_at": "2026-09-22T16:34:30.057160+00:00"
+        },
+        {
+          "source_id": "kimball-realtime-fact-table",
+          "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/realtime-fact-table/",
+          "title": "Real-Time Fact Tables | Kimball Dimensional Modeling Techniques",
+          "accessed_at": "2026-09-22T20:37:00.590510+00:00"
+        }
+      ],
+      "evidence_requirements": [
+        "Check the cited primary sources and the original scope before writing; a research lead is not proof of a new claim.",
+        "Use a clearly labeled hypothetical example. Do not invent customer results, personal experience, expert review, or test execution.",
+        "Work through the proposed example or decision framework and verify its assumptions and conclusions before publication."
+      ],
+      "distinctness_rationale": "The article is limited to this deliverable: Keep unavailable observations distinct from real absence of activity. Nearest legacy coverage is retained as background, not rewritten.",
+      "publication_order": 39,
+      "reviewed_distinctions": {},
+      "coldstart_coverage": [
+        {
+          "slug": "metric-definitions-reliability-field-note",
+          "title": "Metric Definitions: Reliability Field Note",
+          "score": 0.086,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "Field observation: the dashboard was not broken, the metric was undefined",
+            "What a useful metric definition includes",
+            "Why metric definitions fail in real data systems",
+            "Example: defining activation rate",
+            "A checklist for repairing an unreliable metric",
+            "How metric definitions connect to data modeling",
+            "Operator rules for dependable metric definitions",
+            "Where semantic layers help, and where they do not",
+            "A practical diagnostic for your next metric dispute"
+          ],
+          "has_article_body": true
+        },
+        {
+          "slug": "metric-definitions-operator-checklist",
+          "title": "Metric Definitions: Operator Checklist",
+          "score": 0.081,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "What a Metric Definition Must Do",
+            "Why Metric Definitions Break in Real Data Systems",
+            "The Metric Definitions Operator Checklist",
+            "A Minimum Viable Metric Definition Template",
+            "Example: Turning a Vague Metric Into an Operator-Ready Definition",
+            "Check the Grain Before You Debate the Formula",
+            "Define Time Rules Explicitly",
+            "Govern Metric Definitions Without Creating Bureaucracy",
+            "Where Metric Definitions Should Live",
+            "Review Questions Before Publishing a Metric",
+            "Maintain Definitions as the Business Changes"
+          ],
+          "has_article_body": true
+        },
+        {
+          "slug": "pipeline-freshness-operator-checklist",
+          "title": "Pipeline Freshness: Operator Checklist",
+          "score": 0.066,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "What pipeline freshness actually means",
+            "Why freshness breaks dashboard trust",
+            "Pipeline freshness operator checklist",
+            "Choose the right freshness measure",
+            "How to diagnose stale data without guessing",
+            "Freshness checks during migration",
+            "Common freshness failure modes",
+            "How to set useful freshness expectations",
+            "What to monitor first if you are starting from zero"
+          ],
+          "has_article_body": true
+        }
+      ],
+      "portfolio_context": "Technical education for practicing and aspiring data engineers. Use small, explicitly hypothetical retail-order or customer-event fixtures where useful. Do not claim Jon implemented or tested anything without supplied evidence.",
+      "cross_brand_boundary": "Coldstart and this portfolio share seed concepts, not article prose. Create a fresh example, explanation, and diagnostic outcome. Do not copy or lightly rewrite Coldstart articles.",
+      "seed_origin": {
+        "brand": "Coldstart",
+        "slug": "missing-measurements-versus-measured-zero",
+        "snapshot_sha256": "07ea360d63d3b74952b290ee982fd3c3bec11622cdf1bdf932106a7823ea0020",
+        "adapted_on": "2026-09-23"
+      }
+    },
+    "sourceHash": "f45fe9e1c48032be"
+  },
+  {
+    "slug": "event-time-versus-processing-time",
+    "title": "Event time versus processing time",
+    "primaryKeyword": "Event time versus processing time",
+    "relatedKeywords": [
+      "Event time versus processing time"
+    ],
+    "audience": "practitioners",
+    "updateFrequency": "never",
+    "intent": "How can practitioners separate when an action occurred from when systems observed it?",
+    "format": "Guide",
+    "category": "Data Modeling",
+    "editorialBrief": {
+      "topic": "Event time versus processing time",
+      "audience": "practitioners",
+      "update_frequency": "never",
+      "content_type": "durable",
+      "category": "Data Modeling",
+      "track": "Data Foundations",
+      "cluster": "time-correctness",
+      "primary_question": "How can practitioners separate when an action occurred from when systems observed it?",
+      "scope": [
+        "Separate when an action occurred from when systems observed it.",
+        "Time semantics; avoid duplicating orchestration scheduling procedures."
+      ],
+      "exclusions": [
+        "Do not expand this into a general introduction to the entire category.",
+        "Do not repeat the Coldstart coverage listed in coldstart_coverage; link their background where useful.",
+        "Leave UTC storage and local reporting boundaries to /writing/utc-storage-and-local-reporting-boundaries/; its separate outcome is: Map local business days to precise UTC intervals.",
+        "Leave Daylight-saving gaps and repeated hours to /writing/daylight-saving-gaps-and-repeated-hours/; its separate outcome is: Represent missing and duplicated wall-clock timestamps unambiguously.",
+        "Do not replace or retell the three existing in-progress portfolio notes.",
+        "Do not invent employment history, client stories, measurements, expert review, or first-person hands-on experience."
+      ],
+      "original_contribution": "Create a timestamped event fixture spanning troublesome boundaries. Use it to separate when an action occurred from when systems observed it.",
+      "prerequisites": [],
+      "secondary_keywords": [],
+      "source_urls": [
+        "https://spark.apache.org/docs/latest/streaming/apis-on-dataframes-and-datasets.html",
+        "https://www.postgresql.org/docs/current/datatype-datetime.html",
+        "https://www.postgresql.org/docs/current/tutorial-window.html"
+      ],
+      "sources": [
+        {
+          "source_id": "spark-streaming",
+          "url": "https://spark.apache.org/docs/latest/streaming/apis-on-dataframes-and-datasets.html",
+          "title": "Structured Streaming Programming Guide - Spark 4.2.0 Documentation",
+          "accessed_at": "2026-09-22T16:34:41.031424+00:00"
+        },
+        {
+          "source_id": "pg-datetime",
+          "url": "https://www.postgresql.org/docs/current/datatype-datetime.html",
+          "title": "PostgreSQL: Documentation: 18: 8.5. Date/Time Types",
+          "accessed_at": "2026-09-22T16:34:32.696844+00:00"
+        },
+        {
+          "source_id": "pg-window",
+          "url": "https://www.postgresql.org/docs/current/tutorial-window.html",
+          "title": "PostgreSQL: Documentation: 18: 3.5. Window Functions",
+          "accessed_at": "2026-09-22T16:34:29.736052+00:00"
+        }
+      ],
+      "evidence_requirements": [
+        "Check the cited primary sources and the original scope before writing; a research lead is not proof of a new claim.",
+        "Use a clearly labeled hypothetical example. Do not invent customer results, personal experience, expert review, or test execution.",
+        "Work through the proposed example or decision framework and verify its assumptions and conclusions before publication."
+      ],
+      "distinctness_rationale": "The article is limited to this deliverable: Separate when an action occurred from when systems observed it. Nearest legacy coverage is retained as background, not rewritten.",
+      "publication_order": 40,
+      "reviewed_distinctions": {},
+      "coldstart_coverage": [
+        {
+          "slug": "pipeline-freshness-migration-playbook",
+          "title": "Pipeline Freshness: Migration Playbook",
+          "score": 0.123,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "What pipeline freshness means in practice",
+            "Why freshness breaks during data migrations",
+            "Start with the business freshness requirement",
+            "Inventory the data products that need freshness guarantees",
+            "Define freshness SLAs without overpromising",
+            "Map freshness through the pipeline lineage",
+            "Choose the right freshness signal for each dataset",
+            "Migration steps for implementing pipeline freshness",
+            "Common pipeline freshness failure modes",
+            "How pipeline freshness connects to data modeling",
+            "Design alerts that lead to action",
+            "Make freshness visible where decisions happen",
+            "A phased rollout plan for beginners"
+          ],
+          "has_article_body": true
+        },
+        {
+          "slug": "pipeline-freshness-plain-english-guide",
+          "title": "Pipeline Freshness: Plain-English Guide",
+          "score": 0.115,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "What pipeline freshness means in plain English",
+            "Why freshness matters for dashboards, operations, and AI",
+            "Freshness, latency, and recency are related but not identical",
+            "How to set a practical freshness expectation",
+            "Common ways pipeline freshness breaks",
+            "What to measure when checking freshness",
+            "Pipeline freshness in AI-ready data systems",
+            "How to monitor and alert without creating noise",
+            "A simple repair playbook for stale pipelines",
+            "Operator rules for better freshness decisions"
+          ],
+          "has_article_body": true
+        },
+        {
+          "slug": "backfills-common-mistake",
+          "title": "Backfills: Common Mistake",
+          "score": 0.109,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "What backfills are",
+            "The common mistake: rerunning history as if it were today",
+            "Why this mistake matters",
+            "A simple example of the mistake",
+            "Five questions to ask before any backfill",
+            "A safer backfill pattern",
+            "The most important technical property: idempotency",
+            "Check event time, processing time, and business time",
+            "How to validate a backfill",
+            "Do not forget communication and rollback"
+          ],
+          "has_article_body": true
+        }
+      ],
+      "portfolio_context": "Technical education for practicing and aspiring data engineers. Use small, explicitly hypothetical retail-order or customer-event fixtures where useful. Do not claim Jon implemented or tested anything without supplied evidence.",
+      "cross_brand_boundary": "Coldstart and this portfolio share seed concepts, not article prose. Create a fresh example, explanation, and diagnostic outcome. Do not copy or lightly rewrite Coldstart articles.",
+      "seed_origin": {
+        "brand": "Coldstart",
+        "slug": "event-time-versus-processing-time",
+        "snapshot_sha256": "07ea360d63d3b74952b290ee982fd3c3bec11622cdf1bdf932106a7823ea0020",
+        "adapted_on": "2026-09-23"
+      }
+    },
+    "sourceHash": "7546d2e9a9c07f8e"
+  },
+  {
+    "slug": "utc-storage-and-local-reporting-boundaries",
+    "title": "UTC storage and local reporting boundaries",
+    "primaryKeyword": "UTC storage and local reporting boundaries",
+    "relatedKeywords": [
+      "UTC storage and local reporting boundaries"
+    ],
+    "audience": "practitioners",
+    "updateFrequency": "never",
+    "intent": "How can practitioners map local business days to precise UTC intervals?",
+    "format": "Guide",
+    "category": "Data Modeling",
+    "editorialBrief": {
+      "topic": "UTC storage and local reporting boundaries",
+      "audience": "practitioners",
+      "update_frequency": "never",
+      "content_type": "durable",
+      "category": "Data Modeling",
+      "track": "Data Foundations",
+      "cluster": "time-correctness",
+      "primary_question": "How can practitioners map local business days to precise UTC intervals?",
+      "scope": [
+        "Map local business days to precise UTC intervals.",
+        "Time semantics; avoid duplicating orchestration scheduling procedures."
+      ],
+      "exclusions": [
+        "Do not expand this into a general introduction to the entire category.",
+        "Do not repeat the Coldstart coverage listed in coldstart_coverage; link their background where useful.",
+        "Leave Event time versus processing time to /writing/event-time-versus-processing-time/; its separate outcome is: Separate when an action occurred from when systems observed it.",
+        "Leave Daylight-saving gaps and repeated hours to /writing/daylight-saving-gaps-and-repeated-hours/; its separate outcome is: Represent missing and duplicated wall-clock timestamps unambiguously.",
+        "Do not replace or retell the three existing in-progress portfolio notes.",
+        "Do not invent employment history, client stories, measurements, expert review, or first-person hands-on experience."
+      ],
+      "original_contribution": "Create a timestamped event fixture spanning troublesome boundaries. Use it to map local business days to precise UTC intervals.",
+      "prerequisites": [
+        "event-time-versus-processing-time"
+      ],
+      "secondary_keywords": [],
+      "source_urls": [
+        "https://www.postgresql.org/docs/current/datatype-datetime.html",
+        "https://spark.apache.org/docs/latest/streaming/apis-on-dataframes-and-datasets.html",
+        "https://www.postgresql.org/docs/current/tutorial-window.html"
+      ],
+      "sources": [
+        {
+          "source_id": "pg-datetime",
+          "url": "https://www.postgresql.org/docs/current/datatype-datetime.html",
+          "title": "PostgreSQL: Documentation: 18: 8.5. Date/Time Types",
+          "accessed_at": "2026-09-22T16:34:32.696844+00:00"
+        },
+        {
+          "source_id": "spark-streaming",
+          "url": "https://spark.apache.org/docs/latest/streaming/apis-on-dataframes-and-datasets.html",
+          "title": "Structured Streaming Programming Guide - Spark 4.2.0 Documentation",
+          "accessed_at": "2026-09-22T16:34:41.031424+00:00"
+        },
+        {
+          "source_id": "pg-window",
+          "url": "https://www.postgresql.org/docs/current/tutorial-window.html",
+          "title": "PostgreSQL: Documentation: 18: 3.5. Window Functions",
+          "accessed_at": "2026-09-22T16:34:29.736052+00:00"
+        }
+      ],
+      "evidence_requirements": [
+        "Check the cited primary sources and the original scope before writing; a research lead is not proof of a new claim.",
+        "Use a clearly labeled hypothetical example. Do not invent customer results, personal experience, expert review, or test execution.",
+        "Work through the proposed example or decision framework and verify its assumptions and conclusions before publication."
+      ],
+      "distinctness_rationale": "The article is limited to this deliverable: Map local business days to precise UTC intervals. Nearest legacy coverage is retained as background, not rewritten.",
+      "publication_order": 41,
+      "reviewed_distinctions": {},
+      "coldstart_coverage": [
+        {
+          "slug": "pipeline-freshness-founder-framework",
+          "title": "Pipeline Freshness: Founder Framework",
+          "score": 0.089,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "What pipeline freshness actually means",
+            "Why founders should care before the data team is large",
+            "The founder framework: freshness follows business risk",
+            "Define freshness expectations by use case, not by warehouse table",
+            "Common pipeline freshness failure modes",
+            "How to measure pipeline freshness without overbuilding",
+            "Alert on broken promises, not every late job",
+            "Why freshness matters for AI-ready data",
+            "A simple 30-day repair plan for stale pipelines",
+            "Diagnostic questions for founders and operators"
+          ],
+          "has_article_body": true
+        },
+        {
+          "slug": "pipeline-freshness-migration-playbook",
+          "title": "Pipeline Freshness: Migration Playbook",
+          "score": 0.072,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "What pipeline freshness means in practice",
+            "Why freshness breaks during data migrations",
+            "Start with the business freshness requirement",
+            "Inventory the data products that need freshness guarantees",
+            "Define freshness SLAs without overpromising",
+            "Map freshness through the pipeline lineage",
+            "Choose the right freshness signal for each dataset",
+            "Migration steps for implementing pipeline freshness",
+            "Common pipeline freshness failure modes",
+            "How pipeline freshness connects to data modeling",
+            "Design alerts that lead to action",
+            "Make freshness visible where decisions happen",
+            "A phased rollout plan for beginners"
+          ],
+          "has_article_body": true
+        },
+        {
+          "slug": "pipeline-freshness-plain-english-guide",
+          "title": "Pipeline Freshness: Plain-English Guide",
+          "score": 0.043,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "What pipeline freshness means in plain English",
+            "Why freshness matters for dashboards, operations, and AI",
+            "Freshness, latency, and recency are related but not identical",
+            "How to set a practical freshness expectation",
+            "Common ways pipeline freshness breaks",
+            "What to measure when checking freshness",
+            "Pipeline freshness in AI-ready data systems",
+            "How to monitor and alert without creating noise",
+            "A simple repair playbook for stale pipelines",
+            "Operator rules for better freshness decisions"
+          ],
+          "has_article_body": true
+        }
+      ],
+      "portfolio_context": "Technical education for practicing and aspiring data engineers. Use small, explicitly hypothetical retail-order or customer-event fixtures where useful. Do not claim Jon implemented or tested anything without supplied evidence.",
+      "cross_brand_boundary": "Coldstart and this portfolio share seed concepts, not article prose. Create a fresh example, explanation, and diagnostic outcome. Do not copy or lightly rewrite Coldstart articles.",
+      "seed_origin": {
+        "brand": "Coldstart",
+        "slug": "utc-storage-and-local-reporting-boundaries",
+        "snapshot_sha256": "07ea360d63d3b74952b290ee982fd3c3bec11622cdf1bdf932106a7823ea0020",
+        "adapted_on": "2026-09-23"
+      }
+    },
+    "sourceHash": "2e603fbb0c3aaaf7"
+  },
+  {
+    "slug": "daylight-saving-gaps-and-repeated-hours",
+    "title": "Daylight-saving gaps and repeated hours",
+    "primaryKeyword": "Daylight-saving gaps and repeated hours",
+    "relatedKeywords": [
+      "Daylight-saving gaps and repeated hours"
+    ],
+    "audience": "practitioners",
+    "updateFrequency": "never",
+    "intent": "How can practitioners represent missing and duplicated wall-clock timestamps unambiguously?",
+    "format": "Guide",
+    "category": "Data Modeling",
+    "editorialBrief": {
+      "topic": "Daylight-saving gaps and repeated hours",
+      "audience": "practitioners",
+      "update_frequency": "never",
+      "content_type": "durable",
+      "category": "Data Modeling",
+      "track": "Data Foundations",
+      "cluster": "time-correctness",
+      "primary_question": "How can practitioners represent missing and duplicated wall-clock timestamps unambiguously?",
+      "scope": [
+        "Represent missing and duplicated wall-clock timestamps unambiguously.",
+        "Time semantics; avoid duplicating orchestration scheduling procedures."
+      ],
+      "exclusions": [
+        "Do not expand this into a general introduction to the entire category.",
+        "Do not repeat the Coldstart coverage listed in coldstart_coverage; link their background where useful.",
+        "Leave UTC storage and local reporting boundaries to /writing/utc-storage-and-local-reporting-boundaries/; its separate outcome is: Map local business days to precise UTC intervals.",
+        "Leave Half-open time intervals to /writing/half-open-time-intervals/; its separate outcome is: Prevent overlapping inclusive boundaries in event classification.",
+        "Do not replace or retell the three existing in-progress portfolio notes.",
+        "Do not invent employment history, client stories, measurements, expert review, or first-person hands-on experience."
+      ],
+      "original_contribution": "Create a timestamped event fixture spanning troublesome boundaries. Use it to represent missing and duplicated wall-clock timestamps unambiguously.",
+      "prerequisites": [
+        "event-time-versus-processing-time"
+      ],
+      "secondary_keywords": [],
+      "source_urls": [
+        "https://spark.apache.org/docs/latest/streaming/apis-on-dataframes-and-datasets.html",
+        "https://www.postgresql.org/docs/current/datatype-datetime.html",
+        "https://www.postgresql.org/docs/current/tutorial-window.html"
+      ],
+      "sources": [
+        {
+          "source_id": "spark-streaming",
+          "url": "https://spark.apache.org/docs/latest/streaming/apis-on-dataframes-and-datasets.html",
+          "title": "Structured Streaming Programming Guide - Spark 4.2.0 Documentation",
+          "accessed_at": "2026-09-22T16:34:41.031424+00:00"
+        },
+        {
+          "source_id": "pg-datetime",
+          "url": "https://www.postgresql.org/docs/current/datatype-datetime.html",
+          "title": "PostgreSQL: Documentation: 18: 8.5. Date/Time Types",
+          "accessed_at": "2026-09-22T16:34:32.696844+00:00"
+        },
+        {
+          "source_id": "pg-window",
+          "url": "https://www.postgresql.org/docs/current/tutorial-window.html",
+          "title": "PostgreSQL: Documentation: 18: 3.5. Window Functions",
+          "accessed_at": "2026-09-22T16:34:29.736052+00:00"
+        }
+      ],
+      "evidence_requirements": [
+        "Check the cited primary sources and the original scope before writing; a research lead is not proof of a new claim.",
+        "Use a clearly labeled hypothetical example. Do not invent customer results, personal experience, expert review, or test execution.",
+        "Work through the proposed example or decision framework and verify its assumptions and conclusions before publication."
+      ],
+      "distinctness_rationale": "The article is limited to this deliverable: Represent missing and duplicated wall-clock timestamps unambiguously. Nearest legacy coverage is retained as background, not rewritten.",
+      "publication_order": 42,
+      "reviewed_distinctions": {},
+      "coldstart_coverage": [
+        {
+          "slug": "pipeline-freshness-common-mistake",
+          "title": "Pipeline Freshness: Common Mistake",
+          "score": 0.077,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "What pipeline freshness actually means",
+            "The common mistake: treating a green job as fresh data",
+            "The three clocks teams confuse",
+            "Why freshness is a data modeling problem, not just a monitoring problem",
+            "How to define freshness expectations",
+            "A simple example: orders, revenue, and a stale dashboard",
+            "Diagnostic questions when data looks stale",
+            "Common pipeline freshness failure modes",
+            "Operator checklist for better freshness monitoring",
+            "How freshness supports dashboard trust",
+            "What to do next"
+          ],
+          "has_article_body": true
+        },
+        {
+          "slug": "pipeline-freshness-founder-framework",
+          "title": "Pipeline Freshness: Founder Framework",
+          "score": 0.065,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "What pipeline freshness actually means",
+            "Why founders should care before the data team is large",
+            "The founder framework: freshness follows business risk",
+            "Define freshness expectations by use case, not by warehouse table",
+            "Common pipeline freshness failure modes",
+            "How to measure pipeline freshness without overbuilding",
+            "Alert on broken promises, not every late job",
+            "Why freshness matters for AI-ready data",
+            "A simple 30-day repair plan for stale pipelines",
+            "Diagnostic questions for founders and operators"
+          ],
+          "has_article_body": true
+        },
+        {
+          "slug": "dashboard-trust-operator-checklist",
+          "title": "Dashboard Trust: Operator Checklist",
+          "score": 0.062,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "What dashboard trust actually means",
+            "1. Name the decision and the audience",
+            "2. Verify metric definitions before checking visuals",
+            "3. Trace the dashboard back to source systems",
+            "4. Check freshness against the decision cadence",
+            "5. Reconcile key numbers to trusted references",
+            "6. Add tests where dashboard failure would hurt",
+            "7. Confirm the dashboard explains itself",
+            "8. Assign ownership and control changes",
+            "9. Make access match the data sensitivity",
+            "10. Define what happens when a dashboard is wrong",
+            "A simple dashboard trust scorecard",
+            "Common dashboard trust failure modes",
+            "How to prioritize dashboard repairs"
+          ],
+          "has_article_body": true
+        }
+      ],
+      "portfolio_context": "Technical education for practicing and aspiring data engineers. Use small, explicitly hypothetical retail-order or customer-event fixtures where useful. Do not claim Jon implemented or tested anything without supplied evidence.",
+      "cross_brand_boundary": "Coldstart and this portfolio share seed concepts, not article prose. Create a fresh example, explanation, and diagnostic outcome. Do not copy or lightly rewrite Coldstart articles.",
+      "seed_origin": {
+        "brand": "Coldstart",
+        "slug": "daylight-saving-gaps-and-repeated-hours",
+        "snapshot_sha256": "07ea360d63d3b74952b290ee982fd3c3bec11622cdf1bdf932106a7823ea0020",
+        "adapted_on": "2026-09-23"
+      }
+    },
+    "sourceHash": "bb9236d735a65fdf"
+  },
+  {
+    "slug": "half-open-time-intervals",
+    "title": "Half-open time intervals",
+    "primaryKeyword": "Half-open time intervals",
+    "relatedKeywords": [
+      "Half-open time intervals"
+    ],
+    "audience": "practitioners",
+    "updateFrequency": "never",
+    "intent": "How can practitioners prevent overlapping inclusive boundaries in event classification?",
+    "format": "Guide",
+    "category": "Data Modeling",
+    "editorialBrief": {
+      "topic": "Half-open time intervals",
+      "audience": "practitioners",
+      "update_frequency": "never",
+      "content_type": "durable",
+      "category": "Data Modeling",
+      "track": "Data Foundations",
+      "cluster": "time-correctness",
+      "primary_question": "How can practitioners prevent overlapping inclusive boundaries in event classification?",
+      "scope": [
+        "Prevent overlapping inclusive boundaries in event classification.",
+        "Time semantics; avoid duplicating orchestration scheduling procedures."
+      ],
+      "exclusions": [
+        "Do not expand this into a general introduction to the entire category.",
+        "Do not repeat the Coldstart coverage listed in coldstart_coverage; link their background where useful.",
+        "Leave Daylight-saving gaps and repeated hours to /writing/daylight-saving-gaps-and-repeated-hours/; its separate outcome is: Represent missing and duplicated wall-clock timestamps unambiguously.",
+        "Leave Business calendars in analytical models to /writing/business-calendars-in-analytical-models/; its separate outcome is: Encode holidays and working days independently from calendar arithmetic.",
+        "Do not replace or retell the three existing in-progress portfolio notes.",
+        "Do not invent employment history, client stories, measurements, expert review, or first-person hands-on experience."
+      ],
+      "original_contribution": "Create a timestamped event fixture spanning troublesome boundaries. Use it to prevent overlapping inclusive boundaries in event classification.",
+      "prerequisites": [
+        "event-time-versus-processing-time"
+      ],
+      "secondary_keywords": [],
+      "source_urls": [
+        "https://spark.apache.org/docs/latest/streaming/apis-on-dataframes-and-datasets.html",
+        "https://www.postgresql.org/docs/current/datatype-datetime.html",
+        "https://www.postgresql.org/docs/current/tutorial-window.html"
+      ],
+      "sources": [
+        {
+          "source_id": "spark-streaming",
+          "url": "https://spark.apache.org/docs/latest/streaming/apis-on-dataframes-and-datasets.html",
+          "title": "Structured Streaming Programming Guide - Spark 4.2.0 Documentation",
+          "accessed_at": "2026-09-22T16:34:41.031424+00:00"
+        },
+        {
+          "source_id": "pg-datetime",
+          "url": "https://www.postgresql.org/docs/current/datatype-datetime.html",
+          "title": "PostgreSQL: Documentation: 18: 8.5. Date/Time Types",
+          "accessed_at": "2026-09-22T16:34:32.696844+00:00"
+        },
+        {
+          "source_id": "pg-window",
+          "url": "https://www.postgresql.org/docs/current/tutorial-window.html",
+          "title": "PostgreSQL: Documentation: 18: 3.5. Window Functions",
+          "accessed_at": "2026-09-22T16:34:29.736052+00:00"
+        }
+      ],
+      "evidence_requirements": [
+        "Check the cited primary sources and the original scope before writing; a research lead is not proof of a new claim.",
+        "Use a clearly labeled hypothetical example. Do not invent customer results, personal experience, expert review, or test execution.",
+        "Work through the proposed example or decision framework and verify its assumptions and conclusions before publication."
+      ],
+      "distinctness_rationale": "The article is limited to this deliverable: Prevent overlapping inclusive boundaries in event classification. Nearest legacy coverage is retained as background, not rewritten.",
+      "publication_order": 43,
+      "reviewed_distinctions": {},
+      "coldstart_coverage": [
+        {
+          "slug": "migration-without-breaking-reporting",
+          "title": "Data Migration Without Breaking Reporting",
+          "score": 0.058,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/rewritten-first-six-articles.json"
+          ],
+          "section_headings": [
+            "Define migration success as reporting trust, not tool replacement",
+            "Inventory the reporting surface before moving data",
+            "Classify reports by cutover risk",
+            "Map metric definitions before comparing numbers",
+            "Run old and new reporting side by side",
+            "Protect historical reporting with planned backfills",
+            "Use a controlled parallel run, not an indefinite shadow system",
+            "Cut over with owners, communication, and rollback criteria",
+            "Monitor the new reporting system after cutover"
+          ],
+          "has_article_body": true
+        },
+        {
+          "slug": "data-quality-checks-operator-checklist",
+          "title": "Data Quality Checks: Operator Checklist",
+          "score": 0.05,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "What data quality checks are",
+            "The operator principle: test the contract, not the database",
+            "Checklist step 1: Start with critical data products",
+            "Checklist step 2: Check freshness first",
+            "Checklist step 3: Add volume and distribution checks",
+            "Checklist step 4: Validate required fields and allowed values",
+            "Checklist step 5: Reconcile across tables and systems",
+            "Checklist step 6: Put checks at the right layer",
+            "Checklist step 7: Decide what happens when a check fails",
+            "Checklist step 8: Assign owners and runbooks",
+            "Common failure modes to watch for",
+            "A minimum viable check set for a small team",
+            "How to review and improve checks over time"
+          ],
+          "has_article_body": true
+        },
+        {
+          "slug": "analytics-handoff-migration-playbook",
+          "title": "Analytics Handoff: Migration Playbook",
+          "score": 0.048,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "What an analytics handoff actually includes",
+            "Why analytics handoffs fail during migration",
+            "The analytics handoff migration playbook",
+            "Phase 1: Inventory the analytics estate",
+            "Phase 2: Prioritize what must survive cutover",
+            "Phase 3: Transfer metric definitions and business logic",
+            "Phase 4: Validate before switching users over",
+            "Phase 5: Transfer operating responsibility",
+            "Phase 6: Cut over in waves",
+            "Phase 7: Stabilize after migration",
+            "Acceptance criteria for a completed analytics handoff",
+            "Diagnostic questions before you accept the handoff"
+          ],
+          "has_article_body": true
+        }
+      ],
+      "portfolio_context": "Technical education for practicing and aspiring data engineers. Use small, explicitly hypothetical retail-order or customer-event fixtures where useful. Do not claim Jon implemented or tested anything without supplied evidence.",
+      "cross_brand_boundary": "Coldstart and this portfolio share seed concepts, not article prose. Create a fresh example, explanation, and diagnostic outcome. Do not copy or lightly rewrite Coldstart articles.",
+      "seed_origin": {
+        "brand": "Coldstart",
+        "slug": "half-open-time-intervals",
+        "snapshot_sha256": "07ea360d63d3b74952b290ee982fd3c3bec11622cdf1bdf932106a7823ea0020",
+        "adapted_on": "2026-09-23"
+      }
+    },
+    "sourceHash": "df992e586ed7ee1e"
+  },
+  {
+    "slug": "business-calendars-in-analytical-models",
+    "title": "Business calendars in analytical models",
+    "primaryKeyword": "Business calendars in analytical models",
+    "relatedKeywords": [
+      "Business calendars in analytical models"
+    ],
+    "audience": "practitioners",
+    "updateFrequency": "never",
+    "intent": "How can practitioners encode holidays and working days independently from calendar arithmetic?",
+    "format": "Guide",
+    "category": "Data Modeling",
+    "editorialBrief": {
+      "topic": "Business calendars in analytical models",
+      "audience": "practitioners",
+      "update_frequency": "never",
+      "content_type": "durable",
+      "category": "Data Modeling",
+      "track": "Data Foundations",
+      "cluster": "time-correctness",
+      "primary_question": "How can practitioners encode holidays and working days independently from calendar arithmetic?",
+      "scope": [
+        "Encode holidays and working days independently from calendar arithmetic.",
+        "Time semantics; avoid duplicating orchestration scheduling procedures."
+      ],
+      "exclusions": [
+        "Do not expand this into a general introduction to the entire category.",
+        "Do not repeat the Coldstart coverage listed in coldstart_coverage; link their background where useful.",
+        "Leave Half-open time intervals to /writing/half-open-time-intervals/; its separate outcome is: Prevent overlapping inclusive boundaries in event classification.",
+        "Leave Fiscal calendars and reporting periods to /writing/fiscal-calendars-and-reporting-periods/; its separate outcome is: Support fiscal boundaries without assuming calendar-month alignment.",
+        "Do not replace or retell the three existing in-progress portfolio notes.",
+        "Do not invent employment history, client stories, measurements, expert review, or first-person hands-on experience."
+      ],
+      "original_contribution": "Create a timestamped event fixture spanning troublesome boundaries. Use it to encode holidays and working days independently from calendar arithmetic.",
+      "prerequisites": [
+        "event-time-versus-processing-time"
+      ],
+      "secondary_keywords": [],
+      "source_urls": [
+        "https://www.postgresql.org/docs/current/datatype-datetime.html",
+        "https://spark.apache.org/docs/latest/streaming/apis-on-dataframes-and-datasets.html",
+        "https://www.postgresql.org/docs/current/tutorial-window.html"
+      ],
+      "sources": [
+        {
+          "source_id": "pg-datetime",
+          "url": "https://www.postgresql.org/docs/current/datatype-datetime.html",
+          "title": "PostgreSQL: Documentation: 18: 8.5. Date/Time Types",
+          "accessed_at": "2026-09-22T16:34:32.696844+00:00"
+        },
+        {
+          "source_id": "spark-streaming",
+          "url": "https://spark.apache.org/docs/latest/streaming/apis-on-dataframes-and-datasets.html",
+          "title": "Structured Streaming Programming Guide - Spark 4.2.0 Documentation",
+          "accessed_at": "2026-09-22T16:34:41.031424+00:00"
+        },
+        {
+          "source_id": "pg-window",
+          "url": "https://www.postgresql.org/docs/current/tutorial-window.html",
+          "title": "PostgreSQL: Documentation: 18: 3.5. Window Functions",
+          "accessed_at": "2026-09-22T16:34:29.736052+00:00"
+        }
+      ],
+      "evidence_requirements": [
+        "Check the cited primary sources and the original scope before writing; a research lead is not proof of a new claim.",
+        "Use a clearly labeled hypothetical example. Do not invent customer results, personal experience, expert review, or test execution.",
+        "Work through the proposed example or decision framework and verify its assumptions and conclusions before publication."
+      ],
+      "distinctness_rationale": "The article is limited to this deliverable: Encode holidays and working days independently from calendar arithmetic. Nearest legacy coverage is retained as background, not rewritten.",
+      "publication_order": 44,
+      "reviewed_distinctions": {},
+      "coldstart_coverage": [
+        {
+          "slug": "pipeline-freshness-common-mistake",
+          "title": "Pipeline Freshness: Common Mistake",
+          "score": 0.053,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "What pipeline freshness actually means",
+            "The common mistake: treating a green job as fresh data",
+            "The three clocks teams confuse",
+            "Why freshness is a data modeling problem, not just a monitoring problem",
+            "How to define freshness expectations",
+            "A simple example: orders, revenue, and a stale dashboard",
+            "Diagnostic questions when data looks stale",
+            "Common pipeline freshness failure modes",
+            "Operator checklist for better freshness monitoring",
+            "How freshness supports dashboard trust",
+            "What to do next"
+          ],
+          "has_article_body": true
+        },
+        {
+          "slug": "data-modeling-operator-checklist",
+          "title": "Data Modeling: Operator Checklist",
+          "score": 0.052,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "What data modeling means in an operating data stack",
+            "The operator checklist for data modeling",
+            "Start with grain before columns",
+            "Model business concepts, not just source systems",
+            "Use simple layers before complex architecture",
+            "Keep metric definitions out of one-off dashboards",
+            "Test assumptions, not just pipelines",
+            "Common data modeling failure modes",
+            "Questions to ask before trusting a model",
+            "A practical implementation sequence"
+          ],
+          "has_article_body": true
+        },
+        {
+          "slug": "metric-definitions-operator-checklist",
+          "title": "Metric Definitions: Operator Checklist",
+          "score": 0.05,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "What a Metric Definition Must Do",
+            "Why Metric Definitions Break in Real Data Systems",
+            "The Metric Definitions Operator Checklist",
+            "A Minimum Viable Metric Definition Template",
+            "Example: Turning a Vague Metric Into an Operator-Ready Definition",
+            "Check the Grain Before You Debate the Formula",
+            "Define Time Rules Explicitly",
+            "Govern Metric Definitions Without Creating Bureaucracy",
+            "Where Metric Definitions Should Live",
+            "Review Questions Before Publishing a Metric",
+            "Maintain Definitions as the Business Changes"
+          ],
+          "has_article_body": true
+        }
+      ],
+      "portfolio_context": "Technical education for practicing and aspiring data engineers. Use small, explicitly hypothetical retail-order or customer-event fixtures where useful. Do not claim Jon implemented or tested anything without supplied evidence.",
+      "cross_brand_boundary": "Coldstart and this portfolio share seed concepts, not article prose. Create a fresh example, explanation, and diagnostic outcome. Do not copy or lightly rewrite Coldstart articles.",
+      "seed_origin": {
+        "brand": "Coldstart",
+        "slug": "business-calendars-in-analytical-models",
+        "snapshot_sha256": "07ea360d63d3b74952b290ee982fd3c3bec11622cdf1bdf932106a7823ea0020",
+        "adapted_on": "2026-09-23"
+      }
+    },
+    "sourceHash": "6e4f19f49f904843"
+  },
+  {
+    "slug": "fiscal-calendars-and-reporting-periods",
+    "title": "Fiscal calendars and reporting periods",
+    "primaryKeyword": "Fiscal calendars and reporting periods",
+    "relatedKeywords": [
+      "Fiscal calendars and reporting periods"
+    ],
+    "audience": "practitioners",
+    "updateFrequency": "never",
+    "intent": "How can practitioners support fiscal boundaries without assuming calendar-month alignment?",
+    "format": "Guide",
+    "category": "Data Modeling",
+    "editorialBrief": {
+      "topic": "Fiscal calendars and reporting periods",
+      "audience": "practitioners",
+      "update_frequency": "never",
+      "content_type": "durable",
+      "category": "Data Modeling",
+      "track": "Data Foundations",
+      "cluster": "time-correctness",
+      "primary_question": "How can practitioners support fiscal boundaries without assuming calendar-month alignment?",
+      "scope": [
+        "Support fiscal boundaries without assuming calendar-month alignment.",
+        "Time semantics; avoid duplicating orchestration scheduling procedures."
+      ],
+      "exclusions": [
+        "Do not expand this into a general introduction to the entire category.",
+        "Do not repeat the Coldstart coverage listed in coldstart_coverage; link their background where useful.",
+        "Leave Business calendars in analytical models to /writing/business-calendars-in-analytical-models/; its separate outcome is: Encode holidays and working days independently from calendar arithmetic.",
+        "Leave ISO week years versus calendar years to /writing/iso-week-years-versus-calendar-years/; its separate outcome is: Explain year-boundary surprises in weekly groupings.",
+        "Do not replace or retell the three existing in-progress portfolio notes.",
+        "Do not invent employment history, client stories, measurements, expert review, or first-person hands-on experience."
+      ],
+      "original_contribution": "Create a timestamped event fixture spanning troublesome boundaries. Use it to support fiscal boundaries without assuming calendar-month alignment.",
+      "prerequisites": [
+        "event-time-versus-processing-time"
+      ],
+      "secondary_keywords": [],
+      "source_urls": [
+        "https://www.postgresql.org/docs/current/datatype-datetime.html",
+        "https://spark.apache.org/docs/latest/streaming/apis-on-dataframes-and-datasets.html",
+        "https://www.postgresql.org/docs/current/tutorial-window.html"
+      ],
+      "sources": [
+        {
+          "source_id": "pg-datetime",
+          "url": "https://www.postgresql.org/docs/current/datatype-datetime.html",
+          "title": "PostgreSQL: Documentation: 18: 8.5. Date/Time Types",
+          "accessed_at": "2026-09-22T16:34:32.696844+00:00"
+        },
+        {
+          "source_id": "spark-streaming",
+          "url": "https://spark.apache.org/docs/latest/streaming/apis-on-dataframes-and-datasets.html",
+          "title": "Structured Streaming Programming Guide - Spark 4.2.0 Documentation",
+          "accessed_at": "2026-09-22T16:34:41.031424+00:00"
+        },
+        {
+          "source_id": "pg-window",
+          "url": "https://www.postgresql.org/docs/current/tutorial-window.html",
+          "title": "PostgreSQL: Documentation: 18: 3.5. Window Functions",
+          "accessed_at": "2026-09-22T16:34:29.736052+00:00"
+        }
+      ],
+      "evidence_requirements": [
+        "Check the cited primary sources and the original scope before writing; a research lead is not proof of a new claim.",
+        "Use a clearly labeled hypothetical example. Do not invent customer results, personal experience, expert review, or test execution.",
+        "Work through the proposed example or decision framework and verify its assumptions and conclusions before publication."
+      ],
+      "distinctness_rationale": "The article is limited to this deliverable: Support fiscal boundaries without assuming calendar-month alignment. Nearest legacy coverage is retained as background, not rewritten.",
+      "publication_order": 45,
+      "reviewed_distinctions": {},
+      "coldstart_coverage": [
+        {
+          "slug": "metric-definitions-operator-checklist",
+          "title": "Metric Definitions: Operator Checklist",
+          "score": 0.12,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "What a Metric Definition Must Do",
+            "Why Metric Definitions Break in Real Data Systems",
+            "The Metric Definitions Operator Checklist",
+            "A Minimum Viable Metric Definition Template",
+            "Example: Turning a Vague Metric Into an Operator-Ready Definition",
+            "Check the Grain Before You Debate the Formula",
+            "Define Time Rules Explicitly",
+            "Govern Metric Definitions Without Creating Bureaucracy",
+            "Where Metric Definitions Should Live",
+            "Review Questions Before Publishing a Metric",
+            "Maintain Definitions as the Business Changes"
+          ],
+          "has_article_body": true
+        },
+        {
+          "slug": "backfills-common-mistake",
+          "title": "Backfills: Common Mistake",
+          "score": 0.075,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "What backfills are",
+            "The common mistake: rerunning history as if it were today",
+            "Why this mistake matters",
+            "A simple example of the mistake",
+            "Five questions to ask before any backfill",
+            "A safer backfill pattern",
+            "The most important technical property: idempotency",
+            "Check event time, processing time, and business time",
+            "How to validate a backfill",
+            "Do not forget communication and rollback"
+          ],
+          "has_article_body": true
+        },
+        {
+          "slug": "semantic-layers-migration-playbook",
+          "title": "Semantic Layers: Migration Playbook",
+          "score": 0.073,
+          "files": [
+            "src/_data/articles.json",
+            "generated/review/generated-articles.json"
+          ],
+          "section_headings": [
+            "What semantic layers solve",
+            "What belongs in a semantic layer",
+            "Migration principles before tool selection",
+            "Phase 1: Inventory metric conflicts",
+            "Phase 2: Choose the first migration slice",
+            "Phase 3: Write metric contracts",
+            "Phase 4: Model entities and grain before metrics",
+            "Phase 5: Build in parallel and reconcile",
+            "Phase 6: Cut over with observability",
+            "Phase 7: Operate definitions like production assets",
+            "Common semantic layer failure modes",
+            "How to evaluate semantic layer tools",
+            "Semantic layers and AI-ready data",
+            "A practical 30-60-90 migration plan"
+          ],
+          "has_article_body": true
+        }
+      ],
+      "portfolio_context": "Technical education for practicing and aspiring data engineers. Use small, explicitly hypothetical retail-order or customer-event fixtures where useful. Do not claim Jon implemented or tested anything without supplied evidence.",
+      "cross_brand_boundary": "Coldstart and this portfolio share seed concepts, not article prose. Create a fresh example, explanation, and diagnostic outcome. Do not copy or lightly rewrite Coldstart articles.",
+      "seed_origin": {
+        "brand": "Coldstart",
+        "slug": "fiscal-calendars-and-reporting-periods",
+        "snapshot_sha256": "07ea360d63d3b74952b290ee982fd3c3bec11622cdf1bdf932106a7823ea0020",
+        "adapted_on": "2026-09-23"
+      }
+    },
+    "sourceHash": "39d5ccc8619059aa"
+  }
+]
