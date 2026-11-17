@@ -26,7 +26,7 @@ Rounding residuals in proportional allocations,https://jwatterson.com/writing/ro
 Integer overflow in aggregate calculations,https://jwatterson.com/writing/integer-overflow-in-aggregate-calculations,published,practitioners,never
 Division by zero in business ratios,https://jwatterson.com/writing/division-by-zero-in-business-ratios,published,practitioners,never
 Negative values in rate calculations,https://jwatterson.com/writing/negative-values-in-rate-calculations,published,practitioners,never
-Unit conversions in analytical models,,ready,practitioners,never
+Unit conversions in analytical models,https://jwatterson.com/writing/unit-conversions-in-analytical-models,published,practitioners,never
 Currency conversion dates in reporting,https://jwatterson.com/writing/currency-conversion-dates-in-reporting,published,practitioners,never
 Exchange-rate direction and inversion,,ready,practitioners,never
 Percentage points versus percentage changes,https://jwatterson.com/writing/percentage-points-versus-percentage-changes,published,practitioners,never
@@ -39,11 +39,11 @@ Sign conventions for debits and credits in data,https://jwatterson.com/writing/s
 Precision loss in identifier conversions,https://jwatterson.com/writing/precision-loss-in-identifier-conversions,published,practitioners,never
 Missing measurements versus measured zero,,ready,practitioners,never
 Event time versus processing time,,ready,practitioners,never
-UTC storage and local reporting boundaries,,not written,practitioners,never
-Daylight-saving gaps and repeated hours,,not written,practitioners,never
-Half-open time intervals,,not written,practitioners,never
-Business calendars in analytical models,,not written,practitioners,never
-Fiscal calendars and reporting periods,,not written,practitioners,never
+UTC storage and local reporting boundaries,,ready,practitioners,never
+Daylight-saving gaps and repeated hours,https://jwatterson.com/writing/daylight-saving-gaps-and-repeated-hours,published,practitioners,never
+Half-open time intervals,,ready,practitioners,never
+Business calendars in analytical models,https://jwatterson.com/writing/business-calendars-in-analytical-models,published,practitioners,never
+Fiscal calendars and reporting periods,,ready,practitioners,never
 ISO week years versus calendar years,,not written,practitioners,never
 Timestamp precision across system boundaries,,not written,practitioners,never
 Clock skew in distributed event logs,,not written,practitioners,never

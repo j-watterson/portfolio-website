@@ -1,0 +1,1392 @@
+[
+  {
+    "slug": "unit-conversions-in-analytical-models",
+    "title": "Unit conversions in analytical models",
+    "description": "A practical modeling pattern for preserving captured units, conversion provenance, and normalized values without hiding numeric assumptions.",
+    "primaryKeyword": "Unit conversions in analytical models",
+    "relatedKeywords": [
+      "Unit conversions in analytical models"
+    ],
+    "category": "Data Modeling",
+    "level": "Intermediate",
+    "readTime": "8 min read",
+    "datePublished": "2026-11-17",
+    "dateModified": "2026-11-17",
+    "canonicalUrl": "https://jwatterson.com/writing/unit-conversions-in-analytical-models",
+    "status": "published",
+    "sourceHash": "4af0766e3bfe643f",
+    "lead": "Analytical models often need one number for aggregation and another record of what actually happened. Unit conversion is where that tension becomes visible: a dashboard wants total quantity in a standard unit, while a data engineer needs to preserve whether the source system captured cases, eaches, kilograms, pounds, pallets, or some product-specific package size. The safest pattern is not to overwrite the captured value. Store the original unit and quantity, store the normalized value used for analysis, and store the conversion rule that produced it.",
+    "sections": [
+      {
+        "id": "the-problem-with-one-quantity-column",
+        "heading": "The problem with one quantity column",
+        "paragraphs": [
+          "A single quantity column looks simple until two rows use different units. Suppose a hypothetical retail shipment model receives three lines for the same product: 3 cases shipped on January 5, 8 eaches shipped on January 6, and 2 cases shipped on February 2. If a report sums the raw quantity column, it returns 13. That number is not a physical quantity. It is the sum of 3 cases, 8 eaches, and 2 cases after the unit label was discarded.",
+          "The opposite mistake is also common: convert everything to a base unit and keep only the converted value. That makes aggregation easier, but it removes the evidence needed to explain the number. If a store disputes a shipment, the operational record probably says 3 cases, not 36 eaches. If the package definition changes from 12 eaches per case to 10 eaches per case, a later analyst needs to know which conversion rule was used for each historical row.",
+          "Kimball’s dimensional modeling guidance treats multiple units of measure as an explicit modeling concern rather than a formatting problem. The practical conclusion for analytical models is straightforward: original values and converted values serve different purposes, so they should be different fields."
+        ],
+        "bullets": [],
+        "codeExamples": []
+      },
+      {
+        "id": "calculation-rules-for-normalized-values",
+        "heading": "Calculation rules for normalized values",
+        "paragraphs": [
+          "A unit-safe fact table should make the conversion path visible. At minimum, a transaction-level fact should carry the captured quantity, the captured unit, the normalized quantity, the normalized unit, and a conversion identifier. The conversion identifier should point to a rule that includes the factor, product or unit family where applicable, effective dates, and rounding behavior.",
+          "Use a base unit that is additive for the analysis you expect. For a sellable item, that might be each. For liquid volume, it might be milliliters or liters. For weight, it might be grams or kilograms. Do not treat all units as interchangeable just because they are numbers. A count of eaches is not naturally convertible to kilograms unless a product-specific net weight assumption is part of the rule.",
+          "A durable calculation rule looks like this: normalized_quantity = captured_quantity × conversion_numerator ÷ conversion_denominator. Storing the factor as numerator and denominator avoids some ambiguity around repeating decimals. For example, pounds to ounces is 16 over 1, while ounces to pounds is 1 over 16. Decimal arithmetic is usually preferable for analytical storage; binary floating point can introduce representation artifacts that are distracting or material depending on precision and downstream rounding.",
+          "Rounding should be a named rule, not an accidental side effect. For aggregation, the usual analytical preference is to store enough precision in the normalized value and round only for presentation. If the business requires line-level rounding, preserve that rule in the conversion metadata because totals can differ when rounding happens before aggregation instead of after aggregation."
+        ],
+        "bullets": [
+          "Store captured_quantity and captured_unit_key exactly as received from the source, except for clearly documented source cleansing.",
+          "Store normalized_quantity and normalized_unit_key for additive reporting.",
+          "Store conversion_rule_key or conversion_version_key so the conversion can be explained later.",
+          "Store effective dates on conversion rules when package sizes or unit definitions can change over time.",
+          "Reject or quarantine rows where no valid conversion rule exists for the transaction date and product context."
+        ],
+        "codeExamples": []
+      },
+      {
+        "id": "worked-hypothetical-retail-example",
+        "heading": "Worked hypothetical retail example",
+        "paragraphs": [
+          "The following example is hypothetical. It models one product whose case pack changes over time. Before February 1, one case contains 12 eaches. Starting February 1, one case contains 10 eaches. The source events must remain visible because the operational shipment line was captured in cases or eaches, not only in normalized eaches.",
+          "The correct normalized total is 64 eaches: 3 January cases × 12 = 36, plus 8 eaches × 1 = 8, plus 2 February cases × 10 = 20. Revenue is 152, so revenue per normalized each is 152 ÷ 64 = 2.375. If someone divides revenue by the raw summed quantity, they get 152 ÷ 13 = about 11.692 per mixed unit, which has no stable meaning. If someone applies only the current case pack of 10 to all rows, the total becomes 58 eaches. If someone applies only the older pack of 12 to all rows, the total becomes 68 eaches. Both are explainable errors caused by losing conversion provenance or effective dating.",
+          "This SQL is illustrative. It is meant to show the modeling shape and arithmetic, not to claim execution in a particular warehouse engine."
+        ],
+        "bullets": [],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "with fact_shipment_line as (\n    select 1 as shipment_line_id, date '2026-01-05' as shipped_at, 'SKU-TEA' as sku, 3.0000 as captured_quantity, 'CASE' as captured_unit, 72.00 as revenue\n    union all select 2, date '2026-01-06', 'SKU-TEA', 8.0000, 'EACH', 20.00\n    union all select 3, date '2026-02-02', 'SKU-TEA', 2.0000, 'CASE', 60.00\n),\ndim_unit_conversion as (\n    select 'SKU-TEA_CASE_EACH_2026_01' as conversion_rule_key, 'SKU-TEA' as sku, 'CASE' as from_unit, 'EACH' as to_unit,\n           12.0000 as conversion_numerator, 1.0000 as conversion_denominator,\n           date '2026-01-01' as effective_from, date '2026-02-01' as effective_to_exclusive\n    union all select 'SKU-TEA_CASE_EACH_2026_02', 'SKU-TEA', 'CASE', 'EACH', 10.0000, 1.0000, date '2026-02-01', null\n    union all select 'SKU-TEA_EACH_EACH_ALWAYS', 'SKU-TEA', 'EACH', 'EACH', 1.0000, 1.0000, date '1900-01-01', null\n),\nconverted as (\n    select\n        f.shipment_line_id,\n        f.shipped_at,\n        f.sku,\n        f.captured_quantity,\n        f.captured_unit,\n        c.to_unit as normalized_unit,\n        f.captured_quantity * c.conversion_numerator / c.conversion_denominator as normalized_quantity,\n        c.conversion_rule_key,\n        f.revenue\n    from fact_shipment_line f\n    join dim_unit_conversion c\n      on f.sku = c.sku\n     and f.captured_unit = c.from_unit\n     and c.to_unit = 'EACH'\n     and f.shipped_at >= c.effective_from\n     and (c.effective_to_exclusive is null or f.shipped_at < c.effective_to_exclusive)\n)\nselect\n    sku,\n    sum(captured_quantity) as raw_quantity_sum_do_not_use_for_units,\n    sum(normalized_quantity) as normalized_each_quantity,\n    sum(revenue) as revenue,\n    sum(revenue) / nullif(sum(normalized_quantity), 0) as revenue_per_each\nfrom converted\ngroup by sku;"
+          }
+        ]
+      },
+      {
+        "id": "modeling-pattern",
+        "heading": "A modeling pattern that keeps both truth and utility",
+        "paragraphs": [
+          "A useful pattern is to separate the event, the conversion rule, and the derived analytical value. The event says what the source captured. The conversion rule says how to translate the captured unit into the analytical base unit. The fact table can store the derived value for performance and simplicity, but that value should be reproducible from the captured value and the rule key.",
+          "This is similar in spirit to a Type 0 attribute: some fields should retain the original value rather than being restated when definitions change. The captured unit on a shipment line is such a field. If the source event said CASE, the analytical model should not mutate that field to EACH merely because the warehouse uses each as its additive base unit.",
+          "The conversion dimension should be scoped carefully. Some conversions are global within a unit family, such as 1 kilogram = 1000 grams. Others are product-specific, such as 1 case of SKU-TEA = 12 eaches in January and 10 eaches in February. Others are not valid without additional assumptions. For example, converting a bag count to kilograms requires a product weight assumption; converting a volume to a mass requires a density assumption. Those assumptions belong in the conversion provenance, not in undocumented transformation code."
+        ],
+        "bullets": [
+          "Fact fields: captured_quantity, captured_unit_key, normalized_quantity, normalized_unit_key, conversion_rule_key.",
+          "Conversion fields: from_unit_key, to_unit_key, numerator, denominator, product_key when needed, effective_from, effective_to, rounding_rule, rule_source.",
+          "Quality fields: conversion_status, conversion_error_reason, and possibly normalized_quantity_is_estimated when estimates are allowed.",
+          "Audit fields: source_system, source_event_id, loaded_at, and transformation_version where your platform uses one."
+        ],
+        "codeExamples": []
+      },
+      {
+        "id": "counterexamples-that-catch-bad-models",
+        "heading": "Counterexamples that catch bad models",
+        "paragraphs": [
+          "The fastest way to find a weak unit model is to construct a small example where the wrong answer looks plausible. Mixed units are especially dangerous because bad totals often remain within a believable range.",
+          "Counterexample one: raw quantity summation. The hypothetical shipment lines sum to 13 raw units. A dashboard might show 13 shipped units without erroring. The number is wrong because the model has added cases and eaches. A useful semantic layer should make this hard or impossible by exposing normalized_quantity for additive measures and treating captured_quantity as descriptive unless grouped by captured unit.",
+          "Counterexample two: current conversion restatement. If the model joins all historical case rows to the current case definition of 10 eaches, January’s 3 cases become 30 eaches instead of 36. The report is internally consistent but historically wrong. The diagnostic is to ask whether a previously published historical total can change solely because a packaging definition changed. If yes, the model is probably using a Type 1-style overwrite where it needs dated conversion provenance.",
+          "Counterexample three: incompatible dimensions. Suppose a customer order contains 2 cases of tea bags and 4 kilograms of loose tea. Both are tea quantities, but they are not additive under a single unit unless the model has a rule for converting the cases into weight or the kilograms into sellable units. Without that rule, a total tea quantity is a label, not a measurement."
+        ],
+        "bullets": [],
+        "codeExamples": []
+      },
+      {
+        "id": "diagnostic-queries-and-tests",
+        "heading": "Diagnostic queries and tests",
+        "paragraphs": [
+          "Unit conversion should have tests at the same level as primary keys and not-null checks because a missing conversion can silently change an aggregate. The goal is not to prove that every business assumption is perfect. The goal is to prevent untraceable arithmetic.",
+          "A first test finds transaction rows with no conversion rule. In most analytical models, those rows should be rejected from the normalized aggregate or surfaced with a conversion_status that prevents accidental inclusion. A second test finds measures where the same aggregate mixes captured units. That is not always an error, but it is a prompt to verify that the report uses normalized quantities. A third test checks that each fact row matches only one conversion rule for its product, unit, target unit, and transaction date. Overlapping effective dates create duplicate joins and inflated totals.",
+          "For the hypothetical example above, the expected aggregate is 64 normalized eaches and 152 revenue. Keeping that expected result in a small fixture is valuable because it exercises the two failure modes that matter: mixed units and time-varying conversion rules."
+        ],
+        "bullets": [],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "-- Rows that cannot be converted to the model's additive base unit.\nselect\n    f.shipment_line_id,\n    f.sku,\n    f.shipped_at,\n    f.captured_quantity,\n    f.captured_unit\nfrom fact_shipment_line f\nleft join dim_unit_conversion c\n  on f.sku = c.sku\n and f.captured_unit = c.from_unit\n and c.to_unit = 'EACH'\n and f.shipped_at >= c.effective_from\n and (c.effective_to_exclusive is null or f.shipped_at < c.effective_to_exclusive)\nwhere c.conversion_rule_key is null;\n\n-- Groups where captured quantities should not be summed without unit context.\nselect\n    sku,\n    count(distinct captured_unit) as captured_unit_count\nfrom fact_shipment_line\ngroup by sku\nhaving count(distinct captured_unit) > 1;"
+          }
+        ]
+      },
+      {
+        "id": "tradeoffs-and-practical-boundaries",
+        "heading": "Tradeoffs and practical boundaries",
+        "paragraphs": [
+          "Storing both original and normalized values costs more columns and more modeling discipline. That cost is usually smaller than the cost of explaining why a shipment, consumption, or inventory trend changed after a unit definition was updated. The important tradeoff is deciding which values are authoritative. Captured fields are authoritative for what the source said. Normalized fields are authoritative for additive analytics under a named conversion rule. Neither field replaces the other.",
+          "Avoid making conversion provenance too vague. A column named conversion_factor is better than nothing, but it is not enough when factors vary by product, date, source, or rounding policy. A conversion_rule_key gives downstream users a join path to the assumptions behind the number.",
+          "Also avoid pushing every possible unit into one universal dimension without context. Global unit definitions are useful, but business packaging is often contextual. A case, pack, bundle, or pallet may mean different quantities for different products or at different times. The model should represent that context explicitly.",
+          "This article does not cover tax treatment, accounting recognition, or currency conversion date policy. Those topics have separate rules. The unit-conversion problem here is narrower: preserve the original measurement, compute an additive normalized measurement, and keep enough provenance to reproduce the calculation."
+        ],
+        "bullets": [],
+        "codeExamples": []
+      }
+    ],
+    "takeaways": [
+      "Do not overwrite captured units with normalized units. Preserve the original quantity and unit beside the converted value.",
+      "Normalized quantities are only trustworthy when they point to a specific conversion rule, including product context and effective dates when those matter.",
+      "Raw quantities are descriptive unless they share the same unit. Aggregates should use normalized quantities with compatible base units.",
+      "Small counterexample fixtures are enough to catch common failures: summing mixed units, applying current conversions to history, and converting between incompatible dimensions."
+    ],
+    "sources": [
+      {
+        "title": "Multiple Units of Measure Facts | Kimball Dimensional Modeling Techniques",
+        "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/multiple-units-of-measure/"
+      },
+      {
+        "title": "Type 0: Retain Original | Kimball Dimensional Modeling Techniques",
+        "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/type-0/"
+      },
+      {
+        "title": "1.3.5.6. Measures of Scale | NIST/SEMATECH e-Handbook of Statistical Methods",
+        "url": "https://www.itl.nist.gov/div898/handbook/eda/section3/eda356.htm"
+      }
+    ],
+    "requiresVerification": false,
+    "verificationNotes": []
+  },
+  {
+    "slug": "exchange-rate-direction-and-inversion",
+    "title": "Exchange-rate direction and inversion",
+    "description": "A practical guide to modeling exchange-rate direction so currency normalization uses multiplication and division correctly.",
+    "primaryKeyword": "Exchange-rate direction and inversion",
+    "relatedKeywords": [
+      "Exchange-rate direction and inversion"
+    ],
+    "category": "Data Modeling",
+    "level": "Intermediate",
+    "readTime": "7 min read",
+    "datePublished": "2026-11-17",
+    "dateModified": "2026-11-17",
+    "canonicalUrl": "https://jwatterson.com/writing/exchange-rate-direction-and-inversion",
+    "status": "published",
+    "sourceHash": "1e293ad2b876d2ab",
+    "lead": "Currency normalization often fails for a simple reason: the rate is correct, the amount is correct, but the pipeline applies the operator in the wrong direction. A rate of 1.25 can mean 1 EUR equals 1.25 USD, or it can mean 1 USD equals 1.25 of another currency. The difference is not semantic decoration; it decides whether the transformation multiplies or divides. This guide gives data engineers an explicit modeling rule, a small hypothetical retail example, and diagnostics that catch multiplication-versus-division errors before they become trusted reporting facts.",
+    "sections": [
+      {
+        "id": "the-rule-is-about-units",
+        "heading": "The rule is about units, not currency-pair labels",
+        "paragraphs": [
+          "The safest way to model an exchange rate is to store the units that the number represents. A currency pair label such as EURUSD is not enough because different feeds and teams can interpret it differently. One team may read EURUSD as USD per EUR. Another may read it as EUR per USD. Both can be internally consistent, but a shared warehouse cannot depend on that convention being remembered correctly in every query.",
+          "Use numerator and denominator currency columns instead of an overloaded pair string. Define the stored rate as rate_value numerator_currency per 1 denominator_currency. That gives the rate a physical unit, such as USD per EUR or CAD per USD. Once the unit is explicit, the operator follows from the position of the transaction currency: if the transaction amount is in the denominator currency and the target is the numerator currency, multiply; if the transaction amount is in the numerator currency and the target is the denominator currency, divide.",
+          "This article is limited to arithmetic direction and numeric modeling. It does not decide whether a transaction should use a transaction-date rate, a reporting-date rate, an average rate, a tax rate, or an accounting policy. Those are separate business and finance decisions. The data engineering contribution here is to make the chosen rate unambiguous and mechanically hard to misuse."
+        ],
+        "bullets": [
+          "Store rate_value with an explicit unit: numerator_currency per 1 denominator_currency.",
+          "Multiply when converting from denominator_currency to numerator_currency.",
+          "Divide when converting from numerator_currency to denominator_currency.",
+          "Treat inversion as 1 divided by the rate, not as a sign change, pair-name swap, or formatting operation.",
+          "Do not aggregate mixed-currency local amounts before conversion."
+        ],
+        "codeExamples": []
+      },
+      {
+        "id": "worked-hypothetical-retail-example",
+        "heading": "Worked hypothetical retail example",
+        "paragraphs": [
+          "Consider a hypothetical retail orders table that must normalize local order totals to USD. The rate table stores a decimal rate_value with the unit numerator_currency per denominator_currency. The example deliberately includes both directions: EUR and JPY are stored as USD per local currency, while CAD is stored as CAD per USD. That means EUR and JPY orders convert to USD by multiplication, but the CAD order converts by division.",
+          "The intended calculations are straightforward when written with units. For order 101, 80 EUR times 1.25 USD per EUR equals 100 USD. For order 102, 135 CAD divided by 1.35 CAD per USD equals 100 USD. For order 103, 10,000 JPY times 0.0067 USD per JPY equals 67 USD. The correct normalized total is 267 USD before any USD-native orders are added.",
+          "The counterexamples show why a single operator rule such as always multiply or always divide is dangerous. If the CAD row is always multiplied, 135 CAD becomes 182.25 USD instead of 100 USD. If the JPY row is always divided, 10,000 JPY becomes 1,492,537.31 USD instead of 67 USD. That is not a rounding problem; it is a unit problem.",
+          "The following SQL is illustrative PostgreSQL-style SQL, aligned with PostgreSQL 18 numeric documentation for exact decimal arithmetic. It is not evidence of execution. It is written as a compact fixture that a team could adapt into a unit test or model assertion."
+        ],
+        "bullets": [],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "with orders as (\n  select * from (values\n    (101, 'EUR',  80.00::numeric),\n    (102, 'CAD', 135.00::numeric),\n    (103, 'JPY', 10000.00::numeric)\n  ) as t(order_id, local_currency, amount_local)\n), rates as (\n  select * from (values\n    ('USD', 'EUR', 1.25000000::numeric),  -- 1 EUR = 1.25 USD\n    ('CAD', 'USD', 1.35000000::numeric),  -- 1 USD = 1.35 CAD\n    ('USD', 'JPY', 0.00670000::numeric)   -- 1 JPY = 0.0067 USD\n  ) as t(numerator_currency, denominator_currency, rate_value)\n), normalized as (\n  select\n    o.order_id,\n    o.local_currency,\n    o.amount_local,\n    r.numerator_currency,\n    r.denominator_currency,\n    r.rate_value,\n    case\n      when o.local_currency = r.denominator_currency\n       and r.numerator_currency = 'USD'\n        then o.amount_local * r.rate_value\n      when o.local_currency = r.numerator_currency\n       and r.denominator_currency = 'USD'\n        then o.amount_local / r.rate_value\n      else null\n    end as amount_usd_correct,\n    o.amount_local * r.rate_value as amount_if_always_multiply,\n    o.amount_local / r.rate_value as amount_if_always_divide\n  from orders o\n  join rates r\n    on o.local_currency in (r.numerator_currency, r.denominator_currency)\n   and 'USD' in (r.numerator_currency, r.denominator_currency)\n)\nselect\n  order_id,\n  local_currency,\n  round(amount_usd_correct, 2) as amount_usd_correct,\n  round(amount_if_always_multiply, 2) as amount_if_always_multiply,\n  round(amount_if_always_divide, 2) as amount_if_always_divide\nfrom normalized\norder by order_id;"
+          }
+        ]
+      },
+      {
+        "id": "schema-pattern-that-prevents-operator-guessing",
+        "heading": "A schema pattern that prevents operator guessing",
+        "paragraphs": [
+          "A resilient schema separates the local monetary fact from the normalized reporting fact. This is consistent with dimensional modeling guidance for multiple currencies: keep the true local-currency fact and also provide a standardized converted fact for cross-currency reporting. The local value preserves what happened in the source system. The normalized value supports aggregation in a common currency.",
+          "For the rate table, avoid a single column named pair and a second column named rate. Those names push the most important meaning into tribal knowledge. Prefer columns that force the unit into the data model: numerator_currency, denominator_currency, rate_value, effective date or interval, source, and any approved rate type. If the target currency is USD, a row with numerator_currency = USD and denominator_currency = EUR means multiply EUR amounts by rate_value. A row with numerator_currency = CAD and denominator_currency = USD means divide CAD amounts by rate_value.",
+          "Store monetary amounts and rates in exact decimal types where your warehouse supports them. PostgreSQL’s numeric type is documented as an exact numeric type suitable when exactness is required, with configurable precision and scale. That does not remove the need for business rounding rules, but it avoids introducing binary floating-point artifacts into currency normalization. A common practical pattern is to calculate in higher precision than display precision, then round at defined output boundaries. For example, do not round every intermediate converted line to two decimals unless that is the agreed business rule.",
+          "The rate table should also make inversion explicit. If you need the inverse of 1.25 USD per EUR, compute 1 / 1.25 = 0.8 EUR per USD and store or derive it with its own numerator and denominator. Never assume that swapping a pair label is sufficient. The numeric value must change, and repeated inversion plus premature rounding can create avoidable differences."
+        ],
+        "bullets": [
+          "Recommended monetary fact columns: amount_local, local_currency, amount_reporting, reporting_currency, rate_id.",
+          "Recommended rate columns: numerator_currency, denominator_currency, rate_value, rate_type, valid_from, valid_to, source_system.",
+          "Recommended constraint: numerator_currency and denominator_currency must differ except for an explicit identity-rate convention.",
+          "Recommended calculation: derive amount_reporting from one joined rate row, not from a pair-name parsing rule in every dashboard."
+        ],
+        "codeExamples": []
+      },
+      {
+        "id": "diagnostics-for-wrong-direction",
+        "heading": "Diagnostics for wrong direction",
+        "paragraphs": [
+          "A wrong-direction conversion is often deterministic, so ordinary freshness and null checks will not find it. The rows are present. The rates are populated. The dashboard may even reconcile for currencies whose stored direction happens to match the developer’s assumption. The check must target the arithmetic contract.",
+          "Start with a small control fixture like the hypothetical one above. Include at least one row that should multiply and at least one row that should divide. The expected values should be hand-calculated and stored as test data or model assertions. A fixture with only EUR to USD at USD per EUR will not catch an always-multiply implementation because always-multiply is correct for that one shape.",
+          "Add a round-trip diagnostic, but understand its limits. If the model converts 80 EUR to 100 USD using 1.25 USD per EUR, then 100 divided by 1.25 returns 80 EUR. If the model converts 135 CAD to 100 USD using 1.35 CAD per USD, then 100 multiplied by 1.35 returns 135 CAD. This check can catch inconsistent operator use between forward and reverse logic. It does not prove that the original rate row was the right business rate or the right date; it only verifies that the unit contract is internally consistent.",
+          "Magnitude checks are useful as a second layer. A 10,000 JPY retail order converted to 1,492,537.31 USD is suspicious even without knowing today’s actual exchange rate. These checks should use domain-specific bands, not universal currency assumptions. For example, a luxury wholesale order and a small online retail order have different plausible ranges. When a row violates the band, write an error event or quarantine record with the order id, currency, rate id, operator branch, and computed amount. Kimball’s error event schema guidance is useful background for modeling such data-quality events as analyzable facts rather than discarded log lines."
+        ],
+        "bullets": [
+          "Control fixture: include both multiply and divide cases with expected normalized amounts.",
+          "Round-trip check: convert back to the local amount using the inverse operator and compare within the approved rounding tolerance.",
+          "Magnitude check: flag normalized values outside plausible business ranges for the dataset.",
+          "Coverage check: ensure every non-reporting currency row joins exactly one approved rate row for the chosen conversion rule.",
+          "Lineage check: persist rate_id with the converted fact so a suspicious amount can be traced to the exact unit and value used."
+        ],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "with converted as (\n  select * from (values\n    (101, 'EUR', 80.00::numeric, 'USD', 'EUR', 1.25000000::numeric, 100.00::numeric),\n    (102, 'CAD', 135.00::numeric, 'CAD', 'USD', 1.35000000::numeric, 100.00::numeric),\n    (103, 'JPY', 10000.00::numeric, 'USD', 'JPY', 0.00670000::numeric, 67.00::numeric)\n  ) as t(order_id, local_currency, amount_local, numerator_currency, denominator_currency, rate_value, amount_usd)\n)\nselect\n  order_id,\n  case\n    when local_currency = denominator_currency\n      then round(amount_usd / rate_value, 2)\n    when local_currency = numerator_currency\n      then round(amount_usd * rate_value, 2)\n  end as amount_local_reconstructed,\n  round(amount_local, 2) as amount_local_expected,\n  case\n    when case\n      when local_currency = denominator_currency\n        then round(amount_usd / rate_value, 2)\n      when local_currency = numerator_currency\n        then round(amount_usd * rate_value, 2)\n    end = round(amount_local, 2)\n    then 'pass'\n    else 'fail'\n  end as round_trip_check\nfrom converted\norder by order_id;"
+          }
+        ]
+      },
+      {
+        "id": "aggregation-and-rounding-tradeoffs",
+        "heading": "Aggregation and rounding tradeoffs",
+        "paragraphs": [
+          "The operator rule must be applied at the same grain as the rate decision. If orders in the same report use different currencies or different rate rows, convert each row or each agreed fact grain first, then aggregate the normalized amount. Summing 80 EUR, 135 CAD, and 10,000 JPY into 10,215 local units and then trying to convert the total is meaningless because the sum has no single currency unit.",
+          "There is a real tradeoff between reproducibility and precision. Storing both local and normalized facts makes reports faster and easier to reconcile, but it means the normalized number is a persisted result of a specific rate, operator branch, and rounding rule. Recomputing on the fly reduces stored facts but increases the chance that different consumers choose different joins, rates, or operators. For governed reporting, persisting the normalized amount with rate_id and calculation metadata is often easier to audit.",
+          "Rounding should be treated as a separate rule from direction. Direction tells you whether to multiply or divide. Numeric representation controls whether the calculation can represent the needed decimal precision. Rounding decides how many decimals are retained for storage, reporting, settlement, or display. Mixing these concerns hides bugs: a wrong-direction JPY conversion cannot be fixed by changing scale from two decimals to six decimals.",
+          "The practical design target is simple: someone reading one row in the rate table should be able to say the rate out loud with units, choose the operator mechanically, and reconstruct the normalized fact later. If that is not possible, the model is still relying on convention rather than data."
+        ],
+        "bullets": [],
+        "codeExamples": []
+      }
+    ],
+    "takeaways": [
+      "Exchange-rate direction is a unit-modeling problem: store rates as numerator currency per denominator currency so multiplication and division are mechanically determined.",
+      "Use hypothetical control rows that include both multiply and divide cases; a test set with only one direction can let an always-multiply or always-divide bug pass.",
+      "Persist local amount, local currency, normalized amount, reporting currency, and rate_id so converted facts can be audited and reconstructed.",
+      "Use exact decimal numeric types and defined rounding boundaries; precision choices do not compensate for applying the rate in the wrong direction."
+    ],
+    "sources": [
+      {
+        "title": "PostgreSQL: Documentation: 18: 8.1. Numeric Types",
+        "url": "https://www.postgresql.org/docs/current/datatype-numeric.html"
+      },
+      {
+        "title": "Multiple Currency Facts | Kimball Dimensional Modeling Techniques",
+        "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/multiple-currencies/"
+      },
+      {
+        "title": "Error Event Schemas | Kimball Dimensional Modeling Techniques",
+        "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/error-event-schema/"
+      }
+    ],
+    "requiresVerification": false,
+    "verificationNotes": []
+  },
+  {
+    "slug": "geometric-means-for-compounded-growth",
+    "title": "Geometric means for compounded growth",
+    "description": "A practical guide to spotting when arithmetic averages misstate compounded change, with counterexamples, calculation rules, and an illustrative SQL pattern for growth metrics.",
+    "primaryKeyword": "Geometric means for compounded growth",
+    "relatedKeywords": [
+      "Geometric means for compounded growth"
+    ],
+    "category": "Data Modeling",
+    "level": "Intermediate",
+    "readTime": "7 min read",
+    "datePublished": "2026-11-17",
+    "dateModified": "2026-11-17",
+    "canonicalUrl": "https://jwatterson.com/writing/geometric-means-for-compounded-growth",
+    "status": "published",
+    "sourceHash": "282b3478b259d4ca",
+    "lead": "Arithmetic averages are often harmless for additive quantities. They become dangerous when a metric changes by repeated multiplication. If a dashboard says the average monthly growth rate is 10%, that does not mean the metric compounded as if it grew 10% every month. For compounded growth, practitioners need the product of period factors, or the geometric mean of those factors, not the arithmetic mean of the percent changes.",
+    "sections": [
+      {
+        "id": "the-symptom",
+        "heading": "The symptom: an average growth rate that cannot reproduce the ending value",
+        "paragraphs": [
+          "A useful test for any reported average growth rate is simple: if you apply it repeatedly from the starting value, does it reproduce the ending value? If not, the average is probably answering a different question than the one readers think it answers.",
+          "Consider a hypothetical retail metric: active subscriptions at the end of each month. Suppose the business starts with 100 active subscriptions. Month 1 grows by 50%, month 2 shrinks by 40%, and month 3 grows by 20%. The arithmetic average of the three monthly growth rates is 10%: (50% - 40% + 20%) / 3 = 10%.",
+          "But the compounded path is not 100 growing by 10% three times. The actual path is 100 × 1.50 × 0.60 × 1.20 = 108. The ending value is 108, an 8% cumulative increase. If someone applies the arithmetic average as a representative monthly growth rate, they get 100 × 1.10 × 1.10 × 1.10 = 133.10. That is not a rounding issue; it is the wrong aggregation rule.",
+          "The geometric mean fixes the question. Convert each growth rate to a growth factor, multiply the factors, then take the nth root. For the example, the compounded factor is 1.08. The equivalent constant monthly factor is 1.08^(1/3), approximately 1.025986. The equivalent constant monthly growth rate is therefore about 2.60%, not 10%. Applied three times, that rate reproduces the observed ending value: 100 × 1.025986^3 = 108, allowing for normal decimal rounding."
+        ],
+        "bullets": [],
+        "codeExamples": []
+      },
+      {
+        "id": "calculation-rule",
+        "heading": "The calculation rule: average factors geometrically, not percent changes arithmetically",
+        "paragraphs": [
+          "Use the geometric mean when each period changes the base for the next period. That is the defining feature of compounding. Revenue growth, customer-base growth, retention decay, index returns, inventory shrinkage, and conversion-rate lift over sequential stages can all involve multiplicative factors, depending on the modeled process.",
+          "Let r_i be the growth rate for period i. The corresponding factor is g_i = 1 + r_i. A 25% increase is a factor of 1.25. A 25% decrease is a factor of 0.75. The cumulative factor over n periods is g_1 × g_2 × ... × g_n. The equivalent constant per-period factor is (g_1 × g_2 × ... × g_n)^(1/n). The equivalent constant per-period growth rate is that value minus 1.",
+          "This is the geometric mean of the positive factors, not the geometric mean of the raw percentage values. NIST describes the geometric mean as the nth root of the product of n observations, commonly applied to positive values. That positivity requirement matters in data engineering work because ordinary real-valued logarithms and geometric means do not accept zero or negative factors.",
+          "The shortest counterexample is a 50% gain followed by a 50% loss. The arithmetic average return is 0%: (50% - 50%) / 2 = 0%. But a value of 100 becomes 150 after the gain, then 75 after the loss. The cumulative factor is 1.50 × 0.50 = 0.75. The equivalent constant per-period factor is sqrt(0.75), about 0.8660, so the equivalent per-period growth rate is about -13.40%. A flat 0% average return would imply the value ended at 100, which is false.",
+          "This is also why the order of growth rates does not affect the final compounded product when the same factors are applied to the whole base, but the arithmetic average still fails to represent the compounding effect. A 50% loss followed by a 50% gain also ends at 75. Multiplication of the factors is commutative; averaging the rates is simply not the correct operation for cumulative change."
+        ],
+        "bullets": [
+          "Convert rates to factors before aggregation: r becomes 1 + r.",
+          "Multiply factors to compute cumulative change.",
+          "Use the nth root of the product to compute the equivalent constant period factor.",
+          "Subtract 1 only at the end to return from factor space to rate space.",
+          "Do not use a geometric mean when any factor is zero or negative without an explicit business rule for that case."
+        ],
+        "codeExamples": []
+      },
+      {
+        "id": "when-arithmetic-is-still-right",
+        "heading": "When arithmetic averages are still the right tool",
+        "paragraphs": [
+          "The practical rule is not “geometric means are better.” The rule is “match the aggregation to the question.” Arithmetic averages remain appropriate for additive measurements and for some questions about expected one-period observations.",
+          "If the metric is order value, delivery time, number of items per basket, or support tickets per account, the arithmetic mean may be the natural summary because the values are not being repeatedly applied to a changing base. For example, three hypothetical orders of $20, $30, and $40 have an average order value of $30. There is no compounding process in that calculation.",
+          "Arithmetic averages can also be meaningful when the question is cross-sectional rather than cumulative. If a table contains one monthly growth rate per store and the analyst asks, “What was the unweighted average store growth rate this month?”, the arithmetic mean answers that narrow question. It does not answer, “How much did the whole portfolio grow?” unless all stores have equal starting bases or a separate weighting rule makes that true.",
+          "Here is a hypothetical retail counterexample. Store A grows from 100 to 200 orders, a 100% increase. Store B falls from 900 to 810 orders, a 10% decrease. The unweighted arithmetic average of store growth rates is 45%. But the combined business grows from 1,000 to 1,010 orders, which is only 1%. The 45% figure describes the average of two store-level rates; it does not describe total order growth. For total growth, aggregate the numerator and denominator first, then compute the rate.",
+          "This distinction is one of the most common modeling failures in metric layers. A rate is often a ratio with a denominator. Averaging ratios without checking the denominators can produce a number that is mathematically valid but operationally misleading. For cumulative time-series growth, the denominator problem is joined by compounding: each period’s ending value becomes the next period’s starting value."
+        ],
+        "bullets": [],
+        "codeExamples": []
+      },
+      {
+        "id": "diagnostic-checklist",
+        "heading": "A diagnostic checklist for growth metrics",
+        "paragraphs": [
+          "Before publishing an average growth rate, ask what the number will be used to infer. If readers will use it to explain how a starting value became an ending value, the arithmetic average is suspect. If readers will compare a typical one-period observation, it may be acceptable, but the label should make that clear.",
+          "A reliable diagnostic is to reconstruct the end state. Start with the initial value, apply the reported average for the reported number of periods, and compare the result with the actual ending value. A large difference means the label “average growth” is probably ambiguous or wrong. This check is small enough to add to metric review, dbt model tests, dashboard QA, or semantic-layer validation.",
+          "The next diagnostic is to inspect the domain of the factors. A growth rate of -100% creates a factor of zero. A rate below -100% creates a negative factor, which is usually invalid for ordinary compounded growth of counts, balances, or positive-valued measures. These rows require a business decision, not a quiet formula. Common choices include treating the series as terminated, excluding the segment from a compounded-rate summary, reporting cumulative change directly, or redesigning the metric.",
+          "The final diagnostic is grain. If growth is calculated per customer, store, product, or campaign, decide whether the metric is meant to summarize a typical entity or the total population. A typical-entity summary may average entity-level rates. A population growth metric should usually aggregate the starting and ending quantities at the population grain, then compute the rate. Time compounding and cross-sectional weighting are separate issues, but they often appear in the same dashboard."
+        ],
+        "bullets": [
+          "Will the reported average be used to reproduce an ending value from a starting value? If yes, use compounded factors.",
+          "Are all growth factors positive? If no, do not blindly apply a geometric mean.",
+          "Are the periods equally spaced? If no, consider a duration-aware annualized or per-day convention.",
+          "Are rates being averaged across entities with different denominators? If yes, decide whether the desired metric is entity-typical or population-total.",
+          "Does the dashboard label distinguish arithmetic average growth from equivalent compounded growth? If no, clarify it."
+        ],
+        "codeExamples": []
+      },
+      {
+        "id": "sql-pattern",
+        "heading": "Illustrative SQL pattern for compounded growth",
+        "paragraphs": [
+          "In SQL, compounded growth is often easier to express with logarithms than with a direct product aggregate. The identity is that the logarithm of a product is the sum of the logarithms. So instead of multiplying every factor directly, compute EXP(SUM(LN(factor))). This pattern also makes the aggregation shape clear: first convert rates to factors, then aggregate in factor space, then convert back to rates.",
+          "The following is illustrative PostgreSQL-style SQL, aligned with PostgreSQL 18 aggregate function naming such as SUM, AVG, and COUNT. It is not presented as execution evidence. The hypothetical input contains one row per period with a decimal growth rate, such as 0.50 for 50% and -0.40 for -40%. The WHERE clause enforces the ordinary positive-factor requirement for a real-valued geometric mean. In a production model, rejected rows should be surfaced rather than silently ignored."
+        ],
+        "bullets": [],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "WITH monthly_growth AS (\n    SELECT 1 AS month_index, 0.50::numeric AS growth_rate\n    UNION ALL SELECT 2, -0.40::numeric\n    UNION ALL SELECT 3, 0.20::numeric\n), valid_factors AS (\n    SELECT\n        month_index,\n        growth_rate,\n        1.0 + growth_rate AS growth_factor\n    FROM monthly_growth\n    WHERE 1.0 + growth_rate > 0\n), compounded AS (\n    SELECT\n        COUNT(*) AS periods,\n        AVG(growth_rate) AS arithmetic_avg_growth,\n        EXP(SUM(LN(growth_factor))) AS cumulative_factor\n    FROM valid_factors\n)\nSELECT\n    periods,\n    arithmetic_avg_growth,\n    cumulative_factor,\n    POWER(cumulative_factor, 1.0 / periods) - 1.0 AS equivalent_periodic_growth\nFROM compounded;"
+          }
+        ]
+      },
+      {
+        "id": "modeling-guidance",
+        "heading": "Model the question, not just the formula",
+        "paragraphs": [
+          "A growth metric should make its interpretation hard to misuse. “Average monthly growth” is ambiguous. “Arithmetic average of monthly growth rates” is precise but often not what executives, analysts, or downstream models need. “Equivalent compounded monthly growth rate” is longer, but it tells the reader the number is designed to reproduce cumulative change over the interval.",
+          "For data models, store enough information to recompute the metric at the right grain. Keeping only a pre-averaged growth rate removes the denominators and period factors needed to correct mistakes later. Prefer storing starting value, ending value, period start, period end, and entity grain. Derived rates can then be calculated consistently for dashboards and downstream tables.",
+          "Also separate cumulative change from equivalent periodic change. Cumulative change answers, “How much did the value change over the whole interval?” Equivalent periodic change answers, “What constant per-period rate would produce that same change?” Those are related but not interchangeable. In the earlier hypothetical example, cumulative change is 8%, while equivalent monthly growth is about 2.60%. Reporting one as the other changes the meaning.",
+          "Finally, avoid using the geometric mean as a cosmetic replacement for uncomfortable arithmetic. If a product line goes to zero, a customer cohort disappears, or a return factor becomes non-positive, the data is telling you about a boundary condition. The correct response is an explicit rule and a clear label, not a formula that hides the event."
+        ],
+        "bullets": [],
+        "codeExamples": []
+      }
+    ],
+    "takeaways": [
+      "Arithmetic averages misstate compounded growth when period rates are repeatedly applied to a changing base.",
+      "For compounded growth, convert rates to positive factors, multiply the factors, take the nth root for an equivalent constant period factor, and subtract 1 at the end.",
+      "Always distinguish cumulative change, equivalent compounded periodic growth, and an arithmetic average of period or entity rates.",
+      "When rates are averaged across entities with different denominators, aggregate the underlying counts or values first if the goal is population-level growth.",
+      "Zero or negative growth factors are modeling boundary cases; they require an explicit business rule rather than a blind geometric mean."
+    ],
+    "sources": [
+      {
+        "title": "NIST Dataplot Reference Manual: Geometric Mean",
+        "url": "https://www.itl.nist.gov/div898/software/dataplot/refman2/auxillar/geommean.htm"
+      },
+      {
+        "title": "PostgreSQL Documentation 18: Aggregate Functions",
+        "url": "https://www.postgresql.org/docs/current/functions-aggregate.html"
+      },
+      {
+        "title": "NIST/SEMATECH e-Handbook of Statistical Methods: Measures of Scale",
+        "url": "https://www.itl.nist.gov/div898/handbook/eda/section3/eda356.htm"
+      }
+    ],
+    "requiresVerification": false,
+    "verificationNotes": []
+  },
+  {
+    "slug": "missing-measurements-versus-measured-zero",
+    "title": "Missing measurements versus measured zero",
+    "description": "A practical guide to modeling unavailable observations separately from true zero activity, with numeric counterexamples and explicit aggregation rules.",
+    "primaryKeyword": "Missing measurements versus measured zero",
+    "relatedKeywords": [
+      "Missing measurements versus measured zero"
+    ],
+    "category": "Data Modeling",
+    "level": "Intermediate",
+    "readTime": "8 min",
+    "datePublished": "2026-11-17",
+    "dateModified": "2026-11-17",
+    "canonicalUrl": "https://jwatterson.com/writing/missing-measurements-versus-measured-zero",
+    "status": "published",
+    "sourceHash": "f45fe9e1c48032be",
+    "lead": "A zero says the system observed no activity. A missing measurement says the system does not know what happened. Treating both as the same value can make totals look complete, averages drift downward, and inactivity rates look worse than they are. The repair is not complicated: model observation state separately from the numeric measure, and make every aggregate state its denominator and coverage rule.",
+    "sections": [
+      {
+        "id": "the-failure-mode",
+        "heading": "The failure mode: zero is a value, not a fallback",
+        "paragraphs": [
+          "In analytical data, null and zero answer different questions. Zero is a measured numeric value: the store had no sales, the sensor counted no events, or the customer made no purchases during an observed interval. Missing means the measurement is unavailable: the feed failed, the event window has not closed, the upstream source omitted the row, or the value was suppressed by a quality rule.",
+          "The difference becomes dangerous when a data pipeline uses COALESCE(amount, 0) early and stores the result as if it were the original fact. That transformation is sometimes convenient for charts, but it destroys information. Afterward, a real zero and an unknown value are indistinguishable unless a separate status column preserved the distinction.",
+          "This article is limited to numeric representation and aggregation. It is not tax advice, accounting policy, or a general metric-definition guide. The practical goal is narrower: keep unavailable observations distinct from real absence of activity so that downstream calculations can say what they know, what they do not know, and how much coverage supports the answer."
+        ],
+        "bullets": [],
+        "codeExamples": []
+      },
+      {
+        "id": "hypothetical-counterexample",
+        "heading": "A hypothetical retail counterexample",
+        "paragraphs": [
+          "Consider a hypothetical daily sales table for two stores over five days. Each store-day is expected to have one observation. A measured zero means the store-day was observed and no sales occurred. An unavailable value means the store-day should have been observed but the measurement is missing.",
+          "For Store A, the five expected daily sales amounts are 100, 0, unavailable, 40, and 60. For Store B, they are unavailable, 0, 0, 50, and 50. The observed sales total is 200 for Store A and 100 for Store B, for a combined observed total of 300. But that 300 is not the same as a complete five-day total, because two of the ten expected observations are unavailable.",
+          "Now compare the averages. Store A has four measured days, so its observed average is 200 divided by 4, which is 50. If the unavailable day is silently converted to zero, the average becomes 200 divided by 5, which is 40. Store B has an observed average of 100 divided by 4, which is 25. If its unavailable day is treated as zero, the average becomes 20. Combined, the observed average is 300 divided by 8, or 37.5. The coerced average is 300 divided by 10, or 30.",
+          "The zero-day rate is distorted too. Store A has one measured zero among four measured days, so its measured zero-day rate is 25 percent. Store B has two measured zero days among four measured days, so its measured zero-day rate is 50 percent. Combined, the measured zero-day rate is 3 divided by 8, or 37.5 percent. If missing values are treated as zeros, the combined rate becomes 5 divided by 10, or 50 percent. The metric now says activity was absent more often than the data actually observed.",
+          "The important point is not that nulls always change sums. In this example, the observed sum and the null-as-zero sum are both 300. The problem is that the coerced sum is easy to mislabel as complete. For additive measures, replacing missing with zero may leave the arithmetic total unchanged while still erasing the coverage warning that the total is partial."
+        ],
+        "bullets": [],
+        "codeExamples": []
+      },
+      {
+        "id": "model-observation-state",
+        "heading": "Model the observation state separately from the measure",
+        "paragraphs": [
+          "A reliable design separates the value from the observation state. The numeric measure answers, “what value was observed?” The status answers, “was the observation available?” These columns should enforce a simple invariant: measured observations have a numeric value, and unavailable observations do not pretend to have one.",
+          "For many pipelines, two states are enough: measured and unavailable. Some domains need more states, such as not_applicable, pending, suppressed, or invalid. Add those only when they change calculation rules. For example, a store that was not yet open may be not_applicable rather than unavailable. A source file that failed to arrive is unavailable. A store open for business with no transactions is measured with value zero.",
+          "Avoid encoding these states by overloading the number itself. Do not use -1, 999999, or 0 as a sentinel for missingness in a measure column. Sentinel values leak into aggregates, require every consumer to remember special cases, and often fail when a legitimate value later overlaps the sentinel. Null is a better representation for “no measured numeric value,” but null alone is usually not enough. Pair it with an explicit status or reason so that missingness can be counted, explained, and tested."
+        ],
+        "bullets": [
+          "Use a nullable numeric measure for the observed value.",
+          "Use a non-null observation_status column for measured, unavailable, or other approved states.",
+          "Add a check constraint or equivalent data quality rule tying status to value presence.",
+          "Carry expected observation grain explicitly, such as one row per store per day when that grain is required.",
+          "Publish coverage fields next to metrics whose inputs can be unavailable."
+        ],
+        "codeExamples": []
+      },
+      {
+        "id": "calculation-rules",
+        "heading": "Calculation rules that preserve meaning",
+        "paragraphs": [
+          "Once the data model keeps value and state separate, aggregation rules become explicit. The rule should name the numerator, denominator, and treatment of unavailable observations. If a metric cannot be safely interpreted without full coverage, return a partial result with coverage, or return no final result until coverage passes the required threshold.",
+          "For an additive observed measure, compute observed_sum as the sum of measured values only. Also compute expected_count, measured_count, unavailable_count, and coverage_ratio. Do not call observed_sum a complete total unless measured_count equals expected_count or a documented estimation method fills the gap. A partial total can still be useful, but it should not masquerade as a complete total.",
+          "For an average over observations, divide by measured_count, not expected_count. If the business question is “average sales on measured store-days,” unavailable days are outside the denominator. If the business question is “average sales per expected store-day,” then unavailable observations prevent a complete answer unless an explicit imputation or estimation rule is part of the metric definition.",
+          "For a zero-activity rate, count measured zeros in the numerator and measured observations in the denominator. Unavailable observations belong in a separate coverage calculation. This prevents a monitoring gap from being reported as customer inactivity, store inactivity, or product inactivity.",
+          "For coverage, use expected_count as the denominator. Coverage is measured_count divided by expected_count. This is the metric that should fall when observations are unavailable. Do not hide that fall by pushing missing values into the zero bucket.",
+          "There is one more edge case worth making explicit: no input rows. PostgreSQL documents that aggregate functions such as sum return null rather than zero when there are no rows, while count returns zero. That behavior is useful because an empty input is not automatically a measured zero. If a presentation layer wants to display 0 for a missing aggregate, that should be a final formatting choice with a label, not a fact-table rewrite."
+        ],
+        "bullets": [],
+        "codeExamples": []
+      },
+      {
+        "id": "illustrative-postgresql-implementation",
+        "heading": "Illustrative PostgreSQL implementation",
+        "paragraphs": [
+          "The following illustrative SQL uses PostgreSQL 18 documentation semantics for numeric types and aggregate functions. It is a compact example, not an execution transcript. The dataset is hypothetical.",
+          "The table stores one expected store-day per row. The check constraint preserves the invariant: measured rows must have a value, and unavailable rows must not store a numeric value. The queries then calculate observed values and coverage side by side.",
+          "For the hypothetical data, the expected result by store is: Store A has expected_count 5, measured_count 4, unavailable_count 1, observed_sales 200.00, observed_average_sales 50.00, measured_zero_day_rate 0.25, coverage_ratio 0.80, and null_as_zero_average 40.00. Store B has expected_count 5, measured_count 4, unavailable_count 1, observed_sales 100.00, observed_average_sales 25.00, measured_zero_day_rate 0.50, coverage_ratio 0.80, and null_as_zero_average 20.00. Across both stores, expected_count is 10, measured_count is 8, unavailable_count is 2, observed_sales is 300.00, observed_average_sales is 37.50, measured_zero_day_rate is 0.375, coverage_ratio is 0.80, and null_as_zero_average is 30.00."
+        ],
+        "bullets": [],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "create table fact_store_day_sales_hypothetical (\n    store_id text not null,\n    sales_date date not null,\n    observation_status text not null check (observation_status in ('measured', 'unavailable')),\n    sales_amount numeric(12, 2),\n    unavailable_reason text,\n    primary key (store_id, sales_date),\n    check (\n        (observation_status = 'measured' and sales_amount is not null)\n        or\n        (observation_status = 'unavailable' and sales_amount is null)\n    )\n);\n\ninsert into fact_store_day_sales_hypothetical\n    (store_id, sales_date, observation_status, sales_amount, unavailable_reason)\nvalues\n    ('A', date '2026-01-01', 'measured',    100.00, null),\n    ('A', date '2026-01-02', 'measured',      0.00, null),\n    ('A', date '2026-01-03', 'unavailable',   null, 'source_file_missing'),\n    ('A', date '2026-01-04', 'measured',     40.00, null),\n    ('A', date '2026-01-05', 'measured',     60.00, null),\n    ('B', date '2026-01-01', 'unavailable',   null, 'pos_feed_late'),\n    ('B', date '2026-01-02', 'measured',      0.00, null),\n    ('B', date '2026-01-03', 'measured',      0.00, null),\n    ('B', date '2026-01-04', 'measured',     50.00, null),\n    ('B', date '2026-01-05', 'measured',     50.00, null);"
+          },
+          {
+            "language": "sql",
+            "code": "select\n    store_id,\n    count(*) as expected_count,\n    count(*) filter (where observation_status = 'measured') as measured_count,\n    count(*) filter (where observation_status = 'unavailable') as unavailable_count,\n    sum(sales_amount) filter (where observation_status = 'measured') as observed_sales,\n    avg(sales_amount) filter (where observation_status = 'measured') as observed_average_sales,\n    (\n        count(*) filter (where observation_status = 'measured' and sales_amount = 0)\n    )::numeric\n        / nullif(count(*) filter (where observation_status = 'measured'), 0)\n        as measured_zero_day_rate,\n    (\n        count(*) filter (where observation_status = 'measured')\n    )::numeric\n        / nullif(count(*), 0)\n        as coverage_ratio,\n    avg(coalesce(sales_amount, 0)) as null_as_zero_average\nfrom fact_store_day_sales_hypothetical\ngroup by store_id\norder by store_id;"
+          }
+        ]
+      },
+      {
+        "id": "diagnostic-questions",
+        "heading": "A diagnostic for existing pipelines",
+        "paragraphs": [
+          "To find this problem in an existing warehouse, look for places where null-handling happens before the semantic layer or metric query. Early null replacement is not always wrong, but it should be suspicious when it happens in staging tables, fact tables, or reusable marts without a companion availability flag.",
+          "The diagnostic question is simple: after this transformation, can a downstream query still tell the difference between “we observed zero” and “we did not observe”? If not, the pipeline has collapsed two states into one. The fix may require backfilling only a status column, not reworking every metric at once.",
+          "Start with metrics where the denominator matters: averages, rates, percentages, service levels, and inactivity measures. Totals are not immune, but denominator-based metrics usually expose the distortion faster. Then add coverage reporting to dashboards and data products that depend on incomplete feeds. A partial metric with visible coverage is usually more honest than a clean-looking number built from silent zeros."
+        ],
+        "bullets": [
+          "Search transformations for COALESCE(measure, 0), IFNULL(measure, 0), NVL(measure, 0), and default-zero schema rules.",
+          "Check whether fact tables have explicit expected grain rows or only rows for observed activity.",
+          "Compare count(*) with count(measure) for nullable measures; a gap often indicates unavailable observations.",
+          "Calculate zero_count and null_count separately before any dashboard formatting.",
+          "Require metric definitions to state whether unavailable observations are excluded, estimated, blocked, or reported through coverage."
+        ],
+        "codeExamples": []
+      },
+      {
+        "id": "tradeoffs-and-boundaries",
+        "heading": "Tradeoffs and boundaries",
+        "paragraphs": [
+          "Keeping missingness explicit adds columns, constraints, and aggregation fields. It also forces product and analytics teams to face incomplete data instead of hiding it. That is a feature, not a drawback, when the alternative is publishing false inactivity.",
+          "The main tradeoff is usability. Many users want one number. Data engineers can still provide one number when the metric definition supports it, but the number should carry its coverage or eligibility rule. For example, a dashboard can show observed sales and coverage together, or it can suppress the final metric until coverage reaches a documented threshold. What it should not do is silently turn missing measurements into zero activity.",
+          "Dimensional models often represent facts at a declared grain, such as store-day or transaction-line. When observations arrive late or are corrected, the model needs a way to preserve the grain while marking the current measurement state. That design is compatible with incremental and real-time fact loading patterns, but the important principle is independent of tooling: the row’s existence, the value’s numeric amount, and the observation’s availability are separate ideas."
+        ],
+        "bullets": [],
+        "codeExamples": []
+      }
+    ],
+    "takeaways": [
+      "A measured zero means activity was observed and the value was zero; a missing measurement means the value is unknown or unavailable.",
+      "Do not use zero as a default for unavailable numeric facts in reusable tables. Preserve an explicit observation status and calculate coverage.",
+      "For averages and zero-activity rates, use measured observations as the denominator and report unavailable observations separately.",
+      "For totals, distinguish an observed partial sum from a complete total. Equal arithmetic does not imply equal meaning.",
+      "Use constraints, tests, or semantic-layer rules to prevent measured and unavailable states from being collapsed before aggregation."
+    ],
+    "sources": [
+      {
+        "title": "PostgreSQL: Documentation: 18: 8.1. Numeric Types",
+        "url": "https://www.postgresql.org/docs/current/datatype-numeric.html"
+      },
+      {
+        "title": "PostgreSQL: Documentation: 18: 9.21. Aggregate Functions",
+        "url": "https://www.postgresql.org/docs/current/functions-aggregate.html"
+      },
+      {
+        "title": "Real-Time Fact Tables | Kimball Dimensional Modeling Techniques",
+        "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/realtime-fact-table/"
+      }
+    ],
+    "requiresVerification": false,
+    "verificationNotes": []
+  },
+  {
+    "slug": "event-time-versus-processing-time",
+    "title": "Event time versus processing time",
+    "description": "A practical guide to modeling two clocks in data systems: when an event happened and when your platform observed it, using a hypothetical retail fixture with late arrivals, retries, and replayed history.",
+    "primaryKeyword": "Event time versus processing time",
+    "relatedKeywords": [
+      "Event time versus processing time"
+    ],
+    "category": "Data Modeling",
+    "level": "Intermediate",
+    "readTime": "7 min",
+    "datePublished": "2026-11-17",
+    "dateModified": "2026-11-17",
+    "canonicalUrl": "https://jwatterson.com/writing/event-time-versus-processing-time",
+    "status": "published",
+    "sourceHash": "7546d2e9a9c07f8e",
+    "lead": "Most timestamp bugs start with a quiet substitution: a pipeline uses the time a row arrived as if it were the time the customer action happened. That may be harmless for some operational checks, but it is wrong for many facts, metrics, and backfills. The practical fix is not a more elaborate schedule. It is a data model that preserves both clocks and makes their meaning visible.",
+    "sections": [
+      {
+        "id": "the-two-clocks",
+        "heading": "The two clocks answer different questions",
+        "paragraphs": [
+          "Event time is when the action represented by a record occurred. If a customer placed an order at 23:59:50, that is the order’s event time, even if the event did not reach the warehouse until several minutes later. Processing time is when a system observed, ingested, transformed, or loaded the record. A single business event can have several processing timestamps as it moves through collectors, queues, staging tables, and modeled tables.",
+          "The distinction matters because the two clocks support different decisions. Event time answers business questions such as how many orders happened on Tuesday, which promotion was active when a click occurred, or whether a shipment was late relative to the order. Processing time answers operational questions such as when the pipeline first saw the record, whether an upstream system is delayed, or which records were included in a particular load.",
+          "A robust model does not choose one clock and discard the other. It names them according to their role. Prefer specific columns such as order_placed_at, event_occurred_at, source_observed_at, ingested_at, loaded_at, and transformed_at over a generic timestamp column. Generic names hide semantics and make it easy for later queries to group by the wrong time.",
+          "This article deliberately stays at the time-semantics level. It does not cover UTC storage boundaries, daylight-saving edge cases, or orchestration scheduling. Those are adjacent problems, but they are not substitutes for separating when an action happened from when systems noticed it."
+        ],
+        "bullets": [],
+        "codeExamples": []
+      },
+      {
+        "id": "hypothetical-retail-fixture",
+        "heading": "A hypothetical fixture with late arrival, retry, and replay",
+        "paragraphs": [
+          "Consider this hypothetical retail event stream. The fixture uses UTC timestamps to avoid mixing this topic with local reporting boundaries. The important point is not the time zone; it is that event_occurred_at and observed_at are intentionally different fields.",
+          "Rows: 1) source_event_id=e-100, event_type=order_placed, order_id=o-100, event_occurred_at=2026-03-31T23:58:40Z, observed_at=2026-03-31T23:58:43Z, load_id=L1. 2) source_event_id=e-101, event_type=order_placed, order_id=o-101, event_occurred_at=2026-04-01T00:01:05Z, observed_at=2026-04-01T00:01:10Z, load_id=L1. 3) source_event_id=e-102, event_type=order_placed, order_id=o-102, event_occurred_at=2026-03-31T23:59:50Z, observed_at=2026-04-01T00:04:20Z, load_id=L2. 4) source_event_id=e-100, event_type=order_placed, order_id=o-100, event_occurred_at=2026-03-31T23:58:40Z, observed_at=2026-04-01T00:06:00Z, load_id=L2. 5) source_event_id=e-099, event_type=order_placed, order_id=o-099, event_occurred_at=2026-03-30T21:15:00Z, observed_at=2026-04-01T00:10:00Z, load_id=L2. 6) source_event_id=e-103, event_type=order_cancelled, order_id=o-103, event_occurred_at=2026-04-01T00:02:30Z, observed_at=2026-04-01T00:02:31Z, load_id=L1.",
+          "The rows are intentionally troublesome. Row 3 happened on March 31 but arrived on April 1. Row 4 is a retry of row 1 with the same source event identifier. Row 5 is older history replayed into the system on April 1. Row 6 is a different event type, included to show why filtering by business event type still matters.",
+          "If the business question is, how many orders were placed on March 31, the event-time answer is two: o-100 and o-102. If a query uses observed_at instead, the answer is one, because o-102 was not observed until April 1. Neither answer is universally correct. They answer different questions. The event-time count describes customer activity. The observed-time count describes what the platform had seen by the end of March 31.",
+          "Now ask an operational question: how many order_placed events did the platform observe on April 1? Before deduplication, it observed four order_placed records: e-101, e-102, the retry of e-100, and e-099. After deduplicating by source_event_id, it observed three distinct order_placed events for the first time on April 1: e-101, e-102, and e-099. That observed-time diagnostic is useful for pipeline operations, but it should not be confused with an April 1 sales metric."
+        ],
+        "bullets": [],
+        "codeExamples": []
+      },
+      {
+        "id": "query-the-fixture-two-ways",
+        "heading": "Query the same records two ways",
+        "paragraphs": [
+          "The following PostgreSQL-style example is illustrative. It uses a small common table expression to make the fixture self-contained and a window function to keep the first observation of each source_event_id. PostgreSQL documents date and time types separately from window functions; the important modeling point here is the partitioning of meaning, not a claim about query tuning.",
+          "First, deduplicate retries using processing metadata, then group business activity by event time. The expected order_placed counts are: 2026-03-30 has 1, 2026-03-31 has 2, and 2026-04-01 has 1. The March 31 count includes e-102 even though the system observed it on April 1."
+        ],
+        "bullets": [],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "WITH hypothetical_events(source_event_id, event_type, order_id, event_occurred_at, observed_at, load_id) AS (\n  VALUES\n    ('e-100', 'order_placed',    'o-100', TIMESTAMPTZ '2026-03-31 23:58:40+00', TIMESTAMPTZ '2026-03-31 23:58:43+00', 'L1'),\n    ('e-101', 'order_placed',    'o-101', TIMESTAMPTZ '2026-04-01 00:01:05+00', TIMESTAMPTZ '2026-04-01 00:01:10+00', 'L1'),\n    ('e-102', 'order_placed',    'o-102', TIMESTAMPTZ '2026-03-31 23:59:50+00', TIMESTAMPTZ '2026-04-01 00:04:20+00', 'L2'),\n    ('e-100', 'order_placed',    'o-100', TIMESTAMPTZ '2026-03-31 23:58:40+00', TIMESTAMPTZ '2026-04-01 00:06:00+00', 'L2'),\n    ('e-099', 'order_placed',    'o-099', TIMESTAMPTZ '2026-03-30 21:15:00+00', TIMESTAMPTZ '2026-04-01 00:10:00+00', 'L2'),\n    ('e-103', 'order_cancelled', 'o-103', TIMESTAMPTZ '2026-04-01 00:02:30+00', TIMESTAMPTZ '2026-04-01 00:02:31+00', 'L1')\n), first_observation AS (\n  SELECT *\n  FROM (\n    SELECT\n      hypothetical_events.*,\n      ROW_NUMBER() OVER (\n        PARTITION BY source_event_id\n        ORDER BY observed_at ASC, load_id ASC\n      ) AS observation_rank\n    FROM hypothetical_events\n  ) ranked\n  WHERE observation_rank = 1\n)\nSELECT\n  DATE_TRUNC('day', event_occurred_at) AS event_day,\n  COUNT(*) AS placed_orders\nFROM first_observation\nWHERE event_type = 'order_placed'\nGROUP BY event_day\nORDER BY event_day;"
+          }
+        ]
+      },
+      {
+        "id": "the-processing-time-counterexample",
+        "heading": "The counterexample: grouping by arrival and calling it history",
+        "paragraphs": [
+          "A common failure mode is to partition, aggregate, or overwrite historical facts by processing time while labeling the output as event history. In the fixture, a daily sales model grouped by observed_at would report one order on March 31 and three distinct first-observed orders on April 1 after deduplication. That may look plausible, but it is not a count of orders placed on those days.",
+          "The bug becomes more damaging during replays and backfills. Row 5 occurred on March 30 but was observed on April 1. If a replayed historical event is grouped by observed_at, old business activity appears as new business activity. Dashboards can show a false spike, downstream features can learn the wrong recency, and reconciliation against source-of-truth reports becomes confusing because everyone is using the word day to mean something different.",
+          "Processing time is still valuable. It should be used to answer questions such as which batch introduced the record, how long the source-to-staging delay was, and what the system knew at a particular cutoff. For example, latency can be measured as observed_at minus event_occurred_at when both timestamps are trustworthy. In the fixture, e-102 has a delay of 4 minutes and 30 seconds: it occurred at 23:59:50 and was observed at 00:04:20. That delay is an operational signal, not a reason to move the order into April’s event-time sales.",
+          "A useful diagnostic is to produce both views side by side for a small fixture before modeling the full table. If event_day and observed_day totals are identical for every test case, the fixture is probably too easy. Include at least one late event, one retry, and one replayed historical event. The goal is not to make the query complicated; it is to force the model to reveal which clock each calculation uses."
+        ],
+        "bullets": [],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "WITH first_observation AS (\n  SELECT *\n  FROM (\n    SELECT\n      hypothetical_events.*,\n      ROW_NUMBER() OVER (\n        PARTITION BY source_event_id\n        ORDER BY observed_at ASC, load_id ASC\n      ) AS observation_rank\n    FROM hypothetical_events\n  ) ranked\n  WHERE observation_rank = 1\n)\nSELECT\n  DATE_TRUNC('day', observed_at) AS observed_day,\n  COUNT(*) AS distinct_orders_first_observed\nFROM first_observation\nWHERE event_type = 'order_placed'\nGROUP BY observed_day\nORDER BY observed_day;\n\n-- Expected result for the fixture after deduplication:\n-- 2026-03-31 00:00:00+00 => 1\n-- 2026-04-01 00:00:00+00 => 3"
+          }
+        ]
+      },
+      {
+        "id": "modeling-rules-that-prevent-mixing",
+        "heading": "Modeling rules that prevent clock mixing",
+        "paragraphs": [
+          "The first rule is to make timestamp names specific enough that a reviewer can tell what they mean without reading pipeline code. If the column means the customer action time, name it after the action, such as order_placed_at, or use a clearly documented event_occurred_at. If the column means the collector received the message, use observed_at or source_observed_at. If the column means the warehouse inserted the row, use loaded_at. Avoid using created_at unless the creating actor is unambiguous.",
+          "The second rule is to preserve the original event timestamp even when records arrive late. Do not overwrite event_occurred_at with the load time to make partitions convenient. If the source did not provide a trustworthy event timestamp, represent that uncertainty explicitly with a null, a quality flag, or a separate inferred timestamp. Quietly substituting processing time creates facts that look precise but are semantically wrong.",
+          "The third rule is to choose deduplication order intentionally. In the fixture, retaining the earliest observed_at for each source_event_id answers when the platform first saw the event. A different use case might retain the latest observation if later records can correct earlier payloads. That is a business and source-system decision, not a property of event time itself.",
+          "The fourth rule is to keep metric grouping and operational monitoring separate. Business metrics such as orders placed, signups completed, and payments authorized usually group by event time. Pipeline health metrics such as records ingested, load duration, and source delay usually group by processing time. A single table can support both, but a single timestamp column cannot faithfully represent both.",
+          "Stream processing frameworks also make this distinction explicit. Spark Structured Streaming, for example, documents event-time windows and watermarking concepts around event timestamps. That vocabulary is useful even outside Spark: late data handling should be described relative to event time, while system observation and load cutoffs should be described relative to processing time."
+        ],
+        "bullets": [
+          "Name timestamps by role: occurred, observed, ingested, loaded, transformed.",
+          "Use event time for business history unless the question is explicitly about system observation.",
+          "Use processing time for operational diagnostics, freshness checks, load auditing, and reproducible cutoffs.",
+          "Do not fill a missing event time with processing time without labeling it as inferred or unknown.",
+          "Test models with late arrivals, retries, and replayed history before trusting daily aggregates."
+        ],
+        "codeExamples": []
+      },
+      {
+        "id": "review-checklist",
+        "heading": "A short review checklist",
+        "paragraphs": [
+          "Before approving a model that contains time-based facts, ask five questions. What real-world action does the event timestamp represent? Which system assigned the processing timestamp? Can one business event appear more than once with different observed_at values? What should happen when a record arrives after the event-time reporting window has closed? Are backfilled records allowed to change historical event-time metrics?",
+          "Those questions keep the conversation focused. The issue is not whether March 31 or April 1 is the right day in the abstract. The issue is which clock the question is asking for. In the fixture, March 31 is the right event day for e-102, and April 1 is the right observed day. Both are true. A correct model lets downstream users choose deliberately instead of inheriting an accidental timestamp from the ingestion path."
+        ],
+        "bullets": [],
+        "codeExamples": []
+      }
+    ],
+    "takeaways": [
+      "Event time records when the business action happened; processing time records when a system observed, loaded, or transformed the record.",
+      "Late arrivals, retries, and replays are the easiest way to expose timestamp confusion in a model review.",
+      "Business history usually groups by event time, while pipeline diagnostics and reproducible cutoffs usually use processing time.",
+      "Never replace a missing or inconvenient event timestamp with a processing timestamp without making that inference explicit."
+    ],
+    "sources": [
+      {
+        "title": "Structured Streaming Programming Guide - Spark 4.2.0 Documentation",
+        "url": "https://spark.apache.org/docs/latest/streaming/apis-on-dataframes-and-datasets.html"
+      },
+      {
+        "title": "PostgreSQL: Documentation: 18: 8.5. Date/Time Types",
+        "url": "https://www.postgresql.org/docs/current/datatype-datetime.html"
+      },
+      {
+        "title": "PostgreSQL: Documentation: 18: 3.5. Window Functions",
+        "url": "https://www.postgresql.org/docs/current/tutorial-window.html"
+      }
+    ],
+    "requiresVerification": false,
+    "verificationNotes": []
+  },
+  {
+    "slug": "utc-storage-and-local-reporting-boundaries",
+    "title": "UTC storage and local reporting boundaries",
+    "description": "A practical guide to converting a local business day into exact half-open UTC intervals, with a hypothetical retail-order fixture and PostgreSQL-style implementation.",
+    "primaryKeyword": "UTC storage and local reporting boundaries",
+    "relatedKeywords": [
+      "UTC storage and local reporting boundaries"
+    ],
+    "category": "Data Modeling",
+    "level": "Intermediate",
+    "readTime": "7 min read",
+    "datePublished": "2026-11-17",
+    "dateModified": "2026-11-17",
+    "canonicalUrl": "https://jwatterson.com/writing/utc-storage-and-local-reporting-boundaries",
+    "status": "published",
+    "sourceHash": "2e603fbb0c3aaaf7",
+    "lead": "Storing event timestamps in UTC is only half of the time-correctness problem. Reporting usually asks local questions: revenue for Sunday in New York, signups for a London business date, orders before a store’s local close. The safe pattern is to translate the requested local business day into a precise half-open UTC interval, then filter event-time timestamps with that interval.",
+    "sections": [
+      {
+        "id": "the-boundary-problem",
+        "heading": "The boundary problem",
+        "paragraphs": [
+          "A common warehouse convention is to store event timestamps as instants in UTC. That is a good default for event facts because it gives every order, click, payment, or status change one comparable point on the timeline. The problem appears when a business question is phrased in local calendar terms: “How many orders happened on 2026-03-08 for the New York store?”",
+          "That question is not asking for UTC date 2026-03-08. It is asking for the interval that starts at local midnight at the beginning of 2026-03-08 in the store’s reporting time zone and ends at local midnight at the beginning of 2026-03-09 in that same time zone. Only after those two local boundaries are resolved to instants should the fact table be filtered.",
+          "The pattern is simple: define the local reporting date, define the reporting time zone, compute the start instant and next-day start instant, then use a half-open predicate: occurred_at_utc >= utc_start and occurred_at_utc < utc_end. Do not use an inclusive end timestamp such as 23:59:59.999. Do not assume every local day maps to exactly 24 UTC hours. Do not group by the UTC date unless the business question is actually UTC-based.",
+          "This article assumes the event timestamp already represents when the action occurred, not when the pipeline processed it. The event-time versus processing-time distinction is a prerequisite because no boundary calculation can repair a timestamp column that means the wrong thing."
+        ],
+        "bullets": [
+          "Store the event instant once, preferably in a timestamp type that can represent an absolute point in time.",
+          "Store or derive the reporting time zone from the business entity being reported, such as store, property, market, or account.",
+          "Convert local reporting boundaries to UTC instants before filtering facts.",
+          "Use half-open intervals: include the start boundary and exclude the end boundary."
+        ],
+        "codeExamples": []
+      },
+      {
+        "id": "hypothetical-fixture",
+        "heading": "A hypothetical retail fixture",
+        "paragraphs": [
+          "The following hypothetical fixture uses a single New York retail store. The events are stored as UTC instants. The business question is: “What is revenue for local business date 2026-03-08 in America/New_York?”",
+          "For that local business day, the start boundary is 2026-03-08 00:00:00 in America/New_York. The next boundary is 2026-03-09 00:00:00 in America/New_York. Resolved to UTC, those boundaries are 2026-03-08 05:00:00+00 and 2026-03-09 04:00:00+00. The interval is therefore [2026-03-08 05:00:00+00, 2026-03-09 04:00:00+00).",
+          "Given the fixture, orders o2, o3, o4, and o5 are included. Order o1 is one second before the local day begins. Order o6 is exactly at the excluded end boundary and belongs to the next local business day. The expected revenue is 125.00 + 40.00 + 15.50 + 9.50 = 190.00.",
+          "This example deliberately lands on a date where the UTC span is not 24 hours. The point here is not to explain daylight-saving mechanics; it is to show why the boundary must be computed from the local calendar date and time zone rather than from a fixed offset or a 24-hour addition in UTC."
+        ],
+        "bullets": [],
+        "codeExamples": [
+          {
+            "language": "text",
+            "code": "Hypothetical orders for store nyc-1, reporting zone America/New_York\n\norder_id  occurred_at_utc          amount   included in local 2026-03-08?\no1        2026-03-08 04:59:59+00   99.00    no\no2        2026-03-08 05:00:00+00   125.00   yes\no3        2026-03-08 06:30:00+00   40.00    yes\no4        2026-03-08 07:30:00+00   15.50    yes\no5        2026-03-09 03:59:59+00   9.50     yes\no6        2026-03-09 04:00:00+00   200.00   no\n\nExpected result for local business date 2026-03-08: 4 orders, 190.00 revenue"
+          }
+        ]
+      },
+      {
+        "id": "postgreSQL-style-implementation",
+        "heading": "PostgreSQL-style implementation",
+        "paragraphs": [
+          "The implementation below is illustrative PostgreSQL SQL, aligned with PostgreSQL 18 date/time semantics. PostgreSQL documents timestamp with time zone as an instant that is converted from the supplied zone to UTC internally and displayed according to the session TimeZone setting. The important modeling idea is independent of PostgreSQL: compute the two local midnights in the reporting zone, resolve them to instants, and compare the fact timestamp to those instants.",
+          "The query keeps the local business date as a date, not as a UTC date. It computes the start and end boundaries with AT TIME ZONE. In PostgreSQL, applying AT TIME ZONE to a timestamp without time zone and a named zone interprets that local timestamp in the named zone and returns a timestamp with time zone. The query then filters the UTC event instants with a half-open predicate.",
+          "A production model would usually have a store dimension containing the reporting time zone. The fixture keeps the zone in a params CTE so the boundary math is visible."
+        ],
+        "bullets": [],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "WITH params AS (\n  SELECT\n    DATE '2026-03-08' AS business_date,\n    'America/New_York'::text AS reporting_tz\n),\nboundaries AS (\n  SELECT\n    business_date,\n    reporting_tz,\n    (business_date::timestamp AT TIME ZONE reporting_tz) AS utc_start,\n    ((business_date + 1)::timestamp AT TIME ZONE reporting_tz) AS utc_end\n  FROM params\n),\norders AS (\n  SELECT *\n  FROM (VALUES\n    ('o1', TIMESTAMPTZ '2026-03-08 04:59:59+00',  99.00::numeric),\n    ('o2', TIMESTAMPTZ '2026-03-08 05:00:00+00', 125.00::numeric),\n    ('o3', TIMESTAMPTZ '2026-03-08 06:30:00+00',  40.00::numeric),\n    ('o4', TIMESTAMPTZ '2026-03-08 07:30:00+00',  15.50::numeric),\n    ('o5', TIMESTAMPTZ '2026-03-09 03:59:59+00',   9.50::numeric),\n    ('o6', TIMESTAMPTZ '2026-03-09 04:00:00+00', 200.00::numeric)\n  ) AS t(order_id, occurred_at_utc, amount)\n)\nSELECT\n  b.business_date,\n  b.reporting_tz,\n  b.utc_start,\n  b.utc_end,\n  COUNT(*) AS order_count,\n  SUM(o.amount) AS revenue\nFROM boundaries b\nJOIN orders o\n  ON o.occurred_at_utc >= b.utc_start\n AND o.occurred_at_utc <  b.utc_end\nGROUP BY b.business_date, b.reporting_tz, b.utc_start, b.utc_end;"
+          }
+        ]
+      },
+      {
+        "id": "counterexamples-to-avoid",
+        "heading": "Counterexamples to avoid",
+        "paragraphs": [
+          "The first counterexample is grouping by the UTC date of the event. That answers a different question. UTC date 2026-03-08 runs from 2026-03-08 00:00:00+00 to 2026-03-09 00:00:00+00. The New York local business date in the fixture runs from 2026-03-08 05:00:00+00 to 2026-03-09 04:00:00+00. Those intervals overlap, but neither contains the other.",
+          "In the fixture, a UTC-date filter for 2026-03-08 would include o1, o2, o3, and o4, while excluding o5. That happens to produce four orders, but the revenue would be 99.00 + 125.00 + 40.00 + 15.50 = 279.50, which is wrong for the local business day. Matching counts can hide boundary defects, so reconciliation should include known edge rows and sums, not just aggregate row counts.",
+          "The second counterexample is using BETWEEN with an inclusive end. If one report uses occurred_at_utc BETWEEN utc_start AND utc_end, then o6 is included in 2026-03-08 even though it occurs exactly at the start of 2026-03-09 local time. If the next day also uses an inclusive start, the same order can be double counted across adjacent daily reports.",
+          "The third counterexample is subtracting a fixed offset, such as assuming New York is always UTC-5 or always UTC-4. Named time zones have historical and seasonal rules. The durable data modeling rule is to store the named reporting time zone and ask the time library or database to resolve the local boundary for the requested date."
+        ],
+        "bullets": [],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "-- Counterexample: this answers a UTC-date question, not a New York local-day question.\nWHERE occurred_at_utc >= TIMESTAMPTZ '2026-03-08 00:00:00+00'\n  AND occurred_at_utc <  TIMESTAMPTZ '2026-03-09 00:00:00+00'\n\n-- Counterexample: inclusive end can double count the exact boundary row.\nWHERE occurred_at_utc BETWEEN utc_start AND utc_end\n\n-- Preferred shape for adjacent daily buckets.\nWHERE occurred_at_utc >= utc_start\n  AND occurred_at_utc <  utc_end"
+          }
+        ]
+      },
+      {
+        "id": "diagnostic-checklist",
+        "heading": "Diagnostic checklist for existing models",
+        "paragraphs": [
+          "A practical audit starts by finding every place a UTC timestamp is cast to date. Some casts are legitimate, especially for operational UTC partitions. But if the resulting date is presented as a business date for a store, market, customer, or property, it deserves review.",
+          "Next, check whether the model has the correct time zone at the right grain. A global company-wide time zone is often too coarse. A customer account, store, venue, or legal entity may have its own reporting zone. The reporting zone should be stable enough to reproduce historical results; if an entity can change zones, the model needs effective dates or another explicit rule.",
+          "Then inspect interval predicates. Adjacent daily buckets should be contiguous and non-overlapping. For a sequence of local business dates, each day’s utc_end should equal the next day’s utc_start for the same entity and reporting zone. No gap and no overlap should exist between consecutive days, even when the UTC duration of a local day is not 24 hours.",
+          "Finally, build a small fixture with rows exactly before the start, exactly at the start, in the middle, exactly one second before the end, and exactly at the end. The fixture should also include a day where a fixed 24-hour assumption would fail. The expected inclusion result should be written down beside the test data, as shown above. This makes the model’s semantics reviewable without requiring readers to infer intent from a dashboard."
+        ],
+        "bullets": [
+          "Search for timestamp-to-date casts used as business dates.",
+          "Verify that the reporting time zone is stored or derivable at the correct business grain.",
+          "Prefer named time zones over fixed offsets.",
+          "Use half-open intervals for daily, weekly, and monthly buckets.",
+          "Test rows at both boundaries, not only rows comfortably inside the day."
+        ],
+        "codeExamples": []
+      },
+      {
+        "id": "modeling-tradeoffs",
+        "heading": "Modeling tradeoffs",
+        "paragraphs": [
+          "There are two common places to compute these boundaries. One approach computes them at query time from business_date and reporting_tz. This is flexible and easy to reason about, but the expression may be repeated in many models. Another approach materializes a calendar table with entity_id, business_date, reporting_tz, utc_start, and utc_end. This makes joins and tests explicit, and it can centralize policy for unusual business calendars.",
+          "The calendar-table approach is especially useful when the business day does not start at midnight. For example, a restaurant might define a business day as 04:00 local to 03:59:59.999 local the next day, or more safely [04:00 local, 04:00 local next day). The same principle applies: define the local boundary rule first, resolve both boundaries to UTC instants, then filter with a half-open interval.",
+          "The tradeoff is that a materialized calendar becomes reference data. It must be generated consistently, versioned or rebuilt when policy changes, and joined using the right entity. For many teams, the best starting point is a shared date-boundary model or macro plus a small fixture of boundary rows. As the number of reporting calendars grows, moving to an explicit calendar dimension often makes the semantics easier to inspect.",
+          "The core rule does not change: UTC storage keeps event instants comparable, while local reporting boundaries define which instants belong to a business period. Mixing those two responsibilities is how off-by-one-day errors enter otherwise reasonable data models."
+        ],
+        "bullets": [],
+        "codeExamples": []
+      }
+    ],
+    "takeaways": [
+      "A local business day should be represented as a half-open UTC interval derived from the local start boundary and the next local start boundary.",
+      "Filtering by UTC date is not equivalent to filtering by local business date; it answers a different question and can silently produce wrong sums.",
+      "Boundary fixtures should include rows just before, exactly at, and exactly after the interval edges so the model’s time semantics are explicit."
+    ],
+    "sources": [
+      {
+        "title": "PostgreSQL: Documentation: 18: Date/Time Types",
+        "url": "https://www.postgresql.org/docs/current/datatype-datetime.html"
+      },
+      {
+        "title": "PostgreSQL: Documentation: 18: Window Functions",
+        "url": "https://www.postgresql.org/docs/current/tutorial-window.html"
+      },
+      {
+        "title": "Structured Streaming Programming Guide - Spark 4.2.0 Documentation",
+        "url": "https://spark.apache.org/docs/latest/streaming/apis-on-dataframes-and-datasets.html"
+      }
+    ],
+    "requiresVerification": false,
+    "verificationNotes": []
+  },
+  {
+    "slug": "daylight-saving-gaps-and-repeated-hours",
+    "title": "Daylight-saving gaps and repeated hours",
+    "description": "A practical fixture and data model for representing missing and duplicated wall-clock timestamps without silently inventing event time.",
+    "primaryKeyword": "Daylight-saving gaps and repeated hours",
+    "relatedKeywords": [
+      "Daylight-saving gaps and repeated hours"
+    ],
+    "category": "Data Modeling",
+    "level": "Intermediate",
+    "readTime": "7 min",
+    "datePublished": "2026-11-17",
+    "dateModified": "2026-11-17",
+    "canonicalUrl": "https://jwatterson.com/writing/daylight-saving-gaps-and-repeated-hours",
+    "status": "published",
+    "sourceHash": "bb9236d735a65fdf",
+    "lead": "Daylight-saving transitions create two different data modeling failures. In the spring, some local timestamps do not exist. In the fall, some local timestamps happen twice. A pipeline that treats wall-clock text as a unique event time will either fabricate instants or collapse distinct events. The fix is not a clever cast. It is an explicit representation: keep the submitted local timestamp, the named zone, the resolved UTC instant when one exists, the offset used for resolution, and a status that says whether the local time was normal, missing, ambiguous, or resolved.",
+    "sections": [
+      {
+        "id": "wall-clock-time-is-not-an-instant",
+        "heading": "Wall-clock time is not an instant",
+        "paragraphs": [
+          "A wall-clock timestamp such as 2026-11-01 01:10:00 is a local label. It is not automatically a single point on the timeline. Around daylight-saving changes, the mapping between local labels and instants is not one-to-one.",
+          "There are three cases a data model must distinguish. A normal local timestamp maps to exactly one instant. A gap timestamp maps to no instant because the clock jumped over it. A repeated timestamp maps to two possible instants because the clock displayed the same local hour twice.",
+          "This article uses a hypothetical retail event fixture rather than a real jurisdiction’s daylight-saving calendar. The arithmetic is intentionally small and self-contained. In a production system, the transition rules should come from the time-zone rules your platform uses, and the event schema should preserve enough information to explain how each local timestamp was interpreted.",
+          "The prerequisite idea is event time versus processing time. If a register sends a sale with local event time 01:10 and the warehouse ingests it at 09:30 UTC, the ingestion time can tell you when the pipeline saw the record. It cannot tell you which 01:10 the sale belongs to. Treating processing time as a repair for ambiguous event time hides the modeling problem instead of solving it."
+        ],
+        "bullets": [],
+        "codeExamples": []
+      },
+      {
+        "id": "a-hypothetical-transition-fixture",
+        "heading": "A hypothetical transition fixture",
+        "paragraphs": [
+          "Assume a hypothetical store time zone named Example/Store. It has two daylight-saving transitions in 2026. On the spring transition, clocks jump from 01:59:59 with offset -05:00 to 03:00:00 with offset -04:00. Therefore local times from 02:00:00 through 02:59:59 are missing. On the fall transition, clocks move from 01:59:59 with offset -04:00 back to 01:00:00 with offset -05:00. Therefore local times from 01:00:00 through 01:59:59 repeat.",
+          "The fixture below is hypothetical retail-order data. It includes ordinary events, a missing local time, and a repeated local time that is represented twice with different offsets and different UTC instants. The column local_time_status is not decoration; it is the field that prevents later readers from guessing whether a null UTC instant is a bug, a rejected timestamp, or an unresolved daylight-saving gap.",
+          "The arithmetic is simple. With offset -05:00, add five hours to local time to get UTC. With offset -04:00, add four hours. Therefore 2026-11-01 01:10:00 at -04:00 maps to 2026-11-01 05:10:00Z, while the same wall-clock label at -05:00 maps to 2026-11-01 06:10:00Z. They are not duplicates."
+        ],
+        "bullets": [
+          "normal: a local timestamp with exactly one valid UTC instant",
+          "gap: a local timestamp with no valid UTC instant",
+          "ambiguous_unresolved: a repeated local timestamp captured without enough information to choose an instant",
+          "ambiguous_resolved: a repeated local timestamp resolved by offset, fold index, source sequence, or another documented rule"
+        ],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "-- Illustrative PostgreSQL-style fixture. It is not a claim of executed code.\n-- The Example/Store zone is hypothetical and exists only for this worked example.\n\nwith retail_events as (\n  select *\n  from (values\n    ('e_spring_1', 'store_17', timestamp '2026-03-08 01:55:00', 'Example/Store', -300, 0, timestamp '2026-03-08 06:55:00', 'normal'),\n    ('e_spring_2', 'store_17', timestamp '2026-03-08 02:10:00', 'Example/Store', null, null, null, 'gap'),\n    ('e_spring_3', 'store_17', timestamp '2026-03-08 03:05:00', 'Example/Store', -240, 0, timestamp '2026-03-08 07:05:00', 'normal'),\n    ('e_fall_1',   'store_17', timestamp '2026-11-01 00:55:00', 'Example/Store', -240, 0, timestamp '2026-11-01 04:55:00', 'normal'),\n    ('e_fall_2a',  'store_17', timestamp '2026-11-01 01:10:00', 'Example/Store', -240, 0, timestamp '2026-11-01 05:10:00', 'ambiguous_resolved'),\n    ('e_fall_2b',  'store_17', timestamp '2026-11-01 01:10:00', 'Example/Store', -300, 1, timestamp '2026-11-01 06:10:00', 'ambiguous_resolved'),\n    ('e_fall_3',   'store_17', timestamp '2026-11-01 02:05:00', 'Example/Store', -300, 0, timestamp '2026-11-01 07:05:00', 'normal')\n  ) as t(event_id, store_id, local_ts, zone_id, utc_offset_minutes, fold_index, event_utc_ts, local_time_status)\n)\nselect *\nfrom retail_events\norder by coalesce(event_utc_ts, timestamp '9999-12-31'), event_id;"
+          }
+        ]
+      },
+      {
+        "id": "model-the-resolution-not-just-the-result",
+        "heading": "Model the resolution, not just the result",
+        "paragraphs": [
+          "A robust event table should not store only the parsed local timestamp. It also should not store only the resolved UTC instant if the source system supplied local time. The local value is part of the evidence. The resolved instant is the analytic timeline. The offset and status explain the conversion.",
+          "A practical schema can be small. Keep an immutable source identifier, the local timestamp exactly as interpreted, the zone identifier, the UTC instant when one is known, the offset used for that instant, a fold index for repeated hours, and a status. The fold index is a local disambiguator: fold 0 means the first occurrence of the repeated local label, and fold 1 means the second occurrence. If your source system already sends an offset, you may derive fold from the offset and transition rules; if it does not, store the event as ambiguous_unresolved until a documented rule resolves it.",
+          "For missing times, the safest default is to reject or quarantine the event-time interpretation while preserving the original source value. Do not silently round 02:10 to 03:10, subtract an hour, or attach whichever offset the database happens to choose. Those actions create a false precision problem: downstream models see a confident instant even though the source supplied an impossible local timestamp.",
+          "For repeated times, the safest default is to require disambiguation. A point-of-sale terminal might include an offset, a monotonic device sequence, or a server receipt timestamp that allows a deterministic choice. If the rule says “when two choices are possible, use the source offset,” record that policy. If the rule says “infer from the device sequence,” record that too. The point is not that every event must be perfect; it is that the uncertainty is represented explicitly."
+        ],
+        "bullets": [
+          "source_local_ts: the local date and time submitted by the source, without pretending it is globally unique",
+          "zone_id: the named local zone or business calendar used to interpret the source timestamp",
+          "event_utc_ts: the resolved instant, nullable for gaps and unresolved ambiguous values",
+          "utc_offset_minutes: the offset used for the chosen instant, nullable when no instant has been chosen",
+          "fold_index: null for gaps and unresolved values, 0 or 1 when a repeated hour has been resolved",
+          "local_time_status: normal, gap, ambiguous_unresolved, or ambiguous_resolved",
+          "resolution_policy: optional but useful when the offset or fold was inferred rather than supplied"
+        ],
+        "codeExamples": []
+      },
+      {
+        "id": "the-counterexample-that-breaks-hourly-aggregation",
+        "heading": "The counterexample that breaks hourly aggregation",
+        "paragraphs": [
+          "The tempting query is to group by the local hour. That query looks reasonable in ordinary weeks, but the fall transition breaks it. In the fixture, there are two events at local 01:10. A local-hour aggregation collapses them into one 01:00 bucket even though they are an hour apart on the actual timeline.",
+          "The spring transition has the opposite problem. A gap timestamp such as 02:10 should not be assigned to a normal 02:00 local-hour bucket as if that hour existed. If the row is included without status, an analyst may report activity in a wall-clock hour that never happened in that local calendar.",
+          "The corrected query depends on the business question. If the question is timeline behavior, group by UTC hour. If the question is local displayed hour during a repeated interval, include fold or offset in the grouping key. If the question is data quality, count gap and ambiguous_unresolved rows separately instead of forcing them into ordinary time buckets."
+        ],
+        "bullets": [],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "-- Counterexample: this collapses two different fall-back instants into one local bucket.\nwith retail_events as (\n  select *\n  from (values\n    ('e_fall_2a', 'store_17', timestamp '2026-11-01 01:10:00', 'Example/Store', -240, 0, timestamp '2026-11-01 05:10:00', 'ambiguous_resolved'),\n    ('e_fall_2b', 'store_17', timestamp '2026-11-01 01:10:00', 'Example/Store', -300, 1, timestamp '2026-11-01 06:10:00', 'ambiguous_resolved')\n  ) as t(event_id, store_id, local_ts, zone_id, utc_offset_minutes, fold_index, event_utc_ts, local_time_status)\n)\nselect\n  store_id,\n  date_trunc('hour', local_ts) as local_hour,\n  count(*) as event_count\nfrom retail_events\ngroup by store_id, date_trunc('hour', local_ts);\n\n-- Expected logical result for the fixture:\n-- store_17 | 2026-11-01 01:00:00 | 2\n-- That result is not wrong SQL, but it is an ambiguous model for a repeated hour."
+          },
+          {
+            "language": "sql",
+            "code": "-- Safer local-hour grouping for repeated hours: keep the fold or offset.\nwith retail_events as (\n  select *\n  from (values\n    ('e_fall_2a', 'store_17', timestamp '2026-11-01 01:10:00', 'Example/Store', -240, 0, timestamp '2026-11-01 05:10:00', 'ambiguous_resolved'),\n    ('e_fall_2b', 'store_17', timestamp '2026-11-01 01:10:00', 'Example/Store', -300, 1, timestamp '2026-11-01 06:10:00', 'ambiguous_resolved')\n  ) as t(event_id, store_id, local_ts, zone_id, utc_offset_minutes, fold_index, event_utc_ts, local_time_status)\n)\nselect\n  store_id,\n  date_trunc('hour', local_ts) as local_hour,\n  fold_index,\n  utc_offset_minutes,\n  date_trunc('hour', event_utc_ts) as utc_hour,\n  count(*) as event_count\nfrom retail_events\nwhere local_time_status <> 'gap'\ngroup by\n  store_id,\n  date_trunc('hour', local_ts),\n  fold_index,\n  utc_offset_minutes,\n  date_trunc('hour', event_utc_ts)\norder by utc_hour;\n\n-- Expected logical result for the fixture:\n-- store_17 | 2026-11-01 01:00:00 | 0 | -240 | 2026-11-01 05:00:00 | 1\n-- store_17 | 2026-11-01 01:00:00 | 1 | -300 | 2026-11-01 06:00:00 | 1"
+          }
+        ]
+      },
+      {
+        "id": "diagnose-ambiguous-inputs-before-they-spread",
+        "heading": "Diagnose ambiguous inputs before they spread",
+        "paragraphs": [
+          "Daylight-saving bugs often become expensive because they are discovered in aggregate tables, not at ingestion. Add a diagnostic at the boundary where source local time is converted into event time. The diagnostic should answer three questions: which rows are impossible, which rows are repeated but unresolved, and which rows were resolved by policy rather than by explicit source offset.",
+          "Window functions are useful for inspection because they let you compare records that share a local timestamp while preserving the original rows. PostgreSQL documents window functions as calculations across rows related to the current row; the exact production implementation can be in SQL, a transformation framework, or a streaming job. The modeling goal is the same: flag local labels whose interpretation is not one ordinary instant.",
+          "The example query below is illustrative PostgreSQL-style SQL. It assumes the status fields already exist. It does not attempt to implement a full time-zone engine in SQL. In real systems, the conversion step should use the same time-zone rules consistently across batch, streaming, and application code."
+        ],
+        "bullets": [],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "-- Illustrative diagnostic: find local labels that need attention.\nwith retail_events as (\n  select *\n  from (values\n    ('e_spring_2', 'store_17', timestamp '2026-03-08 02:10:00', 'Example/Store', null, null, null, 'gap'),\n    ('e_fall_2a',  'store_17', timestamp '2026-11-01 01:10:00', 'Example/Store', -240, 0, timestamp '2026-11-01 05:10:00', 'ambiguous_resolved'),\n    ('e_fall_2b',  'store_17', timestamp '2026-11-01 01:10:00', 'Example/Store', -300, 1, timestamp '2026-11-01 06:10:00', 'ambiguous_resolved'),\n    ('e_fall_4',   'store_17', timestamp '2026-11-01 01:25:00', 'Example/Store', null, null, null, 'ambiguous_unresolved')\n  ) as t(event_id, store_id, local_ts, zone_id, utc_offset_minutes, fold_index, event_utc_ts, local_time_status)\n), labeled as (\n  select\n    *,\n    count(*) over (partition by store_id, zone_id, local_ts) as same_local_label_count,\n    count(utc_offset_minutes) over (partition by store_id, zone_id, local_ts) as resolved_offset_count\n  from retail_events\n)\nselect\n  event_id,\n  store_id,\n  local_ts,\n  zone_id,\n  local_time_status,\n  utc_offset_minutes,\n  fold_index,\n  event_utc_ts,\n  same_local_label_count,\n  resolved_offset_count\nfrom labeled\nwhere local_time_status in ('gap', 'ambiguous_unresolved')\n   or same_local_label_count > 1\norder by local_ts, event_id;"
+          }
+        ]
+      },
+      {
+        "id": "tradeoffs-and-boundaries",
+        "heading": "Tradeoffs and boundaries",
+        "paragraphs": [
+          "This model stores more than one time field because the fields answer different questions. The source local timestamp answers what the external system said. The UTC instant answers where the event lands on the global timeline. The offset and fold answer why a repeated wall-clock label maps to that instant. The status answers whether the conversion was ordinary, impossible, unresolved, or policy-based.",
+          "The main tradeoff is complexity at ingestion versus ambiguity everywhere else. If you defer classification, every downstream model has to rediscover daylight-saving rules and make its own choice. If you classify at ingestion, downstream users can filter, aggregate, or quarantine consistently.",
+          "Database type names do not remove the need for this design. PostgreSQL, for example, distinguishes timestamp types with and without time zone in its date/time documentation. That distinction is useful, but a column type cannot tell you whether a source wall-clock label was missing, repeated, or resolved by a particular policy. You still need explicit status and disambiguation fields when the source data arrives as local civil time.",
+          "This article is intentionally narrow. It does not cover how to map a local business day to a UTC interval for reporting, and it does not cover interval boundary conventions. The deliverable here is the event fixture and representation: do not let missing and duplicated wall-clock timestamps masquerade as ordinary timestamps."
+        ],
+        "bullets": [],
+        "codeExamples": []
+      }
+    ],
+    "takeaways": [
+      "A local wall-clock timestamp is not always a unique event instant; daylight-saving gaps map to no instant, and repeated hours can map to two.",
+      "Represent the submitted local timestamp, zone, resolved UTC instant, offset, fold index, and local-time status instead of relying on a single timestamp column.",
+      "For gap rows, preserve the source value and mark the event-time interpretation as invalid or unresolved; do not silently round to a nearby valid time.",
+      "For repeated rows, include offset or fold in keys used for local-hour grouping, otherwise distinct timeline hours can collapse into one bucket."
+    ],
+    "sources": [
+      {
+        "title": "PostgreSQL: Documentation: 18: 8.5. Date/Time Types",
+        "url": "https://www.postgresql.org/docs/current/datatype-datetime.html"
+      },
+      {
+        "title": "PostgreSQL: Documentation: 18: 3.5. Window Functions",
+        "url": "https://www.postgresql.org/docs/current/tutorial-window.html"
+      },
+      {
+        "title": "Structured Streaming Programming Guide - Spark 4.2.0 Documentation",
+        "url": "https://spark.apache.org/docs/latest/streaming/apis-on-dataframes-and-datasets.html"
+      }
+    ],
+    "requiresVerification": false,
+    "verificationNotes": []
+  },
+  {
+    "slug": "half-open-time-intervals",
+    "title": "Half-open time intervals",
+    "description": "A practical guide to using half-open time intervals to classify timestamped events without duplicating events at shared boundaries.",
+    "primaryKeyword": "Half-open time intervals",
+    "relatedKeywords": [
+      "Half-open time intervals"
+    ],
+    "category": "Data Modeling",
+    "level": "Intermediate",
+    "readTime": "9 min",
+    "datePublished": "2026-11-17",
+    "dateModified": "2026-11-17",
+    "canonicalUrl": "https://jwatterson.com/writing/half-open-time-intervals",
+    "status": "published",
+    "sourceHash": "df992e586ed7ee1e",
+    "lead": "Inclusive time boundaries look harmless until an event lands exactly on the boundary between two reporting buckets. If both buckets use inclusive starts and inclusive ends, the event can belong to both. Half-open time intervals solve the classification problem by making every interval include its start and exclude its end: start <= event_time and event_time < end. That convention gives adjacent buckets a clean handoff point and makes boundary behavior testable.",
+    "sections": [
+      {
+        "id": "the-boundary-problem",
+        "heading": "The boundary problem",
+        "paragraphs": [
+          "Most event classification logic eventually answers a question like: which reporting window, promotion period, subscription state, or processing batch owns this event? The mistake is not usually the timestamp type. The mistake is using intervals whose shared boundary is included on both sides.",
+          "Suppose a hypothetical retail site wants to classify checkout events into 15-minute event-time buckets. The first bucket covers 10:00 through 10:15. The second covers 10:15 through 10:30. If both intervals are modeled as inclusive, an order at exactly 10:15:00 qualifies for both. If the query later aggregates by bucket, that one order can be counted twice.",
+          "This is not a rare edge case in the logical sense. Boundaries are exactly where schedulers, batch cuts, stream watermarks, and report refreshes tend to place records. The safer model is to make the convention explicit: intervals are half-open. The interval beginning at 10:00 and ending at 10:15 means every timestamp t such that 10:00 <= t < 10:15. The next interval begins at 10:15 and accepts 10:15 exactly.",
+          "This article stays on event classification semantics. It assumes you already distinguish event time from processing time. The examples classify events by the timestamp that describes when the business event occurred, not when a warehouse, orchestrator, or stream processor happened to ingest it."
+        ],
+        "bullets": [],
+        "codeExamples": []
+      },
+      {
+        "id": "fixture-with-troublesome-boundaries",
+        "heading": "A hypothetical fixture with troublesome boundaries",
+        "paragraphs": [
+          "A useful way to prevent boundary bugs is to keep a small fixture of events that deliberately land before, on, and after interval edges. The fixture below is hypothetical. It is written as illustrative PostgreSQL-style SQL, using timestamp literals and a VALUES clause. No execution evidence is implied.",
+          "The example uses three adjacent 15-minute buckets. The important records are order_id 102 at exactly 10:15:00 and order_id 105 at exactly 10:30:00. Those records should each land in exactly one bucket, not zero and not two.",
+          "The expected classification under half-open intervals is: order 101 belongs to b1, order 102 belongs to b2, order 103 belongs to b2, order 104 belongs to b2, order 105 belongs to b3, and order 106 belongs to b3. That expectation follows directly from checking start <= occurred_at and occurred_at < end for each candidate bucket."
+        ],
+        "bullets": [],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "-- Illustrative PostgreSQL 18-style SQL.\n-- Hypothetical retail order events and 15-minute event-time buckets.\nWITH orders(order_id, occurred_at) AS (\n  VALUES\n    (101, timestamp '2026-11-17 10:14:59.999999'),\n    (102, timestamp '2026-11-17 10:15:00'),\n    (103, timestamp '2026-11-17 10:15:00.000001'),\n    (104, timestamp '2026-11-17 10:29:59.999999'),\n    (105, timestamp '2026-11-17 10:30:00'),\n    (106, timestamp '2026-11-17 10:30:00.000001')\n),\nbuckets(bucket_id, bucket_start, bucket_end) AS (\n  VALUES\n    ('b1', timestamp '2026-11-17 10:00:00', timestamp '2026-11-17 10:15:00'),\n    ('b2', timestamp '2026-11-17 10:15:00', timestamp '2026-11-17 10:30:00'),\n    ('b3', timestamp '2026-11-17 10:30:00', timestamp '2026-11-17 10:45:00')\n)\nSELECT\n  o.order_id,\n  o.occurred_at,\n  b.bucket_id\nFROM orders o\nJOIN buckets b\n  ON o.occurred_at >= b.bucket_start\n AND o.occurred_at <  b.bucket_end\nORDER BY o.order_id, b.bucket_id;"
+          }
+        ]
+      },
+      {
+        "id": "counterexample-inclusive-ends",
+        "heading": "Counterexample: inclusive ends duplicate boundary events",
+        "paragraphs": [
+          "The failure mode is easiest to see by writing the query the way it is often written in a hurry. The SQL BETWEEN predicate is inclusive at both ends in common SQL usage, and the equivalent explicit form is bucket_start <= occurred_at and occurred_at <= bucket_end. For adjacent intervals, that is exactly the wrong ownership rule at the shared edge.",
+          "Using the same hypothetical fixture, an inclusive-end join returns two rows for order 102 and two rows for order 105. Order 102 matches b1 because it is less than or equal to 10:15:00, and it also matches b2 because it is greater than or equal to 10:15:00. Order 105 has the same problem at 10:30:00.",
+          "The bug can hide if most events are not exactly on boundaries or if downstream reports group only by day. It becomes visible when a boundary event carries revenue, starts a subscription period, closes a support case, or changes an account state. At that point the duplicated classification is not an abstract modeling concern; it changes counts and sums."
+        ],
+        "bullets": [],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "-- Counterexample: inclusive end boundaries.\n-- Boundary events match both adjacent buckets.\nWITH orders(order_id, occurred_at) AS (\n  VALUES\n    (101, timestamp '2026-11-17 10:14:59.999999'),\n    (102, timestamp '2026-11-17 10:15:00'),\n    (103, timestamp '2026-11-17 10:15:00.000001'),\n    (104, timestamp '2026-11-17 10:29:59.999999'),\n    (105, timestamp '2026-11-17 10:30:00'),\n    (106, timestamp '2026-11-17 10:30:00.000001')\n),\nbuckets(bucket_id, bucket_start, bucket_end) AS (\n  VALUES\n    ('b1', timestamp '2026-11-17 10:00:00', timestamp '2026-11-17 10:15:00'),\n    ('b2', timestamp '2026-11-17 10:15:00', timestamp '2026-11-17 10:30:00'),\n    ('b3', timestamp '2026-11-17 10:30:00', timestamp '2026-11-17 10:45:00')\n)\nSELECT\n  o.order_id,\n  count(*) AS matched_bucket_count\nFROM orders o\nJOIN buckets b\n  ON o.occurred_at >= b.bucket_start\n AND o.occurred_at <= b.bucket_end\nGROUP BY o.order_id\nORDER BY o.order_id;\n\n-- Expected matched_bucket_count for this fixture:\n-- 101 -> 1\n-- 102 -> 2  -- duplicate classification at 10:15:00\n-- 103 -> 1\n-- 104 -> 1\n-- 105 -> 2  -- duplicate classification at 10:30:00\n-- 106 -> 1"
+          }
+        ]
+      },
+      {
+        "id": "the-half-open-rule",
+        "heading": "The half-open rule for event classification",
+        "paragraphs": [
+          "The rule is simple enough to standardize across a warehouse: every interval is represented as [start, end). In query form, that is event_time >= interval_start and event_time < interval_end. The start is inclusive. The end is exclusive.",
+          "This convention has three practical benefits. First, adjacent intervals compose without overlap. If one interval ends at 10:15 and the next starts at 10:15, the first rejects 10:15 exactly and the second accepts it. Second, interval duration is straightforward: an interval from 10:00 to 10:15 covers fifteen minutes, not fifteen minutes plus one smallest representable timestamp unit. Third, the final instant inside the interval does not need to be manufactured. You never have to write an end like 10:14:59.999999 and hope it matches the precision of every system in the path.",
+          "This is also consistent with established database documentation. PostgreSQL documentation for date and time types describes the SQL OVERLAPS construct as treating time periods as half-open intervals, except for the special case where start and end are equal. You do not need to use OVERLAPS to benefit from the convention; the point is that half-open intervals are a familiar way to model periods in database systems.",
+          "Half-open intervals do require a decision about zero-length intervals. For event classification buckets, a bucket where start equals end usually indicates bad configuration because no timestamp can satisfy start <= t and t < end. For point events, store the event timestamp as a point, not as a zero-width bucket, unless the domain explicitly needs interval algebra."
+        ],
+        "bullets": [
+          "Use start <= event_time and event_time < end for ownership checks.",
+          "Store the interval end as the first timestamp not included, not as the last timestamp included.",
+          "Reject or separately handle intervals where end <= start before they reach reporting logic."
+        ],
+        "codeExamples": []
+      },
+      {
+        "id": "diagnostic-for-existing-models",
+        "heading": "A diagnostic for existing models",
+        "paragraphs": [
+          "You can diagnose interval tables before debating style. For a given entity and timeline, two checks matter: do configured intervals overlap, and does each event match exactly one interval when it should be classified? PostgreSQL window functions are useful for the first check because they can compare each interval to the previous interval after sorting by start time. The PostgreSQL window function tutorial documents functions such as lag over an ordered partition; the query below uses that pattern illustratively.",
+          "The first diagnostic flags overlapping interval definitions for the same calendar or classification scheme. If intervals are intended to be adjacent half-open buckets, the previous end should be less than or equal to the next start. Equality is allowed because [10:00, 10:15) followed by [10:15, 10:30) has no overlap. A previous end greater than the next start means some timestamp range is owned by both intervals.",
+          "The second diagnostic checks the event fixture against the configured buckets. For a complete set of buckets covering the fixture range, every event should match exactly one bucket. A count of zero means there is a gap. A count above one means there is an overlap or an inclusive-boundary predicate somewhere in the classification logic."
+        ],
+        "bullets": [],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "-- Diagnostic 1: find overlapping interval definitions.\n-- Illustrative PostgreSQL 18-style SQL using lag over an ordered partition.\nWITH buckets(bucket_group, bucket_id, bucket_start, bucket_end) AS (\n  VALUES\n    ('checkout_15m', 'b1', timestamp '2026-11-17 10:00:00', timestamp '2026-11-17 10:15:00'),\n    ('checkout_15m', 'b2', timestamp '2026-11-17 10:15:00', timestamp '2026-11-17 10:30:00'),\n    ('checkout_15m', 'b3', timestamp '2026-11-17 10:30:00', timestamp '2026-11-17 10:45:00')\n),\nordered AS (\n  SELECT\n    bucket_group,\n    bucket_id,\n    bucket_start,\n    bucket_end,\n    lag(bucket_end) OVER (\n      PARTITION BY bucket_group\n      ORDER BY bucket_start, bucket_end, bucket_id\n    ) AS previous_bucket_end\n  FROM buckets\n)\nSELECT *\nFROM ordered\nWHERE previous_bucket_end > bucket_start;\n\n-- Expected result for this fixture: no rows.\n\n-- Diagnostic 2: verify each event matches exactly one half-open bucket.\nWITH orders(order_id, occurred_at) AS (\n  VALUES\n    (101, timestamp '2026-11-17 10:14:59.999999'),\n    (102, timestamp '2026-11-17 10:15:00'),\n    (103, timestamp '2026-11-17 10:15:00.000001'),\n    (104, timestamp '2026-11-17 10:29:59.999999'),\n    (105, timestamp '2026-11-17 10:30:00'),\n    (106, timestamp '2026-11-17 10:30:00.000001')\n),\nbuckets(bucket_id, bucket_start, bucket_end) AS (\n  VALUES\n    ('b1', timestamp '2026-11-17 10:00:00', timestamp '2026-11-17 10:15:00'),\n    ('b2', timestamp '2026-11-17 10:15:00', timestamp '2026-11-17 10:30:00'),\n    ('b3', timestamp '2026-11-17 10:30:00', timestamp '2026-11-17 10:45:00')\n)\nSELECT\n  o.order_id,\n  count(b.bucket_id) AS matched_bucket_count\nFROM orders o\nLEFT JOIN buckets b\n  ON o.occurred_at >= b.bucket_start\n AND o.occurred_at <  b.bucket_end\nGROUP BY o.order_id\nHAVING count(b.bucket_id) <> 1\nORDER BY o.order_id;\n\n-- Expected result for this fixture: no rows."
+          }
+        ]
+      },
+      {
+        "id": "streaming-and-batch-consistency",
+        "heading": "Use the same boundary rule in batch and streaming",
+        "paragraphs": [
+          "Half-open intervals are not only a warehouse convention. Streaming systems also classify records into event-time windows, and their documentation commonly distinguishes event time from processing behavior. Spark Structured Streaming documentation, for example, describes event-time processing and windowed aggregations. The operational details of a streaming engine are outside this article, but the modeling principle is the same: a timestamp at a window boundary needs one owner.",
+          "The safest pattern is to define the interval contract independently of the tool that executes it. Write the business rule as an invariant: for any event timestamp in the covered range, exactly one active interval owns it. Then implement that invariant in SQL, stream processing code, transformation tests, and dimensional models using the same half-open predicate.",
+          "Avoid encoding boundaries as display labels. A label like 10:00-10:15 is ambiguous unless the model states whether 10:15 is included. Store bucket_start and bucket_end as data fields and derive labels for presentation after classification. If a report wants the label 10:00 to 10:15, that label can still represent [10:00, 10:15). The data contract should not depend on the punctuation in a chart axis.",
+          "Also avoid subtracting one microsecond, millisecond, or second from the next start to make an inclusive end. That workaround leaks timestamp precision into business logic. If one table stores microseconds and another stores milliseconds, or if a source later increases precision, a manufactured final instant can become wrong. Exclusive ends avoid the need for a final representable instant."
+        ],
+        "bullets": [],
+        "codeExamples": []
+      },
+      {
+        "id": "adoption-checklist",
+        "heading": "Adoption checklist",
+        "paragraphs": [
+          "Adopting half-open time intervals is mostly a consistency exercise. The code change is often small; the harder part is removing ambiguous assumptions from model definitions, tests, and reviews.",
+          "Start with interval tables that classify events into states or buckets. Promotion periods, subscription plan histories, customer lifecycle states, and reporting windows are common places to look. For each table, record the interval convention in the model description and add a fixture that includes events exactly at every shared boundary. A fixture with only middle-of-interval timestamps will not catch this bug.",
+          "Then review joins and filters. The safe predicate is not a matter of formatting; both sides must be correct. The start comparison should be inclusive, and the end comparison should be exclusive. If the model uses a generated calendar or bucket table, test the generated intervals for end <= start and for overlaps between consecutive intervals.",
+          "Finally, make the expected result explicit. For classification models, a useful invariant is: every classifiable event has matched_bucket_count = 1. Some domains allow unclassified events outside a configured range; in that case, limit the diagnostic to the intended covered period. What you should not allow silently is matched_bucket_count > 1 for an event that should have one owner."
+        ],
+        "bullets": [
+          "Define intervals as [start, end) in the model contract.",
+          "Keep boundary events in a permanent fixture, not only in an ad hoc notebook.",
+          "Prefer bucket_start and bucket_end columns over encoded text labels.",
+          "Add a diagnostic that flags events matching more than one interval.",
+          "Treat inclusive end predicates as suspicious in classification joins."
+        ],
+        "codeExamples": []
+      }
+    ],
+    "takeaways": [
+      "Use half-open intervals, start <= event_time and event_time < end, to prevent adjacent time buckets from both owning a boundary event.",
+      "Test classification logic with hypothetical or synthetic events placed exactly on shared boundaries, not only with events in the middle of intervals.",
+      "Do not manufacture inclusive ends such as 10:14:59.999999; store the next interval start as the exclusive end and let the predicate express the contract.",
+      "A practical diagnostic is to assert that each event in the covered range matches exactly one interval; zero indicates a gap, and more than one indicates overlap."
+    ],
+    "sources": [
+      {
+        "title": "PostgreSQL: Documentation: 18: 8.5. Date/Time Types",
+        "url": "https://www.postgresql.org/docs/current/datatype-datetime.html"
+      },
+      {
+        "title": "PostgreSQL: Documentation: 18: 3.5. Window Functions",
+        "url": "https://www.postgresql.org/docs/current/tutorial-window.html"
+      },
+      {
+        "title": "Structured Streaming Programming Guide - Spark 4.2.0 Documentation",
+        "url": "https://spark.apache.org/docs/latest/streaming/apis-on-dataframes-and-datasets.html"
+      }
+    ],
+    "requiresVerification": false,
+    "verificationNotes": []
+  },
+  {
+    "slug": "business-calendars-in-analytical-models",
+    "title": "Business calendars in analytical models",
+    "description": "A practical guide to modeling holidays, weekends, and working days as data instead of hiding them inside date arithmetic.",
+    "primaryKeyword": "Business calendars in analytical models",
+    "relatedKeywords": [
+      "Business calendars in analytical models"
+    ],
+    "category": "Data Modeling",
+    "level": "Intermediate",
+    "readTime": "8 min read",
+    "datePublished": "2026-11-17",
+    "dateModified": "2026-11-17",
+    "canonicalUrl": "https://jwatterson.com/writing/business-calendars-in-analytical-models",
+    "status": "published",
+    "sourceHash": "6e4f19f49f904843",
+    "lead": "Business calendars are easy to underestimate because every warehouse already has date functions. But date arithmetic answers a different question from the one business users usually ask. Adding one day, truncating a timestamp, or extracting day of week is calendar arithmetic. Deciding whether a date is a working day, whether a closure is observed, or which date is two business days later is business semantics. Those rules should live in data, not in repeated CASE expressions scattered across models.",
+    "sections": [
+      {
+        "id": "problem-with-date-arithmetic",
+        "heading": "The problem with treating business time as date arithmetic",
+        "paragraphs": [
+          "A data model usually has at least three kinds of time logic. The first is event time: when the thing happened in the real world. The second is processing time: when the platform saw or loaded it. The third is business calendar time: how the organization wants dates interpreted for operations and reporting. This article focuses only on the third one.",
+          "Date functions are still necessary. You need them to parse timestamps, convert time zones, derive local dates, and group events. PostgreSQL, for example, documents date, time, timestamp, and interval types for representing temporal values. Those types are the substrate. They do not, by themselves, know that a particular company treats the Friday after a closure as non-working, or that one region opens while another is closed.",
+          "The common modeling mistake is to encode business-day rules as arithmetic: if the date is Saturday or Sunday, skip it; otherwise add two days. That works until it does not. It fails for holidays, observed holidays, emergency closures, regional calendars, special working Saturdays, and policy changes. It also creates inconsistency because each model author writes a slightly different version.",
+          "The durable pattern is to make the business calendar a dimension table at the grain of one local date per calendar. Analytical models then join to that table and ask data questions: is this local date a working day, what is the next working day, and what is the working-day sequence number? The calendar table becomes the contract. Date arithmetic remains useful for deriving the local date from a timestamp, but it does not decide the business meaning of the date."
+        ],
+        "bullets": [],
+        "codeExamples": []
+      },
+      {
+        "id": "calendar-dimension-grain",
+        "heading": "Model one row per local date per business calendar",
+        "paragraphs": [
+          "The core table should be boring. That is a feature. At minimum, use a calendar identifier, a local date, and attributes that describe the organization’s interpretation of that date. For many analytical uses, add a working-day sequence number that increments only on working days. That sequence lets downstream models calculate business-day offsets without loops or weekday formulas.",
+          "The grain matters: one row per calendar_id and local_date. Do not store one row per timestamp. Do not store one row per holiday only. Non-holiday working days and ordinary weekends are just as important as named closures because they establish the complete set of dates a join can rely on.",
+          "The calendar_id should represent the rule set, not merely a country code. Examples might be STORE_US_EAST, SUPPORT_GLOBAL, or SETTLEMENT_BANKING. A retail store calendar, a customer support calendar, and a finance settlement calendar can differ even in the same geography. If a metric depends on which team could act on a date, the metric needs the correct calendar_id.",
+          "The table below is an illustrative PostgreSQL-style fixture. It is not a claim that these dates are official holidays in any jurisdiction. It represents a hypothetical retailer’s internal operating calendar around a year boundary. The example uses PostgreSQL 18 documentation terminology for date and timestamp types, but the modeling pattern is not PostgreSQL-specific."
+        ],
+        "bullets": [
+          "Use local_date for the business calendar row, not UTC date.",
+          "Use calendar_id to separate rule sets that can legitimately disagree.",
+          "Store is_working_day as an explicit attribute, not as a derived weekday assumption.",
+          "Store holiday_name or closure_reason as descriptive metadata, not as the primary logic.",
+          "Store business_day_seq for working days when offset calculations are needed."
+        ],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "-- Illustrative PostgreSQL-style fixture; not executed here.\ncreate table dim_business_day (\n    calendar_id text not null,\n    local_date date not null,\n    is_working_day boolean not null,\n    closure_reason text,\n    business_day_seq integer,\n    primary key (calendar_id, local_date)\n);\n\ninsert into dim_business_day\n    (calendar_id, local_date, is_working_day, closure_reason, business_day_seq)\nvalues\n    ('HYPOTHETICAL_RETAIL_EAST', date '2026-12-24', true,  null,                         1),\n    ('HYPOTHETICAL_RETAIL_EAST', date '2026-12-25', false, 'company winter closure',     null),\n    ('HYPOTHETICAL_RETAIL_EAST', date '2026-12-26', false, 'weekend',                    null),\n    ('HYPOTHETICAL_RETAIL_EAST', date '2026-12-27', false, 'weekend',                    null),\n    ('HYPOTHETICAL_RETAIL_EAST', date '2026-12-28', true,  null,                         2),\n    ('HYPOTHETICAL_RETAIL_EAST', date '2026-12-29', true,  null,                         3),\n    ('HYPOTHETICAL_RETAIL_EAST', date '2026-12-30', true,  null,                         4),\n    ('HYPOTHETICAL_RETAIL_EAST', date '2026-12-31', true,  null,                         5),\n    ('HYPOTHETICAL_RETAIL_EAST', date '2027-01-01', false, 'company new year closure',   null),\n    ('HYPOTHETICAL_RETAIL_EAST', date '2027-01-02', false, 'weekend',                    null),\n    ('HYPOTHETICAL_RETAIL_EAST', date '2027-01-03', false, 'weekend',                    null),\n    ('HYPOTHETICAL_RETAIL_EAST', date '2027-01-04', true,  null,                         6),\n    ('HYPOTHETICAL_RETAIL_EAST', date '2027-01-05', true,  null,                         7);"
+          }
+        ]
+      },
+      {
+        "id": "timestamped-event-fixture",
+        "heading": "Join timestamped events to the calendar after deriving the local date",
+        "paragraphs": [
+          "Business calendars apply to local dates. Events often arrive as UTC timestamps. The join should therefore derive the event’s local date for the relevant calendar and then join to dim_business_day. That keeps timestamp mechanics separate from business semantics.",
+          "The following hypothetical order fixture deliberately spans troublesome boundaries. Two events have UTC dates that differ from their local business dates in America/New_York. One event occurs during a company closure. One occurs on a weekend. One occurs on the UTC new year but still belongs to the prior local business date. The point is not the specific time zone; it is the separation of concerns.",
+          "Expected classification for this fixture is straightforward if the local date is derived first. Order 1001 is local 2026-12-24 and working. Order 1002 is also local 2026-12-24 even though its UTC date is 2026-12-25, so it is working. Order 1003 is local 2026-12-25 and closed. Order 1004 is local 2026-12-26 and weekend. Order 1005 is UTC 2027-01-01 but local 2026-12-31, so it is working. Order 1006 is local 2027-01-01 and closed. Order 1007 is local 2027-01-04 and working.",
+          "That result is difficult to get reliably if every downstream model writes its own mixture of UTC truncation, day-of-week checks, and holiday CASE expressions. It is simple when the calendar is data."
+        ],
+        "bullets": [],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "-- Illustrative PostgreSQL-style example using event timestamps.\ncreate table fct_order_event (\n    order_id integer primary key,\n    occurred_at_utc timestamp with time zone not null,\n    business_calendar_id text not null,\n    business_timezone text not null\n);\n\ninsert into fct_order_event\n    (order_id, occurred_at_utc, business_calendar_id, business_timezone)\nvalues\n    (1001, timestamp with time zone '2026-12-24 22:30:00+00', 'HYPOTHETICAL_RETAIL_EAST', 'America/New_York'),\n    (1002, timestamp with time zone '2026-12-25 03:30:00+00', 'HYPOTHETICAL_RETAIL_EAST', 'America/New_York'),\n    (1003, timestamp with time zone '2026-12-25 15:00:00+00', 'HYPOTHETICAL_RETAIL_EAST', 'America/New_York'),\n    (1004, timestamp with time zone '2026-12-26 16:00:00+00', 'HYPOTHETICAL_RETAIL_EAST', 'America/New_York'),\n    (1005, timestamp with time zone '2027-01-01 02:00:00+00', 'HYPOTHETICAL_RETAIL_EAST', 'America/New_York'),\n    (1006, timestamp with time zone '2027-01-01 15:00:00+00', 'HYPOTHETICAL_RETAIL_EAST', 'America/New_York'),\n    (1007, timestamp with time zone '2027-01-04 14:00:00+00', 'HYPOTHETICAL_RETAIL_EAST', 'America/New_York');\n\nwith events_with_local_date as (\n    select\n        order_id,\n        occurred_at_utc,\n        business_calendar_id,\n        (occurred_at_utc at time zone business_timezone)::date as event_local_date\n    from fct_order_event\n)\nselect\n    e.order_id,\n    e.occurred_at_utc,\n    e.event_local_date,\n    c.is_working_day,\n    c.closure_reason,\n    c.business_day_seq\nfrom events_with_local_date e\njoin dim_business_day c\n  on c.calendar_id = e.business_calendar_id\n and c.local_date = e.event_local_date\norder by e.order_id;"
+          }
+        ]
+      },
+      {
+        "id": "business-day-offsets",
+        "heading": "Use sequence numbers for business-day offsets",
+        "paragraphs": [
+          "Once working days are explicit, business-day offsets can be modeled as joins. Suppose the rule is: for orders placed on a working day, the review due date is two working days later. For this fixture, order 1001 and order 1002 both land on business_day_seq 1, so their two-business-day-later due date is sequence 3, which is 2026-12-29. Order 1005 lands on sequence 5, so the due date is sequence 7, which is 2027-01-05.",
+          "That calculation did not add two calendar days. It added two positions in the approved working-day sequence. The distinction matters. Adding two calendar days to 2026-12-24 gives 2026-12-26, a Saturday in the hypothetical calendar. Adding two working-day sequence positions gives 2026-12-29.",
+          "You still need a policy for events that occur on non-working days. There is no universal answer. A common rule is to anchor the event to the next working day, then apply the service-level offset. Another rule is to reject non-working-day events from that SLA population. The important modeling point is to state the rule and implement it against the calendar table, not hide it in date arithmetic."
+        ],
+        "bullets": [],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "-- Due date two working days after an event that already occurred on a working day.\nwith classified_events as (\n    select\n        e.order_id,\n        c.local_date as event_local_date,\n        c.business_day_seq\n    from (\n        select\n            order_id,\n            business_calendar_id,\n            (occurred_at_utc at time zone business_timezone)::date as event_local_date\n        from fct_order_event\n    ) e\n    join dim_business_day c\n      on c.calendar_id = e.business_calendar_id\n     and c.local_date = e.event_local_date\n    where c.is_working_day\n)\nselect\n    e.order_id,\n    e.event_local_date,\n    due.local_date as review_due_local_date\nfrom classified_events e\njoin dim_business_day due\n  on due.calendar_id = 'HYPOTHETICAL_RETAIL_EAST'\n and due.business_day_seq = e.business_day_seq + 2\norder by e.order_id;\n\n-- Expected rows for working-day events in this fixture:\n-- 1001, 2026-12-24, 2026-12-29\n-- 1002, 2026-12-24, 2026-12-29\n-- 1005, 2026-12-31, 2027-01-05"
+          }
+        ]
+      },
+      {
+        "id": "counterexample-and-diagnostics",
+        "heading": "A counterexample: weekday logic that looks correct but is not",
+        "paragraphs": [
+          "The tempting shortcut is to derive day of week and skip Saturday and Sunday. That shortcut can pass many casual tests. It still fails the fixture. Order 1003 occurs on Friday 2026-12-25 local time. A weekday-only test marks it as working, but the business calendar marks it as a company closure. Order 1005 occurs on UTC 2027-01-01. A UTC-date holiday check can mark it closed, but the local business date is 2026-12-31 and working.",
+          "These failures are not edge cases in the mathematical sense. They are normal consequences of mixing timestamp conversion, holiday policy, and working-day arithmetic in one expression. The diagnostic is to search for scattered logic that answers calendar questions without joining to the calendar dimension.",
+          "A useful review question is: if the operations team changes one closure date, how many models must be edited? If the answer is more than the calendar table and its controlled upstream source, the rule is probably duplicated. Another useful question is: can two calendars disagree on the same local date? If yes, the model needs calendar_id in its grain or join path.",
+          "There is also a completeness test. For the date range your facts can cover, every expected calendar_id and local_date should exist in dim_business_day. Missing calendar rows should fail loudly. An inner join that silently drops events because the calendar table stops at last month creates a correctness issue that looks like a volume change."
+        ],
+        "bullets": [
+          "Search for EXTRACT(DOW), DAYOFWEEK, weekday CASE expressions, and date + interval logic in metric models.",
+          "Check whether timestamps are truncated in UTC before business-local dates are derived.",
+          "Check whether holiday rules are duplicated in dashboards, semantic layers, and warehouse models.",
+          "Assert that every fact event with a business calendar has a matching calendar row.",
+          "Review whether non-working-day events are anchored, excluded, or separately classified."
+        ],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "-- Counterexample pattern: this ignores company closures and can use the wrong date basis.\n-- It is shown as an anti-pattern, not a recommended implementation.\nselect\n    order_id,\n    occurred_at_utc::date as utc_date,\n    case\n        when extract(dow from occurred_at_utc::date) in (0, 6) then false\n        else true\n    end as guessed_is_working_day\nfrom fct_order_event;\n\n-- Diagnostic: facts that cannot find a configured business-calendar row.\nwith events_with_local_date as (\n    select\n        order_id,\n        business_calendar_id,\n        (occurred_at_utc at time zone business_timezone)::date as event_local_date\n    from fct_order_event\n)\nselect e.*\nfrom events_with_local_date e\nleft join dim_business_day c\n  on c.calendar_id = e.business_calendar_id\n and c.local_date = e.event_local_date\nwhere c.local_date is null;"
+          }
+        ]
+      },
+      {
+        "id": "maintenance-boundaries",
+        "heading": "Keep the calendar semantic, not procedural",
+        "paragraphs": [
+          "A business calendar table is not an orchestration schedule. It should not describe when Airflow, Dagster, Spark, or a database job is allowed to run. Schedulers need operational rules. Analytical models need semantic rules about how to interpret event dates. Those can overlap, but combining them makes both harder to reason about.",
+          "The table also should not become a general fiscal calendar model. Fiscal weeks, accounting periods, and reporting boundaries are related but distinct concepts. It is fine for a richer date dimension to reference both a business-day calendar and fiscal attributes, but do not make working-day logic depend on month boundaries or accounting period assumptions unless the business rule actually says so.",
+          "Ownership is the practical challenge. Someone must be responsible for loading future dates, approving special closures, and correcting mistakes. The data engineering concern is to make those changes centralized and auditable. A simple table maintained from an approved spreadsheet, application table, or source-controlled seed can be enough for many teams, as long as downstream models treat it as the authority.",
+          "When policies can change retroactively, add versioning or effective dating. For many analytical models, it is acceptable for the calendar to represent the rule as it should be reported today. For audit-sensitive models, you may need to preserve what the rule was believed to be at the time of processing. That is a governance decision, not a date arithmetic problem."
+        ],
+        "bullets": [],
+        "codeExamples": []
+      }
+    ],
+    "takeaways": [
+      "Encode working days, holidays, closures, and special openings as rows in a business calendar dimension, not as repeated weekday arithmetic.",
+      "Derive the event’s business-local date from its timestamp first; then join to the calendar by calendar_id and local_date.",
+      "Use a working-day sequence number when models need offsets such as next business day or two business days later.",
+      "Treat missing calendar rows as data quality failures because they can silently remove or misclassify events.",
+      "Keep semantic business calendars separate from orchestration schedules and from broader fiscal reporting calendars."
+    ],
+    "sources": [
+      {
+        "title": "PostgreSQL: Documentation: 18: 8.5. Date/Time Types",
+        "url": "https://www.postgresql.org/docs/current/datatype-datetime.html"
+      },
+      {
+        "title": "PostgreSQL: Documentation: 18: 3.5. Window Functions",
+        "url": "https://www.postgresql.org/docs/current/tutorial-window.html"
+      },
+      {
+        "title": "Structured Streaming Programming Guide - Spark 4.2.0 Documentation",
+        "url": "https://spark.apache.org/docs/latest/streaming/apis-on-dataframes-and-datasets.html"
+      }
+    ],
+    "requiresVerification": false,
+    "verificationNotes": []
+  },
+  {
+    "slug": "fiscal-calendars-and-reporting-periods",
+    "title": "Fiscal calendars and reporting periods",
+    "description": "A practical guide to modeling fiscal reporting periods with explicit boundaries instead of assuming that fiscal time aligns to calendar months.",
+    "primaryKeyword": "Fiscal calendars and reporting periods",
+    "relatedKeywords": [
+      "Fiscal calendars and reporting periods"
+    ],
+    "category": "Data Modeling",
+    "level": "Intermediate",
+    "readTime": "8 min read",
+    "datePublished": "2026-11-17",
+    "dateModified": "2026-11-17",
+    "canonicalUrl": "https://jwatterson.com/writing/fiscal-calendars-and-reporting-periods",
+    "status": "published",
+    "sourceHash": "39d5ccc8619059aa",
+    "lead": "Fiscal reporting breaks when data models quietly equate fiscal periods with calendar months. The fix is not a clever date expression scattered across dashboards. It is a reporting-period dimension with explicit start and end boundaries, joined to facts by event time. This article works through a small hypothetical retail fixture that crosses calendar-year, fiscal-period, and fiscal-year boundaries so the failure mode is visible before it reaches a finance report.",
+    "sections": [
+      {
+        "id": "the-problem-with-calendar-assumptions",
+        "heading": "The problem with calendar assumptions",
+        "paragraphs": [
+          "Many analytical models start with calendar-friendly expressions: extract the year, extract the month, group by date_trunc('month'), and call the result a period. That is fine for calendar-month reporting. It is wrong for fiscal calendars that start their year in a different month, use four-week or 4-4-5 style periods, or close periods on a business-defined boundary that does not match the first day of a month.",
+          "The common modeling mistake is treating a fiscal period as a formatting problem. If the event happened on 2026-02-01, a calendar expression says it belongs to February 2026. A fiscal model may say it belongs to fiscal year 2026 period 12. Both statements can be true, but they answer different questions. If a revenue metric promises fiscal reporting, the fact row must be assigned to a fiscal reporting period using the fiscal boundary table, not inferred from the timestamp's calendar month.",
+          "This article assumes the metric is based on event time: the timestamp when the business event happened. Processing time, ingestion time, and orchestration schedule time are separate concerns. A batch that runs on Monday can report events that occurred on Sunday. A late-arriving order can be loaded today while still belonging to last fiscal period. The model should make that distinction explicit.",
+          "For database examples, PostgreSQL documentation describes date and timestamp types, and PostgreSQL window functions such as lead are useful for checking ordered period boundaries. The SQL below is illustrative for PostgreSQL 18-style syntax; it is included to show the modeling pattern, not to claim execution in a specific environment."
+        ],
+        "bullets": [],
+        "codeExamples": []
+      },
+      {
+        "id": "a-boundary-fixture",
+        "heading": "A timestamped fixture that exposes the bug",
+        "paragraphs": [
+          "Use a fixture that deliberately crosses troublesome boundaries. The hypothetical retail dataset below includes orders around New Year's Day, a fiscal-period cutover on 2026-01-25, and a fiscal-year cutover on 2026-02-22. All timestamps are represented in UTC to keep the example focused on fiscal semantics rather than local time conversion.",
+          "The fiscal periods in this fixture are not calendar months. Fiscal year 2026 period 11 runs from 2025-12-28 inclusive to 2026-01-25 exclusive. Fiscal year 2026 period 12 runs from 2026-01-25 inclusive to 2026-02-22 exclusive. Fiscal year 2027 period 1 starts at 2026-02-22 inclusive. The inclusive-start, exclusive-end convention is important: an event exactly at 2026-01-25 00:00:00 belongs to the new period, and an event one second before that belongs to the old period.",
+          "The expected fiscal totals are simple enough to verify by inspection. Period FY2026-P11 gets orders 1001, 1002, and 1003 for a total of 250.00. Period FY2026-P12 gets orders 1004, 1005, and 1006 for a total of 300.00. Period FY2027-P01 gets orders 1007, 1008, and 1009 for a total of 360.00.",
+          "A calendar-month grouping produces different answers. December 2025 has 120.00. January 2026 has 200.00. February 2026 has 550.00. March 2026 has 40.00. Those numbers are not incorrect calendar totals, but they are incorrect fiscal-period totals for this fixture. The danger is that a dashboard grouped by calendar month can look plausible while answering the wrong reporting question."
+        ],
+        "bullets": [],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "-- Illustrative PostgreSQL 18-style fixture.\n-- Hypothetical retail orders; timestamps are UTC event times.\nwith fiscal_periods as (\n  select * from (values\n    ('FY2026-P11', 2026, 11, timestamp with time zone '2025-12-28 00:00:00+00', timestamp with time zone '2026-01-25 00:00:00+00'),\n    ('FY2026-P12', 2026, 12, timestamp with time zone '2026-01-25 00:00:00+00', timestamp with time zone '2026-02-22 00:00:00+00'),\n    ('FY2027-P01', 2027,  1, timestamp with time zone '2026-02-22 00:00:00+00', timestamp with time zone '2026-03-22 00:00:00+00')\n  ) as p(fiscal_period_key, fiscal_year, fiscal_period_number, period_start_ts, period_end_ts)\n),\norders as (\n  select * from (values\n    (1001, timestamp with time zone '2025-12-31 23:50:00+00', 120.00),\n    (1002, timestamp with time zone '2026-01-01 00:10:00+00',  80.00),\n    (1003, timestamp with time zone '2026-01-24 23:59:59+00',  50.00),\n    (1004, timestamp with time zone '2026-01-25 00:00:00+00',  70.00),\n    (1005, timestamp with time zone '2026-02-01 12:00:00+00', 200.00),\n    (1006, timestamp with time zone '2026-02-21 23:59:59+00',  30.00),\n    (1007, timestamp with time zone '2026-02-22 00:00:00+00', 300.00),\n    (1008, timestamp with time zone '2026-02-28 15:00:00+00',  20.00),\n    (1009, timestamp with time zone '2026-03-01 00:00:00+00',  40.00)\n  ) as o(order_id, order_event_ts, order_amount)\n)\nselect\n  p.fiscal_period_key,\n  p.fiscal_year,\n  p.fiscal_period_number,\n  count(*) as order_count,\n  sum(o.order_amount) as gross_order_amount\nfrom orders o\njoin fiscal_periods p\n  on o.order_event_ts >= p.period_start_ts\n and o.order_event_ts <  p.period_end_ts\ngroup by p.fiscal_period_key, p.fiscal_year, p.fiscal_period_number\norder by p.fiscal_year, p.fiscal_period_number;"
+          }
+        ]
+      },
+      {
+        "id": "model-periods-as-data",
+        "heading": "Model periods as data, not date math",
+        "paragraphs": [
+          "The durable pattern is to create a reporting-period dimension and join facts to it. At minimum, the dimension needs a stable period key, fiscal year, fiscal period number, start timestamp, and end timestamp. Larger models often add fiscal quarter, display labels, sort order, prior-period keys, and flags such as is_current_period, but those are derived conveniences. The core semantic contract is the boundary pair.",
+          "The period table should use one row per reporting period at one declared grain. If the organization reports monthly, weekly, and fiscal-period metrics, model those as separate calendar types or separate dimensions rather than overloading one ambiguous period number. A fiscal period number of 1 is not meaningful without its fiscal year and calendar definition.",
+          "The join condition should be range-based: event_ts greater than or equal to period_start_ts and less than period_end_ts. Avoid between for timestamp boundaries when between is inclusive on both ends. Inclusive end boundaries create double-counting risk at exact cutover instants, because the same event can satisfy both the ending period and the starting period. Inclusive-start, exclusive-end boundaries avoid that ambiguity.",
+          "The fact table does not need to physically store the fiscal period key in every architecture. Some teams assign it during transformation and persist it for performance or metric consistency. Others join dynamically through a semantic model or view. The important rule is that the assignment has one authoritative definition and is not reimplemented differently across dashboards, notebooks, and ad hoc extracts."
+        ],
+        "bullets": [
+          "Use event time for fiscal assignment unless the metric explicitly defines another business timestamp.",
+          "Represent period boundaries with timestamps or dates at a declared time zone and grain.",
+          "Use inclusive-start and exclusive-end intervals to avoid double-counting boundary events.",
+          "Keep fiscal labels separate from calendar labels; both may be useful, but they are not interchangeable."
+        ],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "-- Counterexample: this answers a calendar-month question, not a fiscal-period question.\nwith orders as (\n  select * from (values\n    (1001, timestamp with time zone '2025-12-31 23:50:00+00', 120.00),\n    (1002, timestamp with time zone '2026-01-01 00:10:00+00',  80.00),\n    (1003, timestamp with time zone '2026-01-24 23:59:59+00',  50.00),\n    (1004, timestamp with time zone '2026-01-25 00:00:00+00',  70.00),\n    (1005, timestamp with time zone '2026-02-01 12:00:00+00', 200.00),\n    (1006, timestamp with time zone '2026-02-21 23:59:59+00',  30.00),\n    (1007, timestamp with time zone '2026-02-22 00:00:00+00', 300.00),\n    (1008, timestamp with time zone '2026-02-28 15:00:00+00',  20.00),\n    (1009, timestamp with time zone '2026-03-01 00:00:00+00',  40.00)\n  ) as o(order_id, order_event_ts, order_amount)\n)\nselect\n  date_trunc('month', order_event_ts) as calendar_month,\n  sum(order_amount) as gross_order_amount\nfrom orders\ngroup by date_trunc('month', order_event_ts)\norder by calendar_month;"
+          }
+        ]
+      },
+      {
+        "id": "diagnose-gaps-overlaps-and-unassigned-events",
+        "heading": "Diagnose gaps, overlaps, and unassigned events",
+        "paragraphs": [
+          "A fiscal calendar table becomes a dependency for reporting, so it deserves data-quality checks. Three checks catch the most damaging problems: periods that overlap, gaps between adjacent periods, and fact rows that do not map to any period.",
+          "Gaps and overlaps are easiest to see by ordering periods and comparing each period's end timestamp to the next period's start timestamp. If the current end is before the next start, events in the gap will be unassigned. If the current end is after the next start, events in the overlap can join to multiple periods. If the values are equal, the periods are contiguous under the inclusive-start, exclusive-end convention.",
+          "A second diagnostic should count fact rows with zero matching periods and more than one matching period. This is especially useful after fiscal calendars are extended for a new year, after a timezone convention changes, or after a backfill introduces older events outside the modeled range. The same diagnostic works for batch and streaming-derived tables because the question is about event-time assignment, not job scheduling.",
+          "The query below uses PostgreSQL-style window functions illustratively. The expected result for the three-period fixture is that every adjacent pair is contiguous: FY2026-P11 ends exactly when FY2026-P12 starts, and FY2026-P12 ends exactly when FY2027-P01 starts."
+        ],
+        "bullets": [],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "-- Illustrative diagnostic for gaps and overlaps in a fiscal period dimension.\nwith fiscal_periods as (\n  select * from (values\n    ('FY2026-P11', timestamp with time zone '2025-12-28 00:00:00+00', timestamp with time zone '2026-01-25 00:00:00+00'),\n    ('FY2026-P12', timestamp with time zone '2026-01-25 00:00:00+00', timestamp with time zone '2026-02-22 00:00:00+00'),\n    ('FY2027-P01', timestamp with time zone '2026-02-22 00:00:00+00', timestamp with time zone '2026-03-22 00:00:00+00')\n  ) as p(fiscal_period_key, period_start_ts, period_end_ts)\n),\nordered as (\n  select\n    fiscal_period_key,\n    period_start_ts,\n    period_end_ts,\n    lead(fiscal_period_key) over (order by period_start_ts) as next_period_key,\n    lead(period_start_ts) over (order by period_start_ts) as next_start_ts\n  from fiscal_periods\n)\nselect\n  fiscal_period_key,\n  next_period_key,\n  period_end_ts,\n  next_start_ts,\n  case\n    when next_start_ts is null then 'last modeled period'\n    when period_end_ts = next_start_ts then 'contiguous'\n    when period_end_ts < next_start_ts then 'gap'\n    when period_end_ts > next_start_ts then 'overlap'\n  end as boundary_status\nfrom ordered\norder by period_start_ts;"
+          }
+        ]
+      },
+      {
+        "id": "implementation-choices-and-tradeoffs",
+        "heading": "Implementation choices and tradeoffs",
+        "paragraphs": [
+          "The safest fiscal model is explicit, but there are still design choices. The first is timestamp versus date boundaries. Date boundaries are enough when every fact is assigned by a business date and the cutoff is midnight in the reporting timezone. Timestamp boundaries are safer when events arrive with times, when cutovers occur at a precise instant, or when source systems operate in multiple time zones. PostgreSQL distinguishes date, time, timestamp, and timestamp with time zone types; choose deliberately rather than relying on implicit casts.",
+          "The second choice is where assignment happens. Persisting fiscal_period_key on a transformed fact table makes downstream queries simple and stable, but it requires a controlled rebuild if the fiscal calendar definition changes. Joining at query time keeps the fact table closer to raw event semantics, but it can be slower and increases the chance that different consumers implement the join inconsistently. Many teams use both: assign the key in a curated fact model and keep the period dimension available for validation and enrichment.",
+          "The third choice is how to handle future and late data. Fiscal calendars should be populated far enough ahead that new events do not become unassigned simply because the next fiscal year has not been loaded. Late-arriving events should be assigned according to their event time, not the time they were processed, unless a metric explicitly uses processing time. Streaming systems also distinguish event-time semantics from processing-time execution; the same principle applies when a stream writes facts that later feed fiscal reporting.",
+          "Finally, do not mix fiscal calendars with holiday or working-day logic unless the reporting requirement truly needs both. A fiscal period answers which reporting bucket owns an event. A business calendar answers questions such as whether a date is a working day or a holiday. Keeping those concepts separate makes each model easier to test and prevents fiscal-period joins from becoming a dumping ground for unrelated time rules."
+        ],
+        "bullets": [],
+        "codeExamples": []
+      },
+      {
+        "id": "review-checklist",
+        "heading": "Review checklist before publishing fiscal metrics",
+        "paragraphs": [
+          "Before a fiscal metric is published, review the model against the boundary fixture rather than only checking a normal month. Boundary fixtures force the model to prove that it handles the cases most likely to be wrong: year crossover, period crossover, fiscal-year crossover, and events exactly on the boundary instant.",
+          "A useful review asks whether a reader can tell which timestamp assigns the period, which calendar definition is used, whether boundaries are inclusive or exclusive, and what happens outside the modeled range. If those answers are buried in dashboard code or repeated differently in multiple transformations, the fiscal semantics are not yet modeled cleanly.",
+          "The expected result for the fixture in this article is not approximate: FY2026-P11 is 250.00, FY2026-P12 is 300.00, and FY2027-P01 is 360.00. If a proposed implementation returns calendar-month totals instead, it may still be internally consistent SQL, but it is not satisfying the fiscal reporting requirement."
+        ],
+        "bullets": [
+          "Confirm that the fixture includes events exactly at period_start_ts and immediately before period_end_ts.",
+          "Confirm that every fact joins to exactly one reporting period for the metric's intended calendar.",
+          "Confirm that calendar-month totals are not being relabeled as fiscal-period totals.",
+          "Confirm that late-arriving data is assigned by event time unless the metric contract says otherwise."
+        ],
+        "codeExamples": []
+      }
+    ],
+    "takeaways": [
+      "Fiscal reporting periods should be modeled with explicit start and end boundaries, not inferred from calendar month expressions.",
+      "Use inclusive-start and exclusive-end joins from event time to the fiscal period dimension to avoid boundary double-counting.",
+      "A small boundary fixture with known totals is an effective diagnostic for calendar-year crossover, fiscal-period crossover, and fiscal-year crossover errors.",
+      "Calendar totals can be correct for calendar reporting and still be wrong for fiscal reporting; keep both semantics visible and separate."
+    ],
+    "sources": [
+      {
+        "title": "PostgreSQL: Documentation: 18: 8.5. Date/Time Types",
+        "url": "https://www.postgresql.org/docs/current/datatype-datetime.html"
+      },
+      {
+        "title": "PostgreSQL: Documentation: 18: 3.5. Window Functions",
+        "url": "https://www.postgresql.org/docs/current/tutorial-window.html"
+      },
+      {
+        "title": "Structured Streaming Programming Guide - Spark 4.2.0 Documentation",
+        "url": "https://spark.apache.org/docs/latest/streaming/apis-on-dataframes-and-datasets.html"
+      }
+    ],
+    "requiresVerification": false,
+    "verificationNotes": []
+  }
+]

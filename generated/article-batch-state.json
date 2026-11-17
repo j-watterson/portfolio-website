@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "phase": "active",
+  "phase": "finalized",
   "batchId": "batch_6afb9c1d27708190b14ad782dce01091",
   "inputFileId": "file-E8o7a94pJWuXHdETHNANx9",
   "model": "gpt-5.5",
@@ -20,11 +20,52 @@
     "fiscal-calendars-and-reporting-periods"
   ],
   "submittedAt": "2026-11-17T00:13:17.267Z",
-  "batchStatus": "validating",
-  "outputFileId": null,
+  "batchStatus": "completed",
+  "outputFileId": "file-XA6Y8QDmGey7GMrNrL2mAW",
   "errorFileId": null,
-  "successfulCount": 0,
-  "failedCount": 0,
-  "publishedCount": 0,
-  "failures": []
+  "successfulCount": 10,
+  "failedCount": 7,
+  "publishedCount": 3,
+  "failures": [
+    {
+      "customId": "article-exchange-rate-direction-and-inversion",
+      "code": "editorial_retry",
+      "message": "Editor cited a source absent from its search evidence"
+    },
+    {
+      "customId": "article-geometric-means-for-compounded-growth",
+      "code": "editorial_retry",
+      "message": "Editor cited a source absent from its search evidence"
+    },
+    {
+      "customId": "article-missing-measurements-versus-measured-zero",
+      "code": "editorial_retry",
+      "message": "Editor cited a source absent from its search evidence"
+    },
+    {
+      "customId": "article-event-time-versus-processing-time",
+      "code": "editorial_retry",
+      "message": "Editor cited a source absent from its search evidence"
+    },
+    {
+      "customId": "article-utc-storage-and-local-reporting-boundaries",
+      "code": "editorial_retry",
+      "message": "utc-storage-and-local-reporting-boundaries: duplicate or invalid section anchor"
+    },
+    {
+      "customId": "article-half-open-time-intervals",
+      "code": "editorial_retry",
+      "message": "Editor cited a source absent from its search evidence"
+    },
+    {
+      "customId": "article-fiscal-calendars-and-reporting-periods",
+      "code": "editorial_retry",
+      "message": "Editor cited a source absent from its search evidence"
+    }
+  ],
+  "finalizedAt": "2026-11-17T04:55:10.979Z",
+  "automaticReview": true,
+  "retryCount": 7,
+  "reviewCount": 0,
+  "reviewSlugs": []
 }

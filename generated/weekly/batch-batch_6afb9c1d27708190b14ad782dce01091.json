@@ -1,0 +1,457 @@
+[
+  {
+    "slug": "unit-conversions-in-analytical-models",
+    "title": "Unit conversions in analytical models",
+    "description": "A practical modeling pattern for preserving captured units, conversion provenance, and normalized values without hiding numeric assumptions.",
+    "primaryKeyword": "Unit conversions in analytical models",
+    "relatedKeywords": [
+      "Unit conversions in analytical models"
+    ],
+    "category": "Data Modeling",
+    "level": "Intermediate",
+    "readTime": "8 min read",
+    "datePublished": "2026-11-17",
+    "dateModified": "2026-11-17",
+    "canonicalUrl": "https://jwatterson.com/writing/unit-conversions-in-analytical-models",
+    "status": "published",
+    "sourceHash": "4af0766e3bfe643f",
+    "lead": "Analytical models often need one number for aggregation and another record of what actually happened. Unit conversion is where that tension becomes visible: a dashboard wants total quantity in a standard unit, while a data engineer needs to preserve whether the source system captured cases, eaches, kilograms, pounds, pallets, or some product-specific package size. The safest pattern is not to overwrite the captured value. Store the original unit and quantity, store the normalized value used for analysis, and store the conversion rule that produced it.",
+    "sections": [
+      {
+        "id": "the-problem-with-one-quantity-column",
+        "heading": "The problem with one quantity column",
+        "paragraphs": [
+          "A single quantity column looks simple until two rows use different units. Suppose a hypothetical retail shipment model receives three lines for the same product: 3 cases shipped on January 5, 8 eaches shipped on January 6, and 2 cases shipped on February 2. If a report sums the raw quantity column, it returns 13. That number is not a physical quantity. It is the sum of 3 cases, 8 eaches, and 2 cases after the unit label was discarded.",
+          "The opposite mistake is also common: convert everything to a base unit and keep only the converted value. That makes aggregation easier, but it removes the evidence needed to explain the number. If a store disputes a shipment, the operational record probably says 3 cases, not 36 eaches. If the package definition changes from 12 eaches per case to 10 eaches per case, a later analyst needs to know which conversion rule was used for each historical row.",
+          "Kimball’s dimensional modeling guidance treats multiple units of measure as an explicit modeling concern rather than a formatting problem. It describes business processes where facts may need to be reported in several units, such as pallets, cases, or scan units, and recommends an agreed standard unit together with conversion factors. The practical conclusion for analytical models is straightforward: original values and converted values serve different purposes, so they should be different fields."
+        ],
+        "bullets": [],
+        "codeExamples": []
+      },
+      {
+        "id": "calculation-rules-for-normalized-values",
+        "heading": "Calculation rules for normalized values",
+        "paragraphs": [
+          "A unit-safe fact table should make the conversion path visible. At minimum, a transaction-level fact should carry the captured quantity, the captured unit, the normalized quantity, the normalized unit, and a conversion identifier. The conversion identifier should point to a rule that includes the factor, product or unit family where applicable, effective dates, and rounding behavior.",
+          "Use a base unit that is additive for the analysis you expect. For a sellable item, that might be each. For liquid volume, it might be milliliters or liters. For weight, it might be grams or kilograms. Do not treat all units as interchangeable just because they are numbers. A count of eaches is not naturally convertible to kilograms unless a product-specific net weight assumption is part of the rule.",
+          "A durable calculation rule looks like this: normalized_quantity = captured_quantity × conversion_numerator ÷ conversion_denominator. Storing the factor as numerator and denominator avoids some ambiguity around repeating decimals. NIST’s unit-conversion guidance describes a conversion ratio, or unit factor, as equal to one because the numerator and denominator are the same quantity expressed in different units. In analytical models, the same idea is useful even when the factor is a business packaging rule rather than a physical-unit standard.",
+          "Numeric representation matters. Exact numeric, decimal, or scaled-integer storage is usually preferable for persisted analytical quantities when the warehouse supports it. Binary floating-point types can be appropriate for some scientific and approximate workloads, but they are not exact representations of many decimal values. PostgreSQL 18, for example, documents numeric as exact and real and double precision as inexact binary floating-point types. The same design caution applies beyond PostgreSQL: choose a representation deliberately and document the rounding rule.",
+          "Rounding should be a named rule, not an accidental side effect. For aggregation, the usual analytical preference is to store enough precision in the normalized value and round only for presentation. If the business requires line-level rounding, preserve that rule in the conversion metadata because totals can differ when rounding happens before aggregation instead of after aggregation."
+        ],
+        "bullets": [
+          "Store captured_quantity and captured_unit_key exactly as received from the source, except for clearly documented source cleansing.",
+          "Store normalized_quantity and normalized_unit_key for additive reporting.",
+          "Store conversion_rule_key or conversion_version_key so the conversion can be explained later.",
+          "Store effective dates on conversion rules when package sizes or unit definitions can change over time.",
+          "Reject or quarantine rows where no valid conversion rule exists for the transaction date and product context."
+        ],
+        "codeExamples": []
+      },
+      {
+        "id": "worked-hypothetical-retail-example",
+        "heading": "Worked hypothetical retail example",
+        "paragraphs": [
+          "The following example is hypothetical. It models one product whose case pack changes over time. Before February 1, one case contains 12 eaches. Starting February 1, one case contains 10 eaches. The source events must remain visible because the operational shipment line was captured in cases or eaches, not only in normalized eaches.",
+          "The correct normalized total is 64 eaches: 3 January cases × 12 = 36, plus 8 eaches × 1 = 8, plus 2 February cases × 10 = 20. Revenue is 152, so revenue per normalized each is 152 ÷ 64 = 2.375. If someone divides revenue by the raw summed quantity, they get 152 ÷ 13 = approximately 11.692 per mixed unit, which has no stable meaning. If someone applies only the current case pack of 10 to all rows, the total becomes 58 eaches. If someone applies only the older pack of 12 to all rows, the total becomes 68 eaches. Both are explainable errors caused by losing conversion provenance or effective dating.",
+          "This SQL is illustrative. It is meant to show the modeling shape and arithmetic, not to claim execution in a particular warehouse engine. Date-literal and decimal-type details vary by SQL platform."
+        ],
+        "bullets": [],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "with fact_shipment_line as (\n    select 1 as shipment_line_id, date '2026-01-05' as shipped_at, 'SKU-TEA' as sku, 3.0000 as captured_quantity, 'CASE' as captured_unit, 72.00 as revenue\n    union all select 2, date '2026-01-06', 'SKU-TEA', 8.0000, 'EACH', 20.00\n    union all select 3, date '2026-02-02', 'SKU-TEA', 2.0000, 'CASE', 60.00\n),\ndim_unit_conversion as (\n    select 'SKU-TEA_CASE_EACH_2026_01' as conversion_rule_key, 'SKU-TEA' as sku, 'CASE' as from_unit, 'EACH' as to_unit,\n           12.0000 as conversion_numerator, 1.0000 as conversion_denominator,\n           date '2026-01-01' as effective_from, date '2026-02-01' as effective_to_exclusive\n    union all select 'SKU-TEA_CASE_EACH_2026_02', 'SKU-TEA', 'CASE', 'EACH', 10.0000, 1.0000, date '2026-02-01', null\n    union all select 'SKU-TEA_EACH_EACH_ALWAYS', 'SKU-TEA', 'EACH', 'EACH', 1.0000, 1.0000, date '1900-01-01', null\n),\nconverted as (\n    select\n        f.shipment_line_id,\n        f.shipped_at,\n        f.sku,\n        f.captured_quantity,\n        f.captured_unit,\n        c.to_unit as normalized_unit,\n        f.captured_quantity * c.conversion_numerator / c.conversion_denominator as normalized_quantity,\n        c.conversion_rule_key,\n        f.revenue\n    from fact_shipment_line f\n    join dim_unit_conversion c\n      on f.sku = c.sku\n     and f.captured_unit = c.from_unit\n     and c.to_unit = 'EACH'\n     and f.shipped_at >= c.effective_from\n     and (c.effective_to_exclusive is null or f.shipped_at < c.effective_to_exclusive)\n)\nselect\n    sku,\n    sum(captured_quantity) as raw_quantity_sum_do_not_use_for_units,\n    sum(normalized_quantity) as normalized_each_quantity,\n    sum(revenue) as revenue,\n    sum(revenue) / nullif(sum(normalized_quantity), 0) as revenue_per_each\nfrom converted\ngroup by sku;"
+          }
+        ]
+      },
+      {
+        "id": "modeling-pattern",
+        "heading": "A modeling pattern that keeps both truth and utility",
+        "paragraphs": [
+          "A useful pattern is to separate the event, the conversion rule, and the derived analytical value. The event says what the source captured. The conversion rule says how to translate the captured unit into the analytical base unit. The fact table can store the derived value for performance and simplicity, but that value should be reproducible from the captured value and the rule key.",
+          "This is similar in spirit to a Type 0 attribute: some fields should retain the original value rather than being restated when definitions change. Kimball describes Type 0 as retaining an original value rather than changing it later. The captured unit on a shipment line is such a field. If the source event said CASE, the analytical model should not mutate that field to EACH merely because the warehouse uses each as its additive base unit.",
+          "The conversion dimension should be scoped carefully. Some conversions are global within a unit family, such as 1 kilogram = 1000 grams. Others are product-specific, such as 1 case of SKU-TEA = 12 eaches in January and 10 eaches in February. Others are not valid without additional assumptions. For example, converting a bag count to kilograms requires a product weight assumption; converting a volume to a mass requires a density assumption. Those assumptions belong in the conversion provenance, not in undocumented transformation code."
+        ],
+        "bullets": [
+          "Fact fields: captured_quantity, captured_unit_key, normalized_quantity, normalized_unit_key, conversion_rule_key.",
+          "Conversion fields: from_unit_key, to_unit_key, numerator, denominator, product_key when needed, effective_from, effective_to, rounding_rule, rule_source.",
+          "Quality fields: conversion_status, conversion_error_reason, and possibly normalized_quantity_is_estimated when estimates are allowed.",
+          "Audit fields: source_system, source_event_id, loaded_at, and transformation_version where your platform uses one."
+        ],
+        "codeExamples": []
+      },
+      {
+        "id": "counterexamples-that-catch-bad-models",
+        "heading": "Counterexamples that catch bad models",
+        "paragraphs": [
+          "The fastest way to find a weak unit model is to construct a small example where the wrong answer looks plausible. Mixed units are especially dangerous because bad totals often remain within a believable range.",
+          "Counterexample one: raw quantity summation. The hypothetical shipment lines sum to 13 raw units. A dashboard might show 13 shipped units without erroring. The number is wrong because the model has added cases and eaches. A useful semantic layer should make this hard or impossible by exposing normalized_quantity for additive measures and treating captured_quantity as descriptive unless grouped by captured unit.",
+          "Counterexample two: current conversion restatement. If the model joins all historical case rows to the current case definition of 10 eaches, January’s 3 cases become 30 eaches instead of 36. The report is internally consistent but historically wrong. The diagnostic is to ask whether a previously published historical total can change solely because a packaging definition changed. If yes, the model is probably using an overwrite pattern where it needs dated conversion provenance.",
+          "Counterexample three: incompatible dimensions. Suppose a customer order contains 2 cases of tea bags and 4 kilograms of loose tea. Both are tea quantities, but they are not additive under a single unit unless the model has a rule for converting the cases into weight or the kilograms into sellable units. Without that rule, a total tea quantity is a label, not a measurement."
+        ],
+        "bullets": [],
+        "codeExamples": []
+      },
+      {
+        "id": "diagnostic-queries-and-tests",
+        "heading": "Diagnostic queries and tests",
+        "paragraphs": [
+          "Unit conversion should have tests at the same level as primary keys and not-null checks because a missing conversion can silently change an aggregate. The goal is not to prove that every business assumption is perfect. The goal is to prevent untraceable arithmetic.",
+          "A first test finds transaction rows with no conversion rule. In most analytical models, those rows should be rejected from the normalized aggregate or surfaced with a conversion_status that prevents accidental inclusion. A second test finds measures where the same aggregate mixes captured units. That is not always an error, but it is a prompt to verify that the report uses normalized quantities. A third test checks that each fact row matches only one conversion rule for its product, unit, target unit, and transaction date. Overlapping effective dates create duplicate joins and inflated totals.",
+          "For the hypothetical example above, the expected aggregate is 64 normalized eaches and 152 revenue. Keeping that expected result in a small fixture is valuable because it exercises the two failure modes that matter: mixed units and time-varying conversion rules."
+        ],
+        "bullets": [],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "-- Rows that cannot be converted to the model's additive base unit.\nselect\n    f.shipment_line_id,\n    f.sku,\n    f.shipped_at,\n    f.captured_quantity,\n    f.captured_unit\nfrom fact_shipment_line f\nleft join dim_unit_conversion c\n  on f.sku = c.sku\n and f.captured_unit = c.from_unit\n and c.to_unit = 'EACH'\n and f.shipped_at >= c.effective_from\n and (c.effective_to_exclusive is null or f.shipped_at < c.effective_to_exclusive)\nwhere c.conversion_rule_key is null;\n\n-- Groups where captured quantities should not be summed without unit context.\nselect\n    sku,\n    count(distinct captured_unit) as captured_unit_count\nfrom fact_shipment_line\ngroup by sku\nhaving count(distinct captured_unit) > 1;"
+          }
+        ]
+      },
+      {
+        "id": "tradeoffs-and-practical-boundaries",
+        "heading": "Tradeoffs and practical boundaries",
+        "paragraphs": [
+          "Storing both original and normalized values costs more columns and more modeling discipline. That cost is usually smaller than the cost of explaining why a shipment, consumption, or inventory trend changed after a unit definition was updated. The important tradeoff is deciding which values are authoritative. Captured fields are authoritative for what the source said. Normalized fields are authoritative for additive analytics under a named conversion rule. Neither field replaces the other.",
+          "Avoid making conversion provenance too vague. A column named conversion_factor is better than nothing, but it is not enough when factors vary by product, date, source, or rounding policy. A conversion_rule_key gives downstream users a join path to the assumptions behind the number.",
+          "Also avoid pushing every possible unit into one universal dimension without context. Global unit definitions are useful, but business packaging is often contextual. A case, pack, bundle, or pallet may mean different quantities for different products or at different times. The model should represent that context explicitly.",
+          "This article does not cover tax treatment, accounting recognition, or currency conversion date policy. Those topics have separate rules. The unit-conversion problem here is narrower: preserve the original measurement, compute an additive normalized measurement, and keep enough provenance to reproduce the calculation."
+        ],
+        "bullets": [],
+        "codeExamples": []
+      }
+    ],
+    "takeaways": [
+      "Do not overwrite captured units with normalized units. Preserve the original quantity and unit beside the converted value.",
+      "Normalized quantities are only trustworthy when they point to a specific conversion rule, including product context and effective dates when those matter.",
+      "Raw quantities are descriptive unless they share the same unit. Aggregates should use normalized quantities with compatible base units.",
+      "Small counterexample fixtures are enough to catch common failures: summing mixed units, applying current conversions to history, and converting between incompatible dimensions."
+    ],
+    "sources": [
+      {
+        "title": "Multiple Units of Measure Facts | Kimball Dimensional Modeling Techniques",
+        "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/multiple-units-of-measure/"
+      },
+      {
+        "title": "Type 0: Retain Original | Kimball Dimensional Modeling Techniques",
+        "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/type-0/"
+      },
+      {
+        "title": "Unit Conversion | NIST",
+        "url": "https://www.nist.gov/pml/owm/metric-si/unit-conversion"
+      },
+      {
+        "title": "NIST Guide to the SI, Appendix B: Conversion Factors | NIST",
+        "url": "https://www.nist.gov/pml/special-publication-811/nist-guide-si-appendix-b-conversion-factors"
+      },
+      {
+        "title": "PostgreSQL: Documentation: 18: 8.1. Numeric Types",
+        "url": "https://www.postgresql.org/docs/current/datatype-numeric.html"
+      }
+    ],
+    "requiresVerification": false,
+    "verificationNotes": []
+  },
+  {
+    "slug": "daylight-saving-gaps-and-repeated-hours",
+    "title": "Daylight-saving gaps and repeated hours",
+    "description": "A practical fixture and data model for representing missing and duplicated wall-clock timestamps without silently inventing event time.",
+    "primaryKeyword": "Daylight-saving gaps and repeated hours",
+    "relatedKeywords": [
+      "Daylight-saving gaps and repeated hours"
+    ],
+    "category": "Data Modeling",
+    "level": "Intermediate",
+    "readTime": "7 min",
+    "datePublished": "2026-11-17",
+    "dateModified": "2026-11-17",
+    "canonicalUrl": "https://jwatterson.com/writing/daylight-saving-gaps-and-repeated-hours",
+    "status": "published",
+    "sourceHash": "bb9236d735a65fdf",
+    "lead": "Daylight-saving transitions create two different data modeling failures. In the spring, some local timestamps do not exist. In the fall, some local timestamps happen twice. A pipeline that treats wall-clock text as a unique event time will either fabricate instants or collapse distinct events. The fix is not a clever cast. It is an explicit representation: keep the submitted local timestamp, the named zone, the resolved UTC instant when one exists, the offset used for resolution, and a status that says whether the local time was normal, missing, ambiguous, or resolved.",
+    "sections": [
+      {
+        "id": "wall-clock-time-is-not-an-instant",
+        "heading": "Wall-clock time is not an instant",
+        "paragraphs": [
+          "A wall-clock timestamp such as 2026-11-01 01:10:00 is a local label. It is not automatically a single point on the timeline. Around daylight-saving changes, the mapping between local labels and instants is not always one-to-one.",
+          "There are three cases a data model must distinguish. A normal local timestamp maps to exactly one instant. A gap timestamp maps to no instant because the clock jumped over it. A repeated timestamp maps to two possible instants because the clock displayed the same local hour twice.",
+          "Production transition rules should come from the time-zone rules used by your platform. PostgreSQL, for example, documents that it uses the IANA time zone database for historical time-zone rules and notes that daylight-saving rules are subject to political changes. The IANA time-zone documentation describes civil time as a history of clock transitions, not as a single fixed offset per named place.",
+          "The prerequisite idea is event time versus processing time. Spark Structured Streaming’s documentation describes event time as the time embedded in the data itself and distinguishes it from the time Spark receives the data. If a register sends a sale with local event time 01:10 and the warehouse ingests it at 09:30 UTC, the ingestion time can tell you when the pipeline saw the record. It cannot tell you which 01:10 the sale belongs to."
+        ],
+        "bullets": [],
+        "codeExamples": []
+      },
+      {
+        "id": "a-hypothetical-transition-fixture",
+        "heading": "A hypothetical transition fixture",
+        "paragraphs": [
+          "Assume a hypothetical store time zone named Example/Store. It has two daylight-saving transitions in 2026. On the spring transition, clocks jump from 01:59:59 with offset -05:00 to 03:00:00 with offset -04:00. Therefore local times from 02:00:00 through 02:59:59 are missing. On the fall transition, clocks move from 01:59:59 with offset -04:00 back to 01:00:00 with offset -05:00. Therefore local times from 01:00:00 through 01:59:59 repeat.",
+          "The fixture below is hypothetical retail-order data. It includes ordinary events, a missing local time, and a repeated local time represented twice with different offsets and different UTC instants. The column local_time_status is not decoration; it is the field that prevents later readers from guessing whether a null UTC instant is a bug, a rejected timestamp, or an unresolved daylight-saving case.",
+          "The arithmetic is simple. With offset -05:00, add five hours to local time to get UTC. With offset -04:00, add four hours. Therefore 2026-11-01 01:10:00 at -04:00 maps to 2026-11-01 05:10:00Z, while the same wall-clock label at -05:00 maps to 2026-11-01 06:10:00Z. They are not duplicates."
+        ],
+        "bullets": [
+          "normal: a local timestamp with exactly one valid UTC instant",
+          "gap: a local timestamp with no valid UTC instant",
+          "ambiguous_unresolved: a repeated local timestamp captured without enough information to choose an instant",
+          "ambiguous_resolved: a repeated local timestamp resolved by offset, fold index, source sequence, or another documented rule"
+        ],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "-- Illustrative PostgreSQL-style fixture. It is not a claim of executed code.\n-- The Example/Store zone is hypothetical and exists only for this worked example.\n-- event_utc_ts values are UTC timestamps represented as timestamp literals for readability.\n\nwith retail_events as (\n  select *\n  from (values\n    ('e_spring_1', 'store_17', timestamp '2026-03-08 01:55:00', 'Example/Store', -300, 0, timestamp '2026-03-08 06:55:00', 'normal'),\n    ('e_spring_2', 'store_17', timestamp '2026-03-08 02:10:00', 'Example/Store', null, null, null, 'gap'),\n    ('e_spring_3', 'store_17', timestamp '2026-03-08 03:05:00', 'Example/Store', -240, 0, timestamp '2026-03-08 07:05:00', 'normal'),\n    ('e_fall_1',   'store_17', timestamp '2026-11-01 00:55:00', 'Example/Store', -240, 0, timestamp '2026-11-01 04:55:00', 'normal'),\n    ('e_fall_2a',  'store_17', timestamp '2026-11-01 01:10:00', 'Example/Store', -240, 0, timestamp '2026-11-01 05:10:00', 'ambiguous_resolved'),\n    ('e_fall_2b',  'store_17', timestamp '2026-11-01 01:10:00', 'Example/Store', -300, 1, timestamp '2026-11-01 06:10:00', 'ambiguous_resolved'),\n    ('e_fall_3',   'store_17', timestamp '2026-11-01 02:05:00', 'Example/Store', -300, 0, timestamp '2026-11-01 07:05:00', 'normal')\n  ) as t(event_id, store_id, local_ts, zone_id, utc_offset_minutes, fold_index, event_utc_ts, local_time_status)\n)\nselect *\nfrom retail_events\norder by coalesce(event_utc_ts, timestamp '9999-12-31'), event_id;"
+          }
+        ]
+      },
+      {
+        "id": "model-the-resolution-not-just-the-result",
+        "heading": "Model the resolution, not just the result",
+        "paragraphs": [
+          "A robust event table should not store only the parsed local timestamp. It also should not store only the resolved UTC instant if the source system supplied local civil time. The local value is part of the evidence. The resolved instant is the analytic timeline. The offset and status explain the conversion.",
+          "A practical schema can be small. Keep an immutable source identifier, the local timestamp exactly as interpreted, the zone identifier, the UTC instant when one is known, the offset used for that instant, a fold index for repeated hours, and a status. The fold idea is not arbitrary: Python’s PEP 495 introduced a fold attribute with values 0 and 1 to distinguish two moments that have the same local time during a backward clock transition. You do not need to use Python to use the modeling idea; the important point is to carry a local disambiguator when the wall-clock label repeats.",
+          "If your source system already sends an offset, you may derive a fold value from the offset and transition rules. If it does not, store the event as ambiguous_unresolved until a documented rule resolves it. Do not let a guessed instant look the same as an observed or fully resolved instant.",
+          "For missing times, the safest default is to reject or quarantine the event-time interpretation while preserving the original source value. Do not silently round 02:10 to 03:10, subtract an hour, or attach whichever offset a database happens to choose. Those actions create a false precision problem: downstream models see a confident instant even though the source supplied an impossible local timestamp.",
+          "For repeated times, require disambiguation. A point-of-sale terminal might include an offset, a monotonic device sequence, or a server receipt timestamp that allows a deterministic choice. If the rule says “when two choices are possible, use the source offset,” record that policy. If the rule says “infer from the device sequence,” record that too. The goal is not perfect certainty for every row; it is represented uncertainty."
+        ],
+        "bullets": [
+          "source_local_ts: the local date and time submitted by the source, without pretending it is globally unique",
+          "zone_id: the named local zone or business calendar used to interpret the source timestamp",
+          "event_utc_ts: the resolved instant, nullable for gaps and unresolved ambiguous values",
+          "utc_offset_minutes: the offset used for the chosen instant, nullable when no instant has been chosen",
+          "fold_index: null for gaps and unresolved values, 0 or 1 when a repeated hour has been resolved",
+          "local_time_status: normal, gap, ambiguous_unresolved, or ambiguous_resolved",
+          "resolution_policy: optional but useful when the offset or fold was inferred rather than supplied"
+        ],
+        "codeExamples": []
+      },
+      {
+        "id": "the-counterexample-that-breaks-hourly-aggregation",
+        "heading": "The counterexample that breaks hourly aggregation",
+        "paragraphs": [
+          "The tempting query is to group by the local hour. That query looks reasonable in ordinary weeks, but the fall transition breaks it. In the fixture, there are two events at local 01:10. A local-hour aggregation collapses them into one 01:00 bucket even though they are an hour apart on the actual timeline.",
+          "The spring transition has the opposite problem. A gap timestamp such as 02:10 should not be assigned to a normal 02:00 local-hour bucket as if that hour existed. If the row is included without status, an analyst may report activity in a wall-clock hour that never happened in that local calendar.",
+          "The corrected query depends on the business question. If the question is timeline behavior, group by UTC hour. If the question is local displayed hour during a repeated interval, include fold or offset in the grouping key. If the question is data quality, count gap and ambiguous_unresolved rows separately instead of forcing them into ordinary time buckets."
+        ],
+        "bullets": [],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "-- Illustrative counterexample: this collapses two different fall-back instants into one local bucket.\nwith retail_events as (\n  select *\n  from (values\n    ('e_fall_2a', 'store_17', timestamp '2026-11-01 01:10:00', 'Example/Store', -240, 0, timestamp '2026-11-01 05:10:00', 'ambiguous_resolved'),\n    ('e_fall_2b', 'store_17', timestamp '2026-11-01 01:10:00', 'Example/Store', -300, 1, timestamp '2026-11-01 06:10:00', 'ambiguous_resolved')\n  ) as t(event_id, store_id, local_ts, zone_id, utc_offset_minutes, fold_index, event_utc_ts, local_time_status)\n)\nselect\n  store_id,\n  date_trunc('hour', local_ts) as local_hour,\n  count(*) as event_count\nfrom retail_events\ngroup by store_id, date_trunc('hour', local_ts);\n\n-- Expected logical result for the fixture:\n-- store_17 | 2026-11-01 01:00:00 | 2\n-- That result is not wrong SQL, but it is an ambiguous model for a repeated hour."
+          },
+          {
+            "language": "sql",
+            "code": "-- Illustrative safer local-hour grouping for repeated hours: keep the fold or offset.\nwith retail_events as (\n  select *\n  from (values\n    ('e_fall_2a', 'store_17', timestamp '2026-11-01 01:10:00', 'Example/Store', -240, 0, timestamp '2026-11-01 05:10:00', 'ambiguous_resolved'),\n    ('e_fall_2b', 'store_17', timestamp '2026-11-01 01:10:00', 'Example/Store', -300, 1, timestamp '2026-11-01 06:10:00', 'ambiguous_resolved')\n  ) as t(event_id, store_id, local_ts, zone_id, utc_offset_minutes, fold_index, event_utc_ts, local_time_status)\n)\nselect\n  store_id,\n  date_trunc('hour', local_ts) as local_hour,\n  fold_index,\n  utc_offset_minutes,\n  date_trunc('hour', event_utc_ts) as utc_hour,\n  count(*) as event_count\nfrom retail_events\nwhere local_time_status <> 'gap'\ngroup by\n  store_id,\n  date_trunc('hour', local_ts),\n  fold_index,\n  utc_offset_minutes,\n  date_trunc('hour', event_utc_ts)\norder by utc_hour;\n\n-- Expected logical result for the fixture:\n-- store_17 | 2026-11-01 01:00:00 | 0 | -240 | 2026-11-01 05:00:00 | 1\n-- store_17 | 2026-11-01 01:00:00 | 1 | -300 | 2026-11-01 06:00:00 | 1"
+          }
+        ]
+      },
+      {
+        "id": "diagnose-ambiguous-inputs-before-they-spread",
+        "heading": "Diagnose ambiguous inputs before they spread",
+        "paragraphs": [
+          "Daylight-saving bugs often become expensive because they are discovered in aggregate tables, not at ingestion. Add a diagnostic at the boundary where source local time is converted into event time. The diagnostic should answer three questions: which rows are impossible, which rows are repeated but unresolved, and which rows were resolved by policy rather than by explicit source offset.",
+          "Window functions are useful for inspection because they let you compare records that share a local timestamp while preserving the original rows. PostgreSQL documents window functions as calculations over related rows selected by an OVER clause, with PARTITION BY defining groups of rows for the window calculation. The exact production implementation can be in SQL, a transformation framework, or a streaming job. The modeling goal is the same: flag local labels whose interpretation is not one ordinary instant.",
+          "The example query below is illustrative PostgreSQL-style SQL. It assumes the status fields already exist. It does not attempt to implement a full time-zone engine in SQL. In real systems, the conversion step should use the same time-zone rules consistently across batch, streaming, and application code."
+        ],
+        "bullets": [],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "-- Illustrative diagnostic: find local labels that need attention.\nwith retail_events as (\n  select *\n  from (values\n    ('e_spring_2', 'store_17', timestamp '2026-03-08 02:10:00', 'Example/Store', null, null, null, 'gap'),\n    ('e_fall_2a',  'store_17', timestamp '2026-11-01 01:10:00', 'Example/Store', -240, 0, timestamp '2026-11-01 05:10:00', 'ambiguous_resolved'),\n    ('e_fall_2b',  'store_17', timestamp '2026-11-01 01:10:00', 'Example/Store', -300, 1, timestamp '2026-11-01 06:10:00', 'ambiguous_resolved'),\n    ('e_fall_4',   'store_17', timestamp '2026-11-01 01:25:00', 'Example/Store', null, null, null, 'ambiguous_unresolved')\n  ) as t(event_id, store_id, local_ts, zone_id, utc_offset_minutes, fold_index, event_utc_ts, local_time_status)\n), labeled as (\n  select\n    *,\n    count(*) over (partition by store_id, zone_id, local_ts) as same_local_label_count,\n    count(utc_offset_minutes) over (partition by store_id, zone_id, local_ts) as resolved_offset_count\n  from retail_events\n)\nselect\n  event_id,\n  store_id,\n  local_ts,\n  zone_id,\n  local_time_status,\n  utc_offset_minutes,\n  fold_index,\n  event_utc_ts,\n  same_local_label_count,\n  resolved_offset_count\nfrom labeled\nwhere local_time_status in ('gap', 'ambiguous_unresolved')\n   or same_local_label_count > 1\norder by local_ts, event_id;"
+          }
+        ]
+      },
+      {
+        "id": "tradeoffs-and-boundaries",
+        "heading": "Tradeoffs and boundaries",
+        "paragraphs": [
+          "This model stores more than one time field because the fields answer different questions. The source local timestamp answers what the external system said. The UTC instant answers where the event lands on the global timeline. The offset and fold answer why a repeated wall-clock label maps to that instant. The status answers whether the conversion was ordinary, impossible, unresolved, or policy-based.",
+          "The main tradeoff is complexity at ingestion versus ambiguity everywhere else. If you defer classification, every downstream model has to rediscover daylight-saving rules and make its own choice. If you classify at ingestion, downstream users can filter, aggregate, or quarantine consistently.",
+          "Database type names do not remove the need for this design. PostgreSQL distinguishes timestamp types with and without time zone and documents that timezone-aware dates and times are stored internally in UTC before display conversion. That behavior is useful for instants, but a column type alone cannot tell you whether a source wall-clock label was missing, repeated, or resolved by a particular policy. You still need explicit status and disambiguation fields when the source data arrives as local civil time.",
+          "This article is intentionally narrow. It does not cover how to map a local business day to a UTC interval for reporting, and it does not cover interval boundary conventions. The deliverable here is the event fixture and representation: do not let missing and duplicated wall-clock timestamps masquerade as ordinary timestamps."
+        ],
+        "bullets": [],
+        "codeExamples": []
+      }
+    ],
+    "takeaways": [
+      "A local wall-clock timestamp is not always a unique event instant; daylight-saving gaps map to no instant, and repeated hours can map to two.",
+      "Represent the submitted local timestamp, zone, resolved UTC instant, offset, fold index, and local-time status instead of relying on a single timestamp column.",
+      "For gap rows, preserve the source value and mark the event-time interpretation as invalid or unresolved; do not silently round to a nearby valid time.",
+      "For repeated rows, include offset or fold in keys used for local-hour grouping, otherwise distinct timeline hours can collapse into one bucket."
+    ],
+    "sources": [
+      {
+        "title": "PostgreSQL: Documentation: 18: 8.5. Date/Time Types",
+        "url": "https://www.postgresql.org/docs/current/datatype-datetime.html"
+      },
+      {
+        "title": "PostgreSQL: Documentation: 18: 3.5. Window Functions",
+        "url": "https://www.postgresql.org/docs/18/tutorial-window.html"
+      },
+      {
+        "title": "Structured Streaming Programming Guide - Spark 4.3.0 Documentation",
+        "url": "https://spark.apache.org/docs/latest/streaming/getting-started.html"
+      },
+      {
+        "title": "PEP 495 – Local Time Disambiguation",
+        "url": "https://peps.python.org/pep-0495/"
+      },
+      {
+        "title": "Theory and pragmatics of the tz code and data",
+        "url": "https://data.iana.org/time-zones/theory.html"
+      }
+    ],
+    "requiresVerification": false,
+    "verificationNotes": []
+  },
+  {
+    "slug": "business-calendars-in-analytical-models",
+    "title": "Business calendars in analytical models",
+    "description": "A practical guide to modeling holidays, weekends, and working days as data instead of hiding them inside date arithmetic.",
+    "primaryKeyword": "Business calendars in analytical models",
+    "relatedKeywords": [
+      "Business calendars in analytical models"
+    ],
+    "category": "Data Modeling",
+    "level": "Intermediate",
+    "readTime": "8 min read",
+    "datePublished": "2026-11-17",
+    "dateModified": "2026-11-17",
+    "canonicalUrl": "https://jwatterson.com/writing/business-calendars-in-analytical-models",
+    "status": "published",
+    "sourceHash": "6e4f19f49f904843",
+    "lead": "Business calendars are easy to underestimate because every warehouse already has date functions. But date arithmetic answers a different question from the one business users usually ask. Adding one day, truncating a timestamp, or extracting day of week is calendar arithmetic. Deciding whether a date is a working day, whether a closure is observed, or which date is two business days later is business semantics. Those rules should live in data, not in repeated CASE expressions scattered across models.",
+    "sections": [
+      {
+        "id": "problem-with-date-arithmetic",
+        "heading": "The problem with treating business time as date arithmetic",
+        "paragraphs": [
+          "A data model usually has at least three kinds of time logic. The first is event time: when the thing happened in the real world. The second is processing time: when the platform saw or loaded it. The third is business calendar time: how the organization wants dates interpreted for operations and reporting. This article focuses only on the third one.",
+          "Date functions are still necessary. You need them to parse timestamps, convert time zones, derive local dates, and group events. PostgreSQL documents date, time, timestamp, timestamp with time zone, and interval types for representing temporal values. Spark Structured Streaming documentation also distinguishes event time from the time at which an application receives an event when explaining event-time windows and late data. Those capabilities are the substrate. They do not, by themselves, know that a particular organization treats a specific Friday as a closure, or that one operating calendar is open while another is closed.",
+          "The common modeling mistake is to encode business-day rules as arithmetic: if the date is Saturday or Sunday, skip it; otherwise add two days. That works until it does not. It fails for holidays, observed holidays, emergency closures, regional calendars, special working Saturdays, and policy changes. It also creates inconsistency because each model author writes a slightly different version.",
+          "The durable pattern is to make the business calendar a dimension table at the grain of one local date per calendar. Analytical models then join to that table and ask data questions: is this local date a working day, what is the next working day, and what is the working-day sequence number? The calendar table becomes the contract. Date arithmetic remains useful for deriving the local date from a timestamp, but it does not decide the business meaning of the date."
+        ],
+        "bullets": [],
+        "codeExamples": []
+      },
+      {
+        "id": "calendar-dimension-grain",
+        "heading": "Model one row per local date per business calendar",
+        "paragraphs": [
+          "The core table should be boring. That is a feature. At minimum, use a calendar identifier, a local date, and attributes that describe the organization’s interpretation of that date. For many analytical uses, add a working-day sequence number that increments only on working days. That sequence lets downstream models calculate business-day offsets without loops or weekday formulas.",
+          "The grain matters: one row per calendar_id and local_date. Do not store one row per timestamp. Do not store one row per holiday only. Non-holiday working days and ordinary weekends are just as important as named closures because they establish the complete set of dates a join can rely on.",
+          "The calendar_id should represent the rule set, not merely a country code. Examples might be STORE_US_EAST, SUPPORT_GLOBAL, or SETTLEMENT_BANKING. A retail store calendar, a customer support calendar, and a finance settlement calendar can differ even in the same geography. If a metric depends on which team could act on a date, the metric needs the correct calendar_id.",
+          "The table below is an illustrative PostgreSQL-style fixture. It has not been executed here, and it is not a claim that these dates are official holidays in any jurisdiction. It represents a hypothetical retailer’s internal operating calendar around a year boundary. The example uses PostgreSQL date and timestamp terminology, but the modeling pattern is not PostgreSQL-specific."
+        ],
+        "bullets": [
+          "Use local_date for the business calendar row, not UTC date.",
+          "Use calendar_id to separate rule sets that can legitimately disagree.",
+          "Store is_working_day as an explicit attribute, not as a derived weekday assumption.",
+          "Store holiday_name or closure_reason as descriptive metadata, not as the primary logic.",
+          "Store business_day_seq for working days when offset calculations are needed."
+        ],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "-- Illustrative PostgreSQL-style fixture; not executed here.\ncreate table dim_business_day (\n    calendar_id text not null,\n    local_date date not null,\n    is_working_day boolean not null,\n    closure_reason text,\n    business_day_seq integer,\n    primary key (calendar_id, local_date),\n    unique (calendar_id, business_day_seq)\n);\n\ninsert into dim_business_day\n    (calendar_id, local_date, is_working_day, closure_reason, business_day_seq)\nvalues\n    ('HYPOTHETICAL_RETAIL_EAST', date '2026-12-24', true,  null,                       1),\n    ('HYPOTHETICAL_RETAIL_EAST', date '2026-12-25', false, 'company winter closure',   null),\n    ('HYPOTHETICAL_RETAIL_EAST', date '2026-12-26', false, 'weekend',                  null),\n    ('HYPOTHETICAL_RETAIL_EAST', date '2026-12-27', false, 'weekend',                  null),\n    ('HYPOTHETICAL_RETAIL_EAST', date '2026-12-28', true,  null,                       2),\n    ('HYPOTHETICAL_RETAIL_EAST', date '2026-12-29', true,  null,                       3),\n    ('HYPOTHETICAL_RETAIL_EAST', date '2026-12-30', true,  null,                       4),\n    ('HYPOTHETICAL_RETAIL_EAST', date '2026-12-31', true,  null,                       5),\n    ('HYPOTHETICAL_RETAIL_EAST', date '2027-01-01', false, 'company new year closure', null),\n    ('HYPOTHETICAL_RETAIL_EAST', date '2027-01-02', false, 'weekend',                  null),\n    ('HYPOTHETICAL_RETAIL_EAST', date '2027-01-03', false, 'weekend',                  null),\n    ('HYPOTHETICAL_RETAIL_EAST', date '2027-01-04', true,  null,                       6),\n    ('HYPOTHETICAL_RETAIL_EAST', date '2027-01-05', true,  null,                       7);"
+          }
+        ]
+      },
+      {
+        "id": "timestamped-event-fixture",
+        "heading": "Join timestamped events to the calendar after deriving the local date",
+        "paragraphs": [
+          "Business calendars apply to local dates. Events often arrive as UTC timestamps. The join should therefore derive the event’s local date for the relevant calendar and then join to dim_business_day. That keeps timestamp mechanics separate from business semantics.",
+          "The following hypothetical order fixture deliberately spans troublesome boundaries. Two events have UTC dates that differ from their local business dates in America/New_York. One event occurs during a company closure. One occurs on a weekend. One occurs on the UTC new year but still belongs to the prior local business date. The point is not the specific time zone; it is the separation of concerns. PostgreSQL documents that timestamp with time zone values are stored internally in UTC and can be shown in another zone with AT TIME ZONE, which is the PostgreSQL-specific syntax used in the illustrative query.",
+          "Expected classification for this fixture is straightforward if the local date is derived first. Order 1001 is local 2026-12-24 and working. Order 1002 is also local 2026-12-24 even though its UTC date is 2026-12-25, so it is working. Order 1003 is local 2026-12-25 and closed. Order 1004 is local 2026-12-26 and weekend. Order 1005 is UTC 2027-01-01 but local 2026-12-31, so it is working. Order 1006 is local 2027-01-01 and closed. Order 1007 is local 2027-01-04 and working.",
+          "That result is difficult to get reliably if every downstream model writes its own mixture of UTC truncation, day-of-week checks, and holiday CASE expressions. It is simple when the calendar is data."
+        ],
+        "bullets": [],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "-- Illustrative PostgreSQL-style example using event timestamps; not executed here.\ncreate table fct_order_event (\n    order_id integer primary key,\n    occurred_at_utc timestamp with time zone not null,\n    business_calendar_id text not null,\n    business_timezone text not null\n);\n\ninsert into fct_order_event\n    (order_id, occurred_at_utc, business_calendar_id, business_timezone)\nvalues\n    (1001, timestamp with time zone '2026-12-24 22:30:00+00', 'HYPOTHETICAL_RETAIL_EAST', 'America/New_York'),\n    (1002, timestamp with time zone '2026-12-25 03:30:00+00', 'HYPOTHETICAL_RETAIL_EAST', 'America/New_York'),\n    (1003, timestamp with time zone '2026-12-25 15:00:00+00', 'HYPOTHETICAL_RETAIL_EAST', 'America/New_York'),\n    (1004, timestamp with time zone '2026-12-26 16:00:00+00', 'HYPOTHETICAL_RETAIL_EAST', 'America/New_York'),\n    (1005, timestamp with time zone '2027-01-01 02:00:00+00', 'HYPOTHETICAL_RETAIL_EAST', 'America/New_York'),\n    (1006, timestamp with time zone '2027-01-01 15:00:00+00', 'HYPOTHETICAL_RETAIL_EAST', 'America/New_York'),\n    (1007, timestamp with time zone '2027-01-04 14:00:00+00', 'HYPOTHETICAL_RETAIL_EAST', 'America/New_York');\n\nwith events_with_local_date as (\n    select\n        order_id,\n        occurred_at_utc,\n        business_calendar_id,\n        (occurred_at_utc at time zone business_timezone)::date as event_local_date\n    from fct_order_event\n)\nselect\n    e.order_id,\n    e.occurred_at_utc,\n    e.event_local_date,\n    c.is_working_day,\n    c.closure_reason,\n    c.business_day_seq\nfrom events_with_local_date e\njoin dim_business_day c\n  on c.calendar_id = e.business_calendar_id\n and c.local_date = e.event_local_date\norder by e.order_id;"
+          }
+        ]
+      },
+      {
+        "id": "business-day-offsets",
+        "heading": "Use sequence numbers for business-day offsets",
+        "paragraphs": [
+          "Once working days are explicit, business-day offsets can be modeled as joins. Suppose the rule is: for orders placed on a working day, the review due date is two working days later. For this fixture, order 1001 and order 1002 both land on business_day_seq 1, so their two-business-day-later due date is sequence 3, which is 2026-12-29. Order 1005 lands on sequence 5, so the due date is sequence 7, which is 2027-01-05.",
+          "That calculation did not add two calendar days. It added two positions in the approved working-day sequence. The distinction matters. Adding two calendar days to 2026-12-24 gives 2026-12-26, a Saturday in the hypothetical calendar. Adding two working-day sequence positions gives 2026-12-29.",
+          "You still need a policy for events that occur on non-working days. There is no universal answer. A common rule is to anchor the event to the next working day, then apply the service-level offset. Another rule is to reject non-working-day events from that SLA population. The important modeling point is to state the rule and implement it against the calendar table, not hide it in date arithmetic.",
+          "In a production model, business_day_seq can be loaded from an approved calendar source or generated over configured working-day rows with a window function. PostgreSQL supports window functions such as row_number over partitions, but the sequence should still be treated as part of the governed calendar output, not recalculated differently in every downstream metric."
+        ],
+        "bullets": [],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "-- Due date two working days after an event that already occurred on a working day.\n-- Illustrative PostgreSQL-style query; not executed here.\nwith classified_events as (\n    select\n        e.order_id,\n        c.calendar_id,\n        c.local_date as event_local_date,\n        c.business_day_seq\n    from (\n        select\n            order_id,\n            business_calendar_id,\n            (occurred_at_utc at time zone business_timezone)::date as event_local_date\n        from fct_order_event\n    ) e\n    join dim_business_day c\n      on c.calendar_id = e.business_calendar_id\n     and c.local_date = e.event_local_date\n    where c.is_working_day\n)\nselect\n    e.order_id,\n    e.event_local_date,\n    due.local_date as review_due_local_date\nfrom classified_events e\njoin dim_business_day due\n  on due.calendar_id = e.calendar_id\n and due.business_day_seq = e.business_day_seq + 2\norder by e.order_id;\n\n-- Expected rows for working-day events in this fixture:\n-- 1001, 2026-12-24, 2026-12-29\n-- 1002, 2026-12-24, 2026-12-29\n-- 1005, 2026-12-31, 2027-01-05"
+          }
+        ]
+      },
+      {
+        "id": "counterexample-and-diagnostics",
+        "heading": "A counterexample: weekday logic that looks correct but is not",
+        "paragraphs": [
+          "The tempting shortcut is to derive day of week and skip Saturday and Sunday. That shortcut can pass many casual tests. It still fails the fixture. Order 1003 occurs on Friday 2026-12-25 local time. A weekday-only test marks it as working, but the business calendar marks it as a company closure. Order 1005 occurs on UTC 2027-01-01. A UTC-date holiday check can mark it closed, but the local business date is 2026-12-31 and working.",
+          "These failures are not edge cases in the mathematical sense. They are normal consequences of mixing timestamp conversion, holiday policy, and working-day arithmetic in one expression. The diagnostic is to search for scattered logic that answers calendar questions without joining to the calendar dimension.",
+          "A useful review question is: if the operations team changes one closure date, how many models must be edited? If the answer is more than the calendar table and its controlled upstream source, the rule is probably duplicated. Another useful question is: can two calendars disagree on the same local date? If yes, the model needs calendar_id in its grain or join path.",
+          "There is also a completeness test. For the date range your facts can cover, every expected calendar_id and local_date should exist in dim_business_day. Missing calendar rows should fail loudly. An inner join that silently drops events because the calendar table stops at last month creates a correctness issue that looks like a volume change."
+        ],
+        "bullets": [
+          "Search for EXTRACT(DOW), DAYOFWEEK, weekday CASE expressions, and date + interval logic in metric models.",
+          "Check whether timestamps are truncated in UTC before business-local dates are derived.",
+          "Check whether holiday rules are duplicated in dashboards, semantic layers, and warehouse models.",
+          "Assert that every fact event with a business calendar has a matching calendar row.",
+          "Review whether non-working-day events are anchored, excluded, or separately classified."
+        ],
+        "codeExamples": [
+          {
+            "language": "sql",
+            "code": "-- Counterexample pattern: this ignores company closures and can use the wrong date basis.\n-- It is shown as an anti-pattern, not a recommended implementation.\nselect\n    order_id,\n    occurred_at_utc::date as utc_date,\n    case\n        when extract(dow from occurred_at_utc::date) in (0, 6) then false\n        else true\n    end as guessed_is_working_day\nfrom fct_order_event;\n\n-- Diagnostic: facts that cannot find a configured business-calendar row.\n-- Illustrative PostgreSQL-style query; not executed here.\nwith events_with_local_date as (\n    select\n        order_id,\n        business_calendar_id,\n        (occurred_at_utc at time zone business_timezone)::date as event_local_date\n    from fct_order_event\n)\nselect e.*\nfrom events_with_local_date e\nleft join dim_business_day c\n  on c.calendar_id = e.business_calendar_id\n and c.local_date = e.event_local_date\nwhere c.local_date is null;"
+          }
+        ]
+      },
+      {
+        "id": "maintenance-boundaries",
+        "heading": "Keep the calendar semantic, not procedural",
+        "paragraphs": [
+          "A business calendar table is not an orchestration schedule. It should not describe when Airflow, Dagster, Spark, or a database job is allowed to run. Schedulers need operational rules. Analytical models need semantic rules about how to interpret event dates. Those can overlap, but combining them makes both harder to reason about.",
+          "The table also should not become a general fiscal calendar model. Fiscal weeks, accounting periods, and reporting boundaries are related but distinct concepts. It is fine for a richer date dimension to reference both a business-day calendar and fiscal attributes, but do not make working-day logic depend on month boundaries or accounting period assumptions unless the business rule actually says so.",
+          "Ownership is the practical challenge. Someone must be responsible for loading future dates, approving special closures, and correcting mistakes. The data engineering concern is to make those changes centralized and auditable. A simple table maintained from an approved spreadsheet, application table, or source-controlled seed can be enough for many teams, as long as downstream models treat it as the authority.",
+          "When policies can change retroactively, add versioning or effective dating. For many analytical models, it is acceptable for the calendar to represent the rule as it should be reported today. For audit-sensitive models, you may need to preserve what the rule was believed to be at the time of processing. That is a governance decision, not a date arithmetic problem."
+        ],
+        "bullets": [],
+        "codeExamples": []
+      }
+    ],
+    "takeaways": [
+      "Encode working days, holidays, closures, and special openings as rows in a business calendar dimension, not as repeated weekday arithmetic.",
+      "Derive the event’s business-local date from its timestamp first; then join to the calendar by calendar_id and local_date.",
+      "Use a working-day sequence number when models need offsets such as next business day or two business days later.",
+      "Treat missing calendar rows as data quality failures because they can silently remove or misclassify events.",
+      "Keep semantic business calendars separate from orchestration schedules and from broader fiscal reporting calendars."
+    ],
+    "sources": [
+      {
+        "title": "PostgreSQL: Documentation: 18: 8.5. Date/Time Types",
+        "url": "https://www.postgresql.org/docs/current/datatype-datetime.html"
+      },
+      {
+        "title": "PostgreSQL: Documentation: 18: 9.9. Date/Time Functions and Operators",
+        "url": "https://www.postgresql.org/docs/current/functions-datetime.html"
+      },
+      {
+        "title": "PostgreSQL: Documentation: 18: 3.5. Window Functions",
+        "url": "https://www.postgresql.org/docs/current/tutorial-window.html"
+      },
+      {
+        "title": "Structured Streaming Programming Guide - Spark 4.3.0 Documentation",
+        "url": "https://spark.apache.org/docs/latest/streaming/apis-on-dataframes-and-datasets.html"
+      }
+    ],
+    "requiresVerification": false,
+    "verificationNotes": []
+  }
+]
